@@ -19,14 +19,27 @@ namespace InsaitTextEditor
 
         // ✅ Публічний доступ до TabManager для App та інших компонентів
         public TabManager TabManager => _tabManager;
+        
+        // ✅ Файл для відкриття після ініціалізації (з аргументів командного рядка)
+        private string? _startupFilePath;
 
-        public MainWindow() : this(false)
+        public MainWindow() : this(false, null)
         {
         }
 
-        public MainWindow(bool suppressInit)
+        public MainWindow(bool suppressInit) : this(suppressInit, null)
+        {
+        }
+
+        /// <summary>
+        /// Конструктор з параметром для відкриття файлу при запуску
+        /// </summary>
+        /// <param name="suppressInit">Не створювати початкову вкладку</param>
+        /// <param name="startupFilePath">Шлях до файлу для відкриття (з командного рядка)</param>
+public MainWindow(bool suppressInit, string? startupFilePath)
         {
             var suppressInit1 = suppressInit;
+            _startupFilePath = startupFilePath;
             InitializeComponent();
 
             var tabs = this.FindControl<TabsPanel>("TopTabs")
@@ -69,9 +82,20 @@ namespace InsaitTextEditor
             // Відновлення сесії після відкриття вікна та запуск автозбереження
             this.Opened += async (_, _) =>
             {
-                if (!suppressInit1)
+                // Якщо є файл для відкриття з командного рядка - не відновлюємо сесію
+                bool hasStartupFile = !string.IsNullOrWhiteSpace(_startupFilePath) && 
+                                      System.IO.File.Exists(_startupFilePath);
+                
+                if (!suppressInit1 && !hasStartupFile)
                 {
                     await _sessionService.RestoreOrInitAsync(_tabManager);
+                }
+                
+                // ✅ Відкрити файл з командного рядка (якщо є)
+                if (hasStartupFile)
+                {
+                    System.Console.WriteLine($"[MainWindow] ✅ Відкриваю файл з командного рядка: {_startupFilePath}");
+                    await _tabManager.OpenFileAsync(_startupFilePath!);
                 }
 
                 // Для спеціально створеного вікна (Alt+T) не відновлюємо сесію і не створюємо зайві вкладки

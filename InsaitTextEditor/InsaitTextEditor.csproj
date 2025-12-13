@@ -7,6 +7,8 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>Minimalist_app_icon_square_102.ico</ApplicationIcon>
+    <!-- Windows manifest for file associations and DPI awareness -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -109,6 +111,13 @@
 
   <ItemGroup>
     <Folder Include="AiModel\" />
+  </ItemGroup>
+
+  <!-- Скрипт реєстрації файлових асоціацій для Windows -->
+  <ItemGroup>
+    <None Include="Register-FileAssociations.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <!-- Папки БД створюються автоматично при першому запуску додатка -->

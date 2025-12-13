@@ -46,6 +46,9 @@ public partial class App : Application
     
     // ✅ TabManager для доступу з ChatWindow та інших компонентів
     public static TabManager? TabManager { get; private set; }
+    
+    // ✅ Аргументи командного рядка для відкриття файлів
+    public static string[]? StartupArgs { get; set; }
 
     public override void Initialize()
     {
@@ -164,14 +167,24 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
+            // ✅ Перевіряємо чи є файл для відкриття з аргументів командного рядка
+            string? startupFilePath = null;
+            if (StartupArgs != null && StartupArgs.Length > 0)
+            {
+                var filePath = StartupArgs[0];
+                if (!string.IsNullOrWhiteSpace(filePath) && System.IO.File.Exists(filePath))
+                {
+                    startupFilePath = filePath;
+                    System.Console.WriteLine($"[App] ✅ Знайдено файл для відкриття: {startupFilePath}");
+                }
+            }
+            
+            var mainWindow = new MainWindow(suppressInit: false, startupFilePath: startupFilePath);
+            desktop.MainWindow = mainWindow;
             
             // ✅ Отримати TabManager з MainWindow
-            if (desktop.MainWindow is MainWindow mainWindow)
-            {
-                TabManager = mainWindow.TabManager;
-                System.Console.WriteLine("[App] ✅ TabManager експортовано з MainWindow");
-            }
+            TabManager = mainWindow.TabManager;
+            System.Console.WriteLine("[App] ✅ TabManager експортовано з MainWindow");
         }
 
         base.OnFrameworkInitializationCompleted();
