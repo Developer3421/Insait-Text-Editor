@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="InsaitTextEditor.Controls.TabsPanel"
+    x:Name="root"
+    Height="{Binding TabHeight, ElementName=root}">
+  <Border Background="Transparent" Padding="0">
+    <Grid ColumnDefinitions="*,Auto"
+          Height="{Binding TabHeight, ElementName=root}"
+          VerticalAlignment="Center">
+      <!-- Хост для вкладок -->
+      <StackPanel x:Name="ItemsHost"
+                  Grid.Column="0"
+                  Orientation="Horizontal"
+                  Spacing="8"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Left"/>
+
+      <!-- Кнопка Додати вкладку (30x30, зелений фон, чорний плюс) -->
+      <Button Grid.Column="1"
+              Width="{Binding AddButtonSize, ElementName=root}"
+              Height="{Binding AddButtonSize, ElementName=root}"
+              Background="{DynamicResource AppGreenBrush}"
+              Foreground="Black"
+              BorderBrush="Transparent"
+              Padding="0"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Center"
+              Template="{DynamicResource FlatButtonTemplate}"
+              Click="OnAddTabClick">
+        <TextBlock Text="+"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+      </Button>
+    </Grid>
+  </Border>
+</UserControl>

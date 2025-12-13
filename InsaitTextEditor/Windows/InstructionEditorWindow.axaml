@@ -1,0 +1,311 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
+        x:Class="InsaitTextEditor.Windows.InstructionEditorWindow"
+        Title="{DynamicResource Key.InstructionEditor}"
+        Width="600" Height="600"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="None"
+        CanResize="False"
+        Background="#6A0DAD">
+
+  <Window.Resources>
+    <SolidColorBrush x:Key="AppGreenBrush" Color="#00C853"/>
+    <SolidColorBrush x:Key="AppPurpleBrush" Color="#6A0DAD"/>
+    <SolidColorBrush x:Key="AppGreyTopBrush" Color="#A9A9A9"/>
+    <SolidColorBrush x:Key="AppDarkOrangeBrush" Color="#CC5500"/>
+
+    <ControlTemplate x:Key="FlatButtonTemplate">
+      <Border Background="{TemplateBinding Background}"
+              CornerRadius="6"
+              Padding="{TemplateBinding Padding}">
+        <ContentPresenter
+          Content="{TemplateBinding Content}"
+          ContentTemplate="{TemplateBinding ContentTemplate}"
+          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      </Border>
+    </ControlTemplate>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="44"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <!-- Header -->
+    <Border Grid.Row="0" Background="{StaticResource AppGreyTopBrush}">
+      <DockPanel Margin="10,0" PointerPressed="TitleBar_PointerPressed">
+        <Border DockPanel.Dock="Left"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                CornerRadius="6"
+                Height="26" MinWidth="140"
+                VerticalAlignment="Center"
+                Padding="8,3">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Image Source="avares://InsaitTextEditor/Icons/AppIcon.png" Width="20" Height="20" Stretch="Uniform"/>
+            <TextBlock Text="{DynamicResource Key.InstructionEditor}"
+                       Foreground="{StaticResource AppGreenBrush}"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6"
+                    VerticalAlignment="Center" HorizontalAlignment="Right">
+          <Button Width="36" Height="32"
+                  Background="#FFC466" BorderBrush="Transparent" BorderThickness="0"
+                  Padding="4" Template="{StaticResource FlatButtonTemplate}"
+                  Click="Minimize_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/MinButton.png" Stretch="Uniform"/>
+          </Button>
+          <Button Width="36" Height="32"
+                  Background="#FFC466" BorderBrush="Transparent" BorderThickness="0"
+                  Padding="4" Template="{StaticResource FlatButtonTemplate}"
+                  Click="Close_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/CloseButton.png" Stretch="Uniform"/>
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- Content -->
+    <Border Grid.Row="1" PointerPressed="DragSurface_PointerPressed">
+      <Grid Margin="20">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" 
+                   Text="{DynamicResource Key.CustomInstruction}"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   Foreground="White"
+                   Margin="0,0,0,10"/>
+
+        <!-- Instruction TextBox -->
+        <Border Grid.Row="1" 
+                Background="#2D2D30"
+                BorderBrush="#3F3F46"
+                BorderThickness="1"
+                CornerRadius="4"
+                Margin="0,0,0,15">
+          <TextBox x:Name="InstructionTextBox"
+                   TextWrapping="Wrap"
+                   AcceptsReturn="True"
+                   Background="Transparent"
+                   Foreground="White"
+                   BorderThickness="0"
+                   Padding="10"
+                   SelectionBrush="#0078D4"
+                   SelectionForegroundBrush="White"
+                   Watermark="{DynamicResource Key.InstructionPlaceholder}">
+            <TextBox.Styles>
+              <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
+                <Setter Property="Foreground" Value="#808080"/>
+              </Style>
+              <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+                <Setter Property="BorderBrush" Value="{StaticResource AppGreenBrush}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+              </Style>
+            </TextBox.Styles>
+          </TextBox>
+        </Border>
+
+        <!-- Performance Settings -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,15">
+          <TextBlock Text="{DynamicResource Key.PerformanceSettings}"
+                     FontSize="14"
+                     FontWeight="SemiBold"
+                     Foreground="White"
+                     Margin="0,0,0,10"/>
+
+          <!-- Context Size -->
+          <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="120"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{DynamicResource Key.ContextSize}"
+                       Foreground="White"
+                       FontSize="12"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+            <NumericUpDown x:Name="ContextSizeInput"
+                           Grid.Column="2"
+                           Minimum="2048"
+                           Maximum="8192"
+                           Increment="512"
+                           Value="4096"
+                           Background="#3D3D40"
+                           Foreground="White"
+                           BorderBrush="#3F3F46"/>
+          </Grid>
+
+          <!-- Max Tokens -->
+          <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="120"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{DynamicResource Key.MaxTokens}"
+                       Foreground="White"
+                       FontSize="12"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+            <NumericUpDown x:Name="MaxTokensInput"
+                           Grid.Column="2"
+                           Minimum="256"
+                           Maximum="2048"
+                           Increment="128"
+                           Value="1024"
+                           Background="#3D3D40"
+                           Foreground="White"
+                           BorderBrush="#3F3F46"/>
+          </Grid>
+
+          <!-- AI Language -->
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="220"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{DynamicResource Key.AILanguage}"
+                       Foreground="White"
+                       FontSize="12"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+            <ComboBox x:Name="AILanguageComboBox"
+                      Grid.Column="2"
+                      Background="#3D3D40"
+                      Foreground="White"
+                      BorderBrush="#3F3F46"
+                      SelectedIndex="0">
+              <ComboBoxItem Content="{DynamicResource Key.AILangAuto}" Tag=""/>
+              <ComboBoxItem Content="{DynamicResource Key.English}" Tag="en"/>
+              <ComboBoxItem Content="{DynamicResource Key.Ukrainian}" Tag="uk"/>
+              <ComboBoxItem Content="{DynamicResource Key.Russian}" Tag="ru"/>
+              <ComboBoxItem Content="{DynamicResource Key.German}" Tag="de"/>
+              <ComboBoxItem Content="{DynamicResource Key.Turkish}" Tag="tr"/>
+            </ComboBox>
+          </Grid>
+
+          <!-- Reasoning Mode Toggle -->
+          <Grid Margin="0,15,0,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel Grid.Column="0">
+              <TextBlock Text="{DynamicResource Key.ReasoningMode}"
+                         Foreground="White"
+                         FontSize="13"
+                         FontWeight="SemiBold"/>
+              <TextBlock Text="{DynamicResource Key.ReasoningModeDescription}"
+                         Foreground="#AAAAAA"
+                         FontSize="11"
+                         TextWrapping="Wrap"
+                         Margin="0,4,0,0"/>
+            </StackPanel>
+            
+            <ToggleSwitch x:Name="ReasoningModeToggle"
+                          Grid.Column="1"
+                          VerticalAlignment="Center"
+                          OnContent="✓"
+                          OffContent="✗"/>
+          </Grid>
+
+          <!-- Global Memory Toggle -->
+          <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel Grid.Column="0">
+              <TextBlock Text="{DynamicResource Key.GlobalMemory}"
+                         Foreground="White"
+                         FontSize="13"
+                         FontWeight="SemiBold"/>
+              <TextBlock Text="{DynamicResource Key.GlobalMemoryDescription}"
+                         Foreground="#AAAAAA"
+                         FontSize="11"
+                         TextWrapping="Wrap"
+                         Margin="0,4,0,0"/>
+            </StackPanel>
+            
+            <ToggleSwitch x:Name="GlobalMemoryToggle"
+                          Grid.Column="1"
+                          VerticalAlignment="Center"
+                          OnContent="✓"
+                          OffContent="✗"/>
+          </Grid>
+
+          <!-- Memory Stats (показується коли Global Memory ввімкнено) -->
+          <Border x:Name="MemoryStatsPanel"
+                  Background="#2D2D30"
+                  BorderBrush="#3F3F46"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Padding="10"
+                  Margin="0,5,0,0"
+                  IsVisible="False">
+            <StackPanel>
+              <TextBlock x:Name="MemoryStatsText"
+                         Text="Loading memory stats..."
+                         Foreground="#888888"
+                         FontSize="11"/>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Info Text -->
+        <TextBlock Grid.Row="3"
+                   Text="{DynamicResource Key.InstructionNote}"
+                   FontSize="11"
+                   Foreground="#888888"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,15"/>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="4" 
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="10">
+          <Button x:Name="CancelButton"
+                  Content="{DynamicResource Key.Cancel}"
+                  Width="100"
+                  Height="32"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="White"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="OnCancelClick"/>
+          <Button x:Name="SaveButton"
+                  Content="{DynamicResource Key.Save}"
+                  Width="100"
+                  Height="32"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="{StaticResource AppGreenBrush}"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="OnSaveClick"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

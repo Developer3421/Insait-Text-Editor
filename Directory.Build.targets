@@ -1,0 +1,34 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Деякі версії Microsoft.Common.CurrentVersion.targets викликають _HandlePackageFileConflicts.
+    Якщо у середовищі він відсутній, збірка падає з MSB4057.
+    Визначаємо порожній таргет як запасний варіант.
+  -->
+  <Target Name="_HandlePackageFileConflicts" />
+
+  <!--
+    Видаляє дублікати нативних DLL від LlamaSharp.Backend.CPU перед публікацією.
+    Залишає тільки avx2 варіант для підтримки більшості сучасних процесорів.
+    Це вирішує помилку NETSDK1152 при single-file publish.
+  -->
+  <Target Name="RemoveDuplicateLlamaNatives" 
+          BeforeTargets="_HandleFileConflictsForPublish"
+          Condition="'$(PublishSingleFile)' == 'true'">
+    <ItemGroup>
+      <!-- Видаляємо avx варіант -->
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" 
+        Condition="$([System.String]::Copy('%(Identity)').Contains('llamasharp.backend.cpu')) AND $([System.String]::Copy('%(Identity)').Contains('\avx\')) AND !$([System.String]::Copy('%(Identity)').Contains('\avx2\')) AND !$([System.String]::Copy('%(Identity)').Contains('\avx512\'))" />
+      
+      <!-- Видаляємо avx512 варіант -->
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" 
+        Condition="$([System.String]::Copy('%(Identity)').Contains('llamasharp.backend.cpu')) AND $([System.String]::Copy('%(Identity)').Contains('\avx512\'))" />
+      
+      <!-- Видаляємо noavx варіант -->
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" 
+        Condition="$([System.String]::Copy('%(Identity)').Contains('llamasharp.backend.cpu')) AND $([System.String]::Copy('%(Identity)').Contains('\noavx\'))" />
+    </ItemGroup>
+    
+    <Message Importance="high" Text="LlamaSharp: Фільтровано нативні бібліотеки - залишено тільки AVX2 варіант" />
+  </Target>
+
+</Project>

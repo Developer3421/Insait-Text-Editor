@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="InsaitTextEditor/App.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Controls/DocumentTab.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Controls/LinedTextInput.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Controls/TabsPanel.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/MainWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/UI/Controls/MemoryFactCard.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/UI/Controls/ReasoningStepView.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/UI/Localization/Strings.de.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/UI/Localization/Strings.en.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/UI/Localization/Strings.ru.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/UI/Localization/Strings.tr.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/UI/Localization/Strings.uk.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/AboutWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/ChatWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/ContextMenuWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/FileMenuWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/InstructionEditorWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/LanguageWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/MenuWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/SettingsWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/ViewWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

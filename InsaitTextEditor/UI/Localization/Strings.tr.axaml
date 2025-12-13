@@ -1,0 +1,119 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Common -->
+  <x:String x:Key="Key.Menu">Menü</x:String>
+  <x:String x:Key="Key.File">Dosya</x:String>
+  <x:String x:Key="Key.View">Görünüm</x:String>
+  <x:String x:Key="Key.Settings">Ayarlar</x:String>
+  <x:String x:Key="Key.AboutApp">Uygulama Hakkında</x:String>
+  <x:String x:Key="Key.Language">Dil</x:String>
+  <x:String x:Key="Key.SelectLanguage">Dil Seçin</x:String>
+  <x:String x:Key="Key.Open">Aç...</x:String>
+  <x:String x:Key="Key.Save">Kaydet</x:String>
+  <x:String x:Key="Key.SaveAs">Farklı Kaydet...</x:String>
+  <x:String x:Key="Key.Cancel">İptal</x:String>
+  <x:String x:Key="Key.Context">Bağlam</x:String>
+  <x:String x:Key="Key.Cut">Kes</x:String>
+  <x:String x:Key="Key.Copy">Kopyala</x:String>
+  <x:String x:Key="Key.Paste">Yapıştır</x:String>
+  <x:String x:Key="Key.SelectAll">Tümünü Seç</x:String>
+  <x:String x:Key="Key.Undo">Geri Al</x:String>
+  <x:String x:Key="Key.Redo">Yinele</x:String>
+  <x:String x:Key="Key.Rewrite">Yeniden Yaz</x:String>
+  <x:String x:Key="Key.Summarize">Özetle</x:String>
+  <x:String x:Key="Key.Close">Kapat</x:String>
+  <x:String x:Key="Key.NewPage">Yeni sayfa</x:String>
+
+  <!-- Chat -->
+  <x:String x:Key="Key.ChatUser">Siz</x:String>
+  <x:String x:Key="Key.ChatAssistant">Asistan</x:String>
+  <x:String x:Key="Key.CleanHistory">Geçmişi Temizle</x:String>
+  <x:String x:Key="Key.Send">Gönder</x:String>
+  <x:String x:Key="Key.Model">Model:</x:String>
+
+  <!-- Settings / View labels -->
+  <x:String x:Key="Key.ApplicationSettings">Uygulama Ayarları</x:String>
+  <x:String x:Key="Key.WorkspaceBackground">Çalışma alanı arka planı:</x:String>
+  <x:String x:Key="Key.AltLineColor">Alternatif satır rengi:</x:String>
+  <x:String x:Key="Key.FontSize">Yazı tipi boyutu:</x:String>
+  <x:String x:Key="Key.TabsBackground">Sekmeler arka planı:</x:String>
+  <x:String x:Key="Key.TabsTextColor">Sekmeler metin rengi:</x:String>
+  <x:String x:Key="Key.SaveAsDefault">Varsayılan olarak kaydet</x:String>
+  <x:String x:Key="Key.LoadDefaults">Varsayılanları yükle</x:String>
+
+  <x:String x:Key="Key.ViewSettings">Görünüm Ayarları</x:String>
+  <x:String x:Key="Key.LineColor">Çizgi rengi:</x:String>
+  <x:String x:Key="Key.TextColor">Metin rengi:</x:String>
+  <x:String x:Key="Key.Bold">Kalın</x:String>
+  <x:String x:Key="Key.Italic">İtalik</x:String>
+  <x:String x:Key="Key.Strike">Üstü Çizili</x:String>
+  <x:String x:Key="Key.Clear">Temizle</x:String>
+  <x:String x:Key="Key.Mode">Mod</x:String>
+  <x:String x:Key="Key.Ai">AI</x:String>
+  <x:String x:Key="Key.ApplyPage">Sayfaya Uygula</x:String>
+  <x:String x:Key="Key.ApplyAllPages">Tüm Sayfalara Uygula</x:String>
+
+  <!-- File Menu titles -->
+  <x:String x:Key="Key.FileMenu">Dosya Menüsü</x:String>
+
+  <!-- About window -->
+  <x:String x:Key="Key.AboutTitle">Uygulama Hakkında</x:String>
+  <x:String x:Key="Key.Version">Sürüm</x:String>
+  <x:String x:Key="Key.AboutLine1">InsaitTextEditor Windows için hızlı bir not defteridir.</x:String>
+  <x:String x:Key="Key.AboutLine2">InsaitTextEditor, internet erişimi olmayan yerlerde bile yazmanıza yardımcı olan yerel bir yazma asistanı içerir.</x:String>
+  <x:String x:Key="Key.AboutLine3">23 Ağustos 2025'te geliştirici Oleh Kurylo tarafından oluşturuldu.</x:String>
+  <x:String x:Key="Key.AboutLine4">Tüm kullanıcı verileri yerel olarak saklanır.</x:String>
+
+  <!-- Language names -->
+  <x:String x:Key="Key.German">Deutsch</x:String>
+  <x:String x:Key="Key.Russian">Русский</x:String>
+  <x:String x:Key="Key.Ukrainian">Українська</x:String>
+  <x:String x:Key="Key.English">English</x:String>
+  <x:String x:Key="Key.Turkish">Türkçe</x:String>
+
+  <!-- Instruction Editor Window -->
+  <x:String x:Key="Key.InstructionEditor">Özel Talimat Düzenleyici</x:String>
+  <x:String x:Key="Key.CustomInstruction">Özel Talimat</x:String>
+  <x:String x:Key="Key.InstructionPlaceholder">AI asistanı için özel talimatınızı girin...</x:String>
+  <x:String x:Key="Key.PerformanceSettings">Performans Ayarları</x:String>
+  <x:String x:Key="Key.ContextSize">Bağlam Boyutu (Giriş Belirteçleri):</x:String>
+  <x:String x:Key="Key.MaxTokens">Maksimum Belirteç (Çıkış):</x:String>
+  <x:String x:Key="Key.AILanguage">AI Model Dili:</x:String>
+  <x:String x:Key="Key.AILangAuto">Otomatik (Arayüzden algıla)</x:String>
+  <x:String x:Key="Key.InstructionNote">Not: Daha iyi AI anlayışı için İngilizce kullanın. Düşük değerler performansı artırır.</x:String>
+
+  <!-- Chat Window -->
+  <x:String x:Key="Key.TypeMessage">Mesajınızı buraya yazın...</x:String>
+  <x:String x:Key="Key.Thinking">Düşünüyor...</x:String>
+  <x:String x:Key="Key.CopyMessage">Kopyala</x:String>
+  <x:String x:Key="Key.DeleteMessage">Sil</x:String>
+  <x:String x:Key="Key.WelcomeMessage">Hoş geldiniz! Ben Insait Creative Assistant 🤖
+
+Size şunlarda yardımcı olabilirim:
+• Soruları yanıtlama
+• Metin düzenleme
+• İçerik oluşturma
+• **Şiir oluşturma** (otomatik kaydedilir!)
+
+Sadece sorunuzu yazın! (Göndermek için Ctrl+Enter)</x:String>
+  
+  <!-- Reasoning Mode and Global Memory -->
+  <x:String x:Key="Key.ReasoningMode">🧠 Akıl Yürütme Modu</x:String>
+  <x:String x:Key="Key.ReasoningModeDescription">AI karmaşık problemler için adım adım çözüm gösterecek</x:String>
+  <x:String x:Key="Key.GlobalMemory">💾 Küresel Hafıza</x:String>
+  <x:String x:Key="Key.GlobalMemoryDescription">AI daha iyi bağlam için oturumlar arası gerçekleri hatırlayacak</x:String>
+  <x:String x:Key="Key.MemoryStats">Kaydedilen gerçekler: {0} | Son güncelleme: {1}</x:String>
+  <x:String x:Key="Key.ReasoningStep">Adım {0}</x:String>
+  <x:String x:Key="Key.FinalAnswer">Son Cevap</x:String>
+  
+  <!-- Reasoning Process Messages -->
+  <x:String x:Key="Key.ReasoningGeneratingPlan">📝 Akıl yürütme planı oluşturuluyor...</x:String>
+  <x:String x:Key="Key.ReasoningGeneratingPlanProgress">📝 Plan oluşturuluyor... ({0} token)</x:String>
+  <x:String x:Key="Key.ReasoningPlanReady">✅ Plan hazır: {0} adım</x:String>
+  <x:String x:Key="Key.ReasoningStepProgress">🔄 Adım {0}/{1}: {2}</x:String>
+  <x:String x:Key="Key.ReasoningStepComplete">✅ Adım {0} tamamlandı</x:String>
+  <x:String x:Key="Key.ReasoningGeneratingFinalAnswer">🎯 Son cevap oluşturuluyor...</x:String>
+  <x:String x:Key="Key.ReasoningComplete">🎉 Akıl yürütme tamamlandı!</x:String>
+  <x:String x:Key="Key.ReasoningPlanCancelled">❌ Plan oluşturma iptal edildi</x:String>
+  <x:String x:Key="Key.ReasoningPlanFailed">❌ Plan oluşturulamadı</x:String>
+</ResourceDictionary>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:InsaitTextEditor.ViewModels"
+    x:Class="InsaitTextEditor.Controls.DocumentTab"
+    x:Name="root"
+    x:DataType="vm:DocumentTabViewModel"
+    Height="50">
+  <UserControl.Resources>
+    <x:Double x:Key="TabIconSize">20</x:Double>
+  </UserControl.Resources>
+
+  <Border x:Name="RootBorder"
+          Background="{Binding TabBackground}"
+          BorderBrush="{Binding TabBorderBrush}"
+          BorderThickness="{Binding TabBorderThickness}"
+          CornerRadius="6"
+          Height="50"
+          Padding="10,8"
+          Cursor="Hand">
+    <Grid ColumnDefinitions="Auto,Auto,*,Auto" Height="50">
+      <Image Grid.Column="0"
+             Source="{Binding Icon}"
+             Width="{StaticResource TabIconSize}"
+             Height="{StaticResource TabIconSize}"
+             Stretch="Uniform"
+             VerticalAlignment="Center"/>
+
+      <TextBlock Grid.Column="1"
+                 Margin="8,0,0,0"
+                 Text="{Binding Title}"
+                 Foreground="Black"
+                 FontSize="14"
+                 VerticalAlignment="Center"/>
+
+      <Border Grid.Column="2"/>
+
+      <Button Grid.Column="3"
+              Width="28" Height="28"
+              Background="#20FFFFFF"
+              BorderBrush="Transparent"
+              Padding="0"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Center"
+              ToolTip.Tip="Close tab"
+              Click="OnCloseClick">
+        <Image Source="avares://InsaitTextEditor/Icons/CloseButton.png"
+               Width="{StaticResource TabIconSize}"
+               Height="{StaticResource TabIconSize}"
+               Stretch="Uniform"/>
+      </Button>
+    </Grid>
+  </Border>
+</UserControl>

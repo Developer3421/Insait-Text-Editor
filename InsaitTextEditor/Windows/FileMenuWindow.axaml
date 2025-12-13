@@ -1,0 +1,125 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="InsaitTextEditor.Windows.FileMenuWindow"
+        Title="{DynamicResource Key.FileMenu}"
+        Width="280"
+        Height="160"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="None"
+        CanResize="False"
+        Background="#6A0DAD">
+  <Window.Resources>
+    <SolidColorBrush x:Key="AppGreenBrush" Color="#00C853"/>
+    <SolidColorBrush x:Key="AppPurpleBrush" Color="#6A0DAD"/>
+    <SolidColorBrush x:Key="AppGreyTopBrush" Color="#A9A9A9"/>
+    <SolidColorBrush x:Key="AppDarkOrangeBrush" Color="#CC5500"/>
+
+    <ControlTemplate x:Key="FlatButtonTemplate">
+      <Border Background="{TemplateBinding Background}"
+              CornerRadius="6"
+              Padding="{TemplateBinding Padding}">
+        <ContentPresenter
+          Content="{TemplateBinding Content}"
+          ContentTemplate="{TemplateBinding ContentTemplate}"
+          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      </Border>
+    </ControlTemplate>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="56"/>   <!-- 0: заголовок + керування -->
+      <RowDefinition Height="Auto"/> <!-- 1: Open, Save -->
+      <RowDefinition Height="Auto"/> <!-- 2: Save As, Cancel -->
+    </Grid.RowDefinitions>
+
+    <!-- Лінія 0: ярличок-вкладка + керування (перетягування зберігається) -->
+    <Border Grid.Row="0" Background="{StaticResource AppGreyTopBrush}">
+      <DockPanel Margin="10,0" PointerPressed="TitleBar_PointerPressed">
+        <Border DockPanel.Dock="Left"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                CornerRadius="6"
+                Height="36" MinWidth="130"
+                VerticalAlignment="Center"
+                Padding="8,3">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Image Source="avares://InsaitTextEditor/Icons/AppIcon.png" Width="20" Height="20" Stretch="Uniform"/>
+            <TextBlock Text="{DynamicResource Key.FileMenu}"
+                       Foreground="{StaticResource AppGreenBrush}"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6"
+                    VerticalAlignment="Center" HorizontalAlignment="Right">
+          <Button Width="44" Height="40"
+                  Background="#FFC466" BorderBrush="Transparent" BorderThickness="0"
+                  Padding="6" Template="{StaticResource FlatButtonTemplate}"
+                  Click="Minimize_Click">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Image Source="avares://InsaitTextEditor/Icons/MinButton.png" Stretch="Uniform"/>
+           
+            </StackPanel>
+          </Button>
+          <Button Width="44" Height="40"
+                  Background="#FFC466" BorderBrush="Transparent" BorderThickness="0"
+                  Padding="6" Template="{StaticResource FlatButtonTemplate}"
+                  Click="Close_Click">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Image Source="avares://InsaitTextEditor/Icons/CloseButton.png" Stretch="Uniform"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- Лінія 1: Open + Save (можна перетягувати за фон) -->
+    <Border Grid.Row="1"
+       
+            PointerPressed="DragSurface_PointerPressed">
+      <Grid Margin="12,6" VerticalAlignment="Center" ColumnDefinitions="Auto,8,Auto">
+        <Button Grid.Column="0" Height="34" MinWidth="120"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="Open_Click"
+                Content="{DynamicResource Key.Open}"/>
+
+        <Button Grid.Column="2" Height="34" MinWidth="120"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="Save_Click"
+                Content="{DynamicResource Key.Save}"/>
+      </Grid>
+    </Border>
+
+    <!-- Лінія 2: Save As + Cancel (можна перетягувати за фон) -->
+    <Border Grid.Row="2"
+
+            PointerPressed="DragSurface_PointerPressed">
+      <Grid Margin="12,6,12,10" VerticalAlignment="Center" ColumnDefinitions="Auto,8,Auto">
+        <Button Grid.Column="0" Height="34" MinWidth="120"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="SaveAs_Click"
+                Content="{DynamicResource Key.SaveAs}"/>
+        <Button Grid.Column="2" Height="34" MinWidth="120"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="Cancel_Click"
+                Content="{DynamicResource Key.Cancel}"/>
+      </Grid>
+    </Border>
+
+  </Grid>
+</Window>

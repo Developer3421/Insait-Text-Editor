@@ -1,0 +1,120 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Common -->
+  <x:String x:Key="Key.Menu">Menü</x:String>
+  <x:String x:Key="Key.File">Datei</x:String>
+  <x:String x:Key="Key.View">Ansicht</x:String>
+  <x:String x:Key="Key.Settings">Einstellungen</x:String>
+  <x:String x:Key="Key.AboutApp">Über die App</x:String>
+  <x:String x:Key="Key.Language">Sprache</x:String>
+  <x:String x:Key="Key.SelectLanguage">Sprache auswählen</x:String>
+  <x:String x:Key="Key.Open">Öffnen...</x:String>
+  <x:String x:Key="Key.Save">Speichern</x:String>
+  <x:String x:Key="Key.SaveAs">Speichern unter...</x:String>
+  <x:String x:Key="Key.Cancel">Abbrechen</x:String>
+  <x:String x:Key="Key.Context">Kontext</x:String>
+  <x:String x:Key="Key.Cut">Ausschneiden</x:String>
+  <x:String x:Key="Key.Copy">Kopieren</x:String>
+  <x:String x:Key="Key.Paste">Einfügen</x:String>
+  <x:String x:Key="Key.SelectAll">Alles auswählen</x:String>
+  <x:String x:Key="Key.Undo">Rückgängig</x:String>
+  <x:String x:Key="Key.Redo">Wiederholen</x:String>
+  <x:String x:Key="Key.Rewrite">Umformulieren</x:String>
+  <x:String x:Key="Key.Summarize">Zusammenfassen</x:String>
+  <x:String x:Key="Key.Close">Schließen</x:String>
+  <x:String x:Key="Key.NewPage">Neue Seite</x:String>
+
+  <!-- Chat -->
+  <x:String x:Key="Key.ChatUser">Sie</x:String>
+  <x:String x:Key="Key.ChatAssistant">Assistent</x:String>
+  <x:String x:Key="Key.CleanHistory">Verlauf löschen</x:String>
+  <x:String x:Key="Key.Send">Senden</x:String>
+  <x:String x:Key="Key.Stop">Stopp</x:String>
+  <x:String x:Key="Key.Model">Modell:</x:String>
+
+  <!-- Settings / View labels -->
+  <x:String x:Key="Key.ApplicationSettings">Anwendungseinstellungen</x:String>
+  <x:String x:Key="Key.WorkspaceBackground">Arbeitsbereich Hintergrund:</x:String>
+  <x:String x:Key="Key.AltLineColor">Alternierende Zeilenfarbe:</x:String>
+  <x:String x:Key="Key.FontSize">Schriftgröße:</x:String>
+  <x:String x:Key="Key.TabsBackground">Tabs Hintergrund:</x:String>
+  <x:String x:Key="Key.TabsTextColor">Tabs Textfarbe:</x:String>
+  <x:String x:Key="Key.SaveAsDefault">Als Standard speichern</x:String>
+  <x:String x:Key="Key.LoadDefaults">Standard laden</x:String>
+
+  <x:String x:Key="Key.ViewSettings">Ansichtseinstellungen</x:String>
+  <x:String x:Key="Key.LineColor">Linienfarbe:</x:String>
+  <x:String x:Key="Key.TextColor">Textfarbe:</x:String>
+  <x:String x:Key="Key.Bold">Fett</x:String>
+  <x:String x:Key="Key.Italic">Kursiv</x:String>
+  <x:String x:Key="Key.Strike">Durchgestrichen</x:String>
+  <x:String x:Key="Key.Clear">Löschen</x:String>
+  <x:String x:Key="Key.Mode">Modus</x:String>
+  <x:String x:Key="Key.Ai">KI</x:String>
+  <x:String x:Key="Key.ApplyPage">Seite anwenden</x:String>
+  <x:String x:Key="Key.ApplyAllPages">Auf alle Seiten anwenden</x:String>
+
+  <!-- File Menu titles -->
+  <x:String x:Key="Key.FileMenu">Dateimenü</x:String>
+
+  <!-- About window -->
+  <x:String x:Key="Key.AboutTitle">Über die App</x:String>
+  <x:String x:Key="Key.Version">Version</x:String>
+  <x:String x:Key="Key.AboutLine1">InsaitTextEditor ist ein schneller Notizblock für Windows.</x:String>
+  <x:String x:Key="Key.AboutLine2">InsaitTextEditor enthält einen lokalen Schreibassistenten, der auch ohne Internetzugang hilft.</x:String>
+  <x:String x:Key="Key.AboutLine3">Er wurde vom Entwickler Oleh Kurylo am 23. August 2025 erstellt.</x:String>
+  <x:String x:Key="Key.AboutLine4">Alle Benutzerdaten werden lokal gespeichert.</x:String>
+
+  <!-- Language names -->
+  <x:String x:Key="Key.German">Deutsch</x:String>
+  <x:String x:Key="Key.Russian">Русский</x:String>
+  <x:String x:Key="Key.Ukrainian">Українська</x:String>
+  <x:String x:Key="Key.English">English</x:String>
+  <x:String x:Key="Key.Turkish">Türkçe</x:String>
+
+  <!-- Instruction Editor Window -->
+  <x:String x:Key="Key.InstructionEditor">Benutzerdefinierter Anweisungs-Editor</x:String>
+  <x:String x:Key="Key.CustomInstruction">Benutzerdefinierte Anweisung</x:String>
+  <x:String x:Key="Key.InstructionPlaceholder">Geben Sie Ihre benutzerdefinierte Anweisung für den AI-Assistenten ein...</x:String>
+  <x:String x:Key="Key.PerformanceSettings">Leistungseinstellungen</x:String>
+  <x:String x:Key="Key.ContextSize">Kontextgröße (Eingabe-Tokens):</x:String>
+  <x:String x:Key="Key.MaxTokens">Max. Tokens (Ausgabe):</x:String>
+  <x:String x:Key="Key.AILanguage">AI-Modellsprache:</x:String>
+  <x:String x:Key="Key.AILangAuto">Auto (aus Benutzeroberfläche erkennen)</x:String>
+  <x:String x:Key="Key.InstructionNote">Hinweis: Verwenden Sie Englisch für besseres AI-Verständnis. Niedrigere Werte verbessern die Leistung.</x:String>
+
+  <!-- Chat Window -->
+  <x:String x:Key="Key.TypeMessage">Geben Sie hier Ihre Nachricht ein...</x:String>
+  <x:String x:Key="Key.Thinking">Denke nach...</x:String>
+  <x:String x:Key="Key.CopyMessage">Kopieren</x:String>
+  <x:String x:Key="Key.DeleteMessage">Löschen</x:String>
+  <x:String x:Key="Key.WelcomeMessage">Willkommen! Ich bin Insait Creative Assistant 🤖
+
+Ich kann Ihnen helfen mit:
+• Beantwortung von Fragen
+• Textbearbeitung
+• Inhaltserstellung
+• **Gedichte erstellen** (automatisch gespeichert!)
+
+Geben Sie einfach Ihre Frage ein! (Strg+Eingabe zum Senden)</x:String>
+  
+  <!-- Reasoning Mode and Global Memory -->
+  <x:String x:Key="Key.ReasoningMode">🧠 Reasoning-Modus</x:String>
+  <x:String x:Key="Key.ReasoningModeDescription">KI zeigt schrittweise Lösungen für komplexe Probleme</x:String>
+  <x:String x:Key="Key.GlobalMemory">💾 Globaler Speicher</x:String>
+  <x:String x:Key="Key.GlobalMemoryDescription">KI merkt sich Fakten zwischen Sitzungen für besseren Kontext</x:String>
+  <x:String x:Key="Key.MemoryStats">Fakten gespeichert: {0} | Letzte Aktualisierung: {1}</x:String>
+  <x:String x:Key="Key.ReasoningStep">Schritt {0}</x:String>
+  <x:String x:Key="Key.FinalAnswer">Endgültige Antwort</x:String>
+  
+  <!-- Reasoning Process Messages -->
+  <x:String x:Key="Key.ReasoningGeneratingPlan">📝 Erstelle Reasoning-Plan...</x:String>
+  <x:String x:Key="Key.ReasoningGeneratingPlanProgress">📝 Erstelle Plan... ({0} Tokens)</x:String>
+  <x:String x:Key="Key.ReasoningPlanReady">✅ Plan fertig: {0} Schritte</x:String>
+  <x:String x:Key="Key.ReasoningStepProgress">🔄 Schritt {0}/{1}: {2}</x:String>
+  <x:String x:Key="Key.ReasoningStepComplete">✅ Schritt {0} abgeschlossen</x:String>
+  <x:String x:Key="Key.ReasoningGeneratingFinalAnswer">🎯 Erstelle endgültige Antwort...</x:String>
+  <x:String x:Key="Key.ReasoningComplete">🎉 Reasoning abgeschlossen!</x:String>
+  <x:String x:Key="Key.ReasoningPlanCancelled">❌ Plan-Erstellung abgebrochen</x:String>
+  <x:String x:Key="Key.ReasoningPlanFailed">❌ Plan konnte nicht erstellt werden</x:String>
+</ResourceDictionary>

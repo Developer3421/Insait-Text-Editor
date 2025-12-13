@@ -1,0 +1,120 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Common -->
+  <x:String x:Key="Key.Menu">Меню</x:String>
+  <x:String x:Key="Key.File">Файл</x:String>
+  <x:String x:Key="Key.View">Вигляд</x:String>
+  <x:String x:Key="Key.Settings">Налаштування</x:String>
+  <x:String x:Key="Key.AboutApp">Про застосунок</x:String>
+  <x:String x:Key="Key.Language">Мова</x:String>
+  <x:String x:Key="Key.SelectLanguage">Вибір мови</x:String>
+  <x:String x:Key="Key.Open">Відкрити...</x:String>
+  <x:String x:Key="Key.Save">Зберегти</x:String>
+  <x:String x:Key="Key.SaveAs">Зберегти як...</x:String>
+  <x:String x:Key="Key.Cancel">Скасувати</x:String>
+  <x:String x:Key="Key.Context">Контекст</x:String>
+  <x:String x:Key="Key.Cut">Вирізати</x:String>
+  <x:String x:Key="Key.Copy">Копіювати</x:String>
+  <x:String x:Key="Key.Paste">Вставити</x:String>
+  <x:String x:Key="Key.SelectAll">Виділити все</x:String>
+  <x:String x:Key="Key.Undo">Назад</x:String>
+  <x:String x:Key="Key.Redo">Вперед</x:String>
+  <x:String x:Key="Key.Rewrite">Переформулювати</x:String>
+  <x:String x:Key="Key.Summarize">Підсумувати</x:String>
+  <x:String x:Key="Key.Close">Закрити</x:String>
+  <x:String x:Key="Key.NewPage">Нова сторінка</x:String>
+
+  <!-- Chat -->
+  <x:String x:Key="Key.ChatUser">Ви</x:String>
+  <x:String x:Key="Key.ChatAssistant">Асистент</x:String>
+  <x:String x:Key="Key.CleanHistory">Очистити історію</x:String>
+  <x:String x:Key="Key.Send">Надіслати</x:String>
+  <x:String x:Key="Key.Stop">Зупинити</x:String>
+  <x:String x:Key="Key.Model">Модель:</x:String>
+
+  <!-- Settings / View labels -->
+  <x:String x:Key="Key.ApplicationSettings">Налаштування застосунку</x:String>
+  <x:String x:Key="Key.WorkspaceBackground">Тло робочого поля:</x:String>
+  <x:String x:Key="Key.AltLineColor">Колір парних рядків:</x:String>
+  <x:String x:Key="Key.FontSize">Розмір шрифту:</x:String>
+  <x:String x:Key="Key.TabsBackground">Тло вкладок:</x:String>
+  <x:String x:Key="Key.TabsTextColor">Колір тексту вкладок:</x:String>
+  <x:String x:Key="Key.SaveAsDefault">Зберегти як стандарт</x:String>
+  <x:String x:Key="Key.LoadDefaults">Завантажити стандартні</x:String>
+
+  <x:String x:Key="Key.ViewSettings">Параметри вигляду</x:String>
+  <x:String x:Key="Key.LineColor">Колір лінії:</x:String>
+  <x:String x:Key="Key.TextColor">Колір тексту:</x:String>
+  <x:String x:Key="Key.Bold">Напівжирний</x:String>
+  <x:String x:Key="Key.Italic">Курсив</x:String>
+  <x:String x:Key="Key.Strike">Перекреслений</x:String>
+  <x:String x:Key="Key.Clear">Очистити</x:String>
+  <x:String x:Key="Key.Mode">Режим</x:String>
+  <x:String x:Key="Key.Ai">ШІ</x:String>
+  <x:String x:Key="Key.ApplyPage">Застосувати до сторінки</x:String>
+  <x:String x:Key="Key.ApplyAllPages">Застосувати до всіх сторінок</x:String>
+
+  <!-- File Menu titles -->
+  <x:String x:Key="Key.FileMenu">Меню файлу</x:String>
+
+  <!-- About window -->
+  <x:String x:Key="Key.AboutTitle">Про застосунок</x:String>
+  <x:String x:Key="Key.Version">Версія</x:String>
+  <x:String x:Key="Key.AboutLine1">InsaitTextEditor — це швидкий блокнот для Windows.</x:String>
+  <x:String x:Key="Key.AboutLine2">InsaitTextEditor має локального асистента для письма, який допомагає навіть без доступу до Інтернету.</x:String>
+  <x:String x:Key="Key.AboutLine3">Створено розробником Олегом Курилом 23 серпня 2025 року.</x:String>
+  <x:String x:Key="Key.AboutLine4">Усі дані користувача зберігаються локально.</x:String>
+
+  <!-- Language names -->
+  <x:String x:Key="Key.German">Deutsch</x:String>
+  <x:String x:Key="Key.Russian">Русский</x:String>
+  <x:String x:Key="Key.Ukrainian">Українська</x:String>
+  <x:String x:Key="Key.English">English</x:String>
+  <x:String x:Key="Key.Turkish">Türkçe</x:String>
+
+  <!-- Instruction Editor Window -->
+  <x:String x:Key="Key.InstructionEditor">Редактор користувацьких інструкцій</x:String>
+  <x:String x:Key="Key.CustomInstruction">Користувацька інструкція</x:String>
+  <x:String x:Key="Key.InstructionPlaceholder">Введіть вашу інструкцію для AI асистента...</x:String>
+  <x:String x:Key="Key.PerformanceSettings">Налаштування продуктивності</x:String>
+  <x:String x:Key="Key.ContextSize">Розмір контексту (вхідні токени):</x:String>
+  <x:String x:Key="Key.MaxTokens">Максимум токенів (вихідні):</x:String>
+  <x:String x:Key="Key.AILanguage">Мова AI моделі:</x:String>
+  <x:String x:Key="Key.AILangAuto">Авто (визначити з інтерфейсу)</x:String>
+  <x:String x:Key="Key.InstructionNote">Примітка: Використовуйте англійську для кращого розуміння AI. Менші значення покращують продуктивність.</x:String>
+
+  <!-- Chat Window -->
+  <x:String x:Key="Key.TypeMessage">Введіть ваше повідомлення тут...</x:String>
+  <x:String x:Key="Key.Thinking">Думаю...</x:String>
+  <x:String x:Key="Key.CopyMessage">Копіювати</x:String>
+  <x:String x:Key="Key.DeleteMessage">Видалити</x:String>
+  <x:String x:Key="Key.WelcomeMessage">Вітаю! Я Insait Creative Assistant 🤖
+
+Я можу допомогти вам з:
+• Відповідями на питання
+• Редагуванням тексту
+• Генерацією контенту
+• **Створенням віршів** (автоматично зберігаються!)
+
+Просто напишіть своє питання! (Ctrl+Enter для відправки)</x:String>
+  
+  <!-- Reasoning Mode and Global Memory -->
+  <x:String x:Key="Key.ReasoningMode">🧠 Режим міркування</x:String>
+  <x:String x:Key="Key.ReasoningModeDescription">AI показуватиме покрокове розв'язання складних задач</x:String>
+  <x:String x:Key="Key.GlobalMemory">💾 Глобальна пам'ять</x:String>
+  <x:String x:Key="Key.GlobalMemoryDescription">AI запам'ятовуватиме факти між сесіями для кращого контексту</x:String>
+  <x:String x:Key="Key.MemoryStats">Збережено фактів: {0} | Останнє оновлення: {1}</x:String>
+  <x:String x:Key="Key.ReasoningStep">Крок {0}</x:String>
+  <x:String x:Key="Key.FinalAnswer">Фінальна відповідь</x:String>
+  
+  <!-- Reasoning Process Messages -->
+  <x:String x:Key="Key.ReasoningGeneratingPlan">📝 Генерую план міркування...</x:String>
+  <x:String x:Key="Key.ReasoningGeneratingPlanProgress">📝 Генерую план... ({0} токенів)</x:String>
+  <x:String x:Key="Key.ReasoningPlanReady">✅ План готовий: {0} кроків</x:String>
+  <x:String x:Key="Key.ReasoningStepProgress">🔄 Крок {0}/{1}: {2}</x:String>
+  <x:String x:Key="Key.ReasoningStepComplete">✅ Крок {0} завершено</x:String>
+  <x:String x:Key="Key.ReasoningGeneratingFinalAnswer">🎯 Генерую фінальну відповідь...</x:String>
+  <x:String x:Key="Key.ReasoningComplete">🎉 Reasoning завершено!</x:String>
+  <x:String x:Key="Key.ReasoningPlanCancelled">❌ Генерацію плану скасовано</x:String>
+  <x:String x:Key="Key.ReasoningPlanFailed">❌ Не вдалося згенерувати план</x:String>
+</ResourceDictionary>

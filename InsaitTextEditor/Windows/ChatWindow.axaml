@@ -1,0 +1,445 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:InsaitTextEditor.Models"
+        xmlns:svc="clr-namespace:InsaitTextEditor.Services"
+        xmlns:windows="clr-namespace:InsaitTextEditor.Windows"
+        xmlns:selectors="clr-namespace:InsaitTextEditor.Selectors"
+        x:Class="InsaitTextEditor.Windows.ChatWindow"
+        x:DataType="windows:ChatWindow"
+        Title="{x:Static svc:AssistantConfig.Name}"
+        Width="1000" Height="720"
+        MinWidth="800" MinHeight="600"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="None"
+        CanResize="True"
+        Background="#F0F0F0">
+  <Window.Resources>
+    <SolidColorBrush x:Key="AppGreenBrush" Color="#00C853"/>
+    <SolidColorBrush x:Key="AppPurpleBrush" Color="#6A0DAD"/>
+    <SolidColorBrush x:Key="AppGreyTopBrush" Color="#A9A9A9"/>
+    <SolidColorBrush x:Key="AppDarkOrangeBrush" Color="#CC5500"/>
+    
+    <!-- Світла тема для повідомлень -->
+    <SolidColorBrush x:Key="UserMessageBg" Color="#E8F5E9"/>
+    <SolidColorBrush x:Key="AssistantMessageBg" Color="#F3E5F5"/>
+    <SolidColorBrush x:Key="MessageHoverBg" Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="InputAreaBg" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#212121"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#757575"/>
+    <SolidColorBrush x:Key="BorderColor" Color="#BDBDBD"/>
+
+    <ControlTemplate x:Key="FlatButtonTemplate">
+      <Border Background="{TemplateBinding Background}"
+              CornerRadius="6"
+              Padding="{TemplateBinding Padding}">
+        <ContentPresenter
+          Content="{TemplateBinding Content}"
+          ContentTemplate="{TemplateBinding ContentTemplate}"
+          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      </Border>
+    </ControlTemplate>
+
+    <!-- DataTemplate для повідомлення користувача -->
+    <DataTemplate x:Key="UserMessageTemplate" x:DataType="models:ChatMessage">
+      <Border Margin="60,10,16,10" 
+              Padding="16,14,16,16" 
+              Background="{StaticResource UserMessageBg}"
+              BorderBrush="#66BB6A"
+              BorderThickness="2"
+              CornerRadius="12"
+              HorizontalAlignment="Right"
+              MaxWidth="700">
+        <Border.Effect>
+          <DropShadowEffect Color="#000000" 
+                            Opacity="0.1" 
+                            BlurRadius="8" 
+                            OffsetX="0" 
+                            OffsetY="2"/>
+        </Border.Effect>
+        <Border.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="Copy" Click="CopyMessage_Click" Tag="{Binding}"/>
+            <MenuItem Header="Delete" Click="DeleteMessage_Click" Tag="{Binding}"/>
+          </ContextMenu>
+        </Border.ContextMenu>
+        <StackPanel>
+          <TextBlock Text="{Binding LocalizedSender}" 
+                     FontWeight="SemiBold" 
+                     FontSize="13"
+                     Foreground="{StaticResource AppGreenBrush}"
+                     Margin="0,0,0,8"/>
+          <SelectableTextBlock Text="{Binding Content}" 
+                               TextWrapping="Wrap"
+                               Foreground="{StaticResource TextPrimary}"
+                               FontSize="14"
+                               LineHeight="22"/>
+          <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}" 
+                     FontSize="11" 
+                     Foreground="{StaticResource TextSecondary}"
+                     Margin="0,8,0,0"
+                     HorizontalAlignment="Right"/>
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+
+    <!-- DataTemplate для повідомлення асистента -->
+    <DataTemplate x:Key="AssistantMessageTemplate" x:DataType="models:ChatMessage">
+      <Border Margin="16,10,60,10" 
+              Padding="16,14,16,16" 
+              Background="{StaticResource AssistantMessageBg}"
+              BorderBrush="#AB47BC"
+              BorderThickness="2"
+              CornerRadius="12"
+              HorizontalAlignment="Left"
+              MaxWidth="700">
+        <Border.Effect>
+          <DropShadowEffect Color="#000000" 
+                            Opacity="0.1" 
+                            BlurRadius="8" 
+                            OffsetX="0" 
+                            OffsetY="2"/>
+        </Border.Effect>
+        <Border.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="Copy" Click="CopyMessage_Click" Tag="{Binding}"/>
+            <MenuItem Header="Save to File" Click="SaveMessageToFile_Click" Tag="{Binding}"/>
+            <MenuItem Header="Regenerate" Click="RegenerateMessage_Click" Tag="{Binding}"/>
+            <Separator/>
+            <MenuItem Header="Delete" Click="DeleteMessage_Click" Tag="{Binding}"/>
+          </ContextMenu>
+        </Border.ContextMenu>
+        <StackPanel>
+          <DockPanel Margin="0,0,0,8">
+            <!-- Покажемо ім'я асистента і поряд назву поточної моделі (фиолетовый) -->
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+              <TextBlock Text="{Binding LocalizedSender}" 
+                         FontWeight="SemiBold" 
+                         FontSize="13"
+                         Foreground="{StaticResource AppPurpleBrush}"/>
+              <TextBlock Text=" • " Margin="6,0,0,0" Foreground="{StaticResource AppPurpleBrush}"/>
+              <TextBlock Text="Gemma 3 2bit 1B"
+                         FontSize="12"
+                         Foreground="{StaticResource AppPurpleBrush}"
+                         Margin="4,0,0,0"/>
+            </StackPanel>
+            <!-- Індикатор використання інструментів -->
+            <TextBlock x:Name="ToolIndicator"
+                       Text="🔧 Used tools"
+                       FontSize="11"
+                       Foreground="{StaticResource AppDarkOrangeBrush}"
+                       Margin="8,0,0,0"
+                       DockPanel.Dock="Right"
+                       IsVisible="False"/>
+          </DockPanel>
+          <SelectableTextBlock Text="{Binding Content}" 
+                               TextWrapping="Wrap"
+                               Foreground="{StaticResource TextPrimary}"
+                               FontSize="14"
+                               LineHeight="22"/>
+          <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}" 
+                     FontSize="11" 
+                     Foreground="{StaticResource TextSecondary}"
+                     Margin="0,8,0,0"/>
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+
+    <!-- Typing indicator -->
+    <DataTemplate x:Key="TypingIndicatorTemplate">
+      <Border Margin="16,10,60,10" 
+              Padding="16,12" 
+              Background="{StaticResource AssistantMessageBg}"
+              BorderBrush="#AB47BC"
+              BorderThickness="2"
+              CornerRadius="12"
+              HorizontalAlignment="Left"
+              Width="80">
+        <StackPanel Orientation="Horizontal" 
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+          <Ellipse Width="8" Height="8" 
+                   Fill="{StaticResource AppPurpleBrush}"
+                   Margin="2">
+            <Ellipse.Styles>
+              <Style Selector="Ellipse">
+                <Style.Animations>
+                  <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                    <KeyFrame Cue="0%">
+                      <Setter Property="Opacity" Value="0.3"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="33%">
+                      <Setter Property="Opacity" Value="1"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="66%">
+                      <Setter Property="Opacity" Value="0.3"/>
+                    </KeyFrame>
+                  </Animation>
+                </Style.Animations>
+              </Style>
+            </Ellipse.Styles>
+          </Ellipse>
+          <Ellipse Width="8" Height="8" 
+                   Fill="{StaticResource AppPurpleBrush}"
+                   Margin="2">
+            <Ellipse.Styles>
+              <Style Selector="Ellipse">
+                <Style.Animations>
+                  <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.4">
+                    <KeyFrame Cue="0%">
+                      <Setter Property="Opacity" Value="0.3"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="33%">
+                      <Setter Property="Opacity" Value="1"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="66%">
+                      <Setter Property="Opacity" Value="0.3"/>
+                    </KeyFrame>
+                  </Animation>
+                </Style.Animations>
+              </Style>
+            </Ellipse.Styles>
+          </Ellipse>
+          <Ellipse Width="8" Height="8" 
+                   Fill="{StaticResource AppPurpleBrush}"
+                   Margin="2">
+            <Ellipse.Styles>
+              <Style Selector="Ellipse">
+                <Style.Animations>
+                  <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.8">
+                    <KeyFrame Cue="0%">
+                      <Setter Property="Opacity" Value="0.3"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="33%">
+                      <Setter Property="Opacity" Value="1"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="66%">
+                      <Setter Property="Opacity" Value="0.3"/>
+                    </KeyFrame>
+                  </Animation>
+                </Style.Animations>
+              </Style>
+            </Ellipse.Styles>
+          </Ellipse>
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+
+    <!-- Chat Message Template Selector -->
+    <selectors:ChatMessageTemplateSelector x:Key="MessageTemplateSelector">
+      <selectors:ChatMessageTemplateSelector.Templates>
+        <DataTemplate x:Key="User" DataType="models:ChatMessage" x:DataType="models:ChatMessage">
+          <ContentControl Content="{Binding}" ContentTemplate="{StaticResource UserMessageTemplate}"/>
+        </DataTemplate>
+        <DataTemplate x:Key="Assistant" DataType="models:ChatMessage" x:DataType="models:ChatMessage">
+          <ContentControl Content="{Binding}" ContentTemplate="{StaticResource AssistantMessageTemplate}"/>
+        </DataTemplate>
+      </selectors:ChatMessageTemplateSelector.Templates>
+    </selectors:ChatMessageTemplateSelector>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="60" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- Title bar -->
+    <Border Grid.Row="0"
+            Background="{StaticResource AppGreyTopBrush}"
+            PointerPressed="TitleBar_PointerPressed">
+      <DockPanel Margin="16,0">
+        <StackPanel Orientation="Horizontal" 
+                    DockPanel.Dock="Left"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+          <Border Width="36" Height="36"
+                  Background="{StaticResource AppPurpleBrush}"
+                  CornerRadius="18">
+            <TextBlock Text="🤖" 
+                       FontSize="20"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
+          </Border>
+          <TextBlock Text="{x:Static svc:AssistantConfig.Name}"
+                     FontSize="16"
+                     FontWeight="SemiBold"
+                     Foreground="{StaticResource TextPrimary}"
+                     VerticalAlignment="Center"/>
+        </StackPanel>
+        
+        <StackPanel x:Name="TitleButtonsPanel"
+                    DockPanel.Dock="Right"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right">
+          <!-- Clear History Button -->
+          <Button Width="40" Height="40"
+                  Background="Transparent"
+                  BorderBrush="Transparent"
+                  ToolTip.Tip="Clear History"
+                  Click="ClearHistory_Click">
+            <TextBlock Text="🗑️" FontSize="18"/>
+          </Button>
+          <!-- Edit Instruction Button -->
+          <Button Width="40" Height="40"
+                  Background="Transparent"
+                  BorderBrush="Transparent"
+                  ToolTip.Tip="Edit Custom Instruction"
+                  Click="EditInstruction_Click">
+            <TextBlock Text="⚙️" FontSize="18"/>
+          </Button>
+          <!-- Minimize Button -->
+          <Button Width="50" Height="45"
+                  Background="#FFC466"
+                  BorderBrush="Transparent" 
+                  BorderThickness="0"
+                  Padding="6"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="Minimize_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/MinButton.png" 
+                   Stretch="Uniform"/>
+          </Button>
+          <!-- Maximize/Restore Button -->
+          <Button Width="50" Height="45"
+                  Background="#FFC466"
+                  BorderBrush="Transparent" 
+                  BorderThickness="0"
+                  Padding="6"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="MaxRestore_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/MaxButton.png" 
+                   Stretch="Uniform"/>
+          </Button>
+          <!-- Close Button -->
+          <Button Width="50" Height="45"
+                  Background="#FFC466"
+                  BorderBrush="Transparent" 
+                  BorderThickness="0"
+                  Padding="6"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="Close_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/CloseButton.png" 
+                   Stretch="Uniform"/>
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- Messages Area -->
+    <Border Grid.Row="1" 
+            Background="#F0F0F0"
+            BorderBrush="{StaticResource BorderColor}"
+            BorderThickness="0,1,0,1">
+      <ScrollViewer x:Name="MessagesScroll"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled"
+                    Padding="16,12,16,40">
+        <StackPanel>
+          <ItemsControl x:Name="MessagesList">
+          </ItemsControl>
+          
+          <!-- Typing Indicator -->
+          <ContentControl x:Name="TypingIndicator"
+                         IsVisible="False"
+                         ContentTemplate="{StaticResource TypingIndicatorTemplate}"/>
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+
+    <!-- Input Area -->
+    <Border Grid.Row="2"
+            Background="{StaticResource InputAreaBg}"
+            BorderBrush="{StaticResource BorderColor}"
+            BorderThickness="0,2,0,0"
+            Padding="16">
+      <Grid ColumnDefinitions="*,Auto">
+        <!-- Text Input Container -->
+        <Border Grid.Column="0"
+                Background="#FFFFFF"
+                BorderBrush="{StaticResource BorderColor}"
+                BorderThickness="2"
+                CornerRadius="8"
+                Padding="4">
+          <TextBox x:Name="InputTextBox"
+                   Background="Transparent"
+                   Foreground="#212121"
+                   CaretBrush="#6A0DAD"
+                   BorderThickness="0"
+                   FontSize="14"
+                   TextWrapping="Wrap"
+                   AcceptsReturn="True"
+                   MaxHeight="120"
+                   KeyDown="InputTextBox_KeyDown"
+                   Watermark="Введіть повідомлення... (Ctrl+Enter для відправки)">
+            <TextBox.Styles>
+              <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
+                <Setter Property="Foreground" Value="#9E9E9E"/>
+              </Style>
+            </TextBox.Styles>
+          </TextBox>
+        </Border>
+        
+        <!-- Buttons Panel -->
+        <StackPanel Grid.Column="1"
+                    Orientation="Vertical"
+                    Spacing="8"
+                    Margin="12,0,0,0"
+                    VerticalAlignment="Bottom">
+          <!-- Send Button -->
+          <Button x:Name="SendButton"
+                  Width="90"
+                  Height="42"
+                  Background="{StaticResource AppGreenBrush}"
+                  Foreground="#FFFFFF"
+                  Content="Відправити"
+                  FontSize="13"
+                  FontWeight="SemiBold"
+                  CornerRadius="8"
+                  Click="Send_Click"
+                  Template="{StaticResource FlatButtonTemplate}"/>
+          
+          <!-- Stop Button (прихований за замовчуванням) -->
+          <Button x:Name="StopButton"
+                  Width="90"
+                  Height="42"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="#FFFFFF"
+                  Content="Зупинити"
+                  FontSize="13"
+                  FontWeight="SemiBold"
+                  CornerRadius="8"
+                  IsVisible="False"
+                  Click="Stop_Click"
+                  Template="{StaticResource FlatButtonTemplate}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Progress Indicator -->
+    <Border x:Name="ProgressIndicator"
+            Grid.Row="1"
+            Height="3"
+            VerticalAlignment="Bottom"
+            Background="{StaticResource AppPurpleBrush}"
+            IsVisible="False"
+            Opacity="0.8"/>
+
+    <!-- Resize handles -->
+    <Grid Grid.Row="0" Grid.RowSpan="3"
+          ColumnDefinitions="8,*,8"
+          RowDefinitions="8,*,8"
+          IsHitTestVisible="False">
+      <Border Grid.Row="0" Grid.Column="0" Background="Transparent" IsHitTestVisible="True" PointerPressed="Resize_TopLeft_PointerPressed"/>
+      <Border Grid.Row="0" Grid.Column="2" Background="Transparent" IsHitTestVisible="True" PointerPressed="Resize_TopRight_PointerPressed"/>
+      <Border Grid.Row="2" Grid.Column="0" Background="Transparent" IsHitTestVisible="True" PointerPressed="Resize_BottomLeft_PointerPressed"/>
+      <Border Grid.Row="2" Grid.Column="2" Background="Transparent" IsHitTestVisible="True" PointerPressed="Resize_BottomRight_PointerPressed"/>
+      <Border Grid.Row="0" Grid.Column="1" Background="Transparent" IsHitTestVisible="True" PointerPressed="Resize_Top_PointerPressed"/>
+      <Border Grid.Row="2" Grid.Column="1" Background="Transparent" IsHitTestVisible="True" PointerPressed="Resize_Bottom_PointerPressed"/>
+      <Border Grid.Row="1" Grid.Column="0" Background="Transparent" IsHitTestVisible="True" PointerPressed="Resize_Left_PointerPressed"/>
+      <Border Grid.Row="1" Grid.Column="2" Background="Transparent" IsHitTestVisible="True" PointerPressed="Resize_Right_PointerPressed"/>
+    </Grid>
+  </Grid>
+</Window>

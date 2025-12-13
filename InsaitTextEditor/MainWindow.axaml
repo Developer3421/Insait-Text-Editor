@@ -1,0 +1,268 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:InsaitTextEditor.Controls"
+        xmlns:services="clr-namespace:InsaitTextEditor.Services"
+        x:Class="InsaitTextEditor.MainWindow"
+        x:DataType="services:TabManager"
+        Title="Insait Text Editor"
+        Width="1024" Height="700"
+        MinWidth="720" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        CanResize="True"
+        SizeToContent="Manual"
+        Background="#F0F0F0">
+
+  <Window.Resources>
+    <SolidColorBrush x:Key="AppGreenBrush" Color="#00C853"/>
+    <SolidColorBrush x:Key="AppPurpleBrush" Color="#6A0DAD"/>
+    <SolidColorBrush x:Key="AppGreyTopBrush" Color="#A9A9A9"/>
+    <SolidColorBrush x:Key="AppDarkOrangeBrush" Color="#CC5500"/>
+
+    <ControlTemplate x:Key="FlatButtonTemplate">
+      <Border Background="{TemplateBinding Background}"
+              CornerRadius="6"
+              Padding="{TemplateBinding Padding}">
+        <ContentPresenter
+          Content="{TemplateBinding Content}"
+          ContentTemplate="{TemplateBinding ContentTemplate}"
+          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      </Border>
+    </ControlTemplate>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="60" />
+      <RowDefinition Height="50" />
+      <RowDefinition />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0"
+            Background="{StaticResource AppGreyTopBrush}"
+            PointerPressed="TitleBar_PointerPressed">
+      <DockPanel Margin="12,0">
+        <controls:TabsPanel x:Name="TopTabs"
+                            DockPanel.Dock="Left"
+                            TabHeight="50" />
+
+        <StackPanel x:Name="TitleButtonsPanel"
+                    DockPanel.Dock="Right"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right">
+          <Button Width="50" Height="45"
+                  Background="#FFC466"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Padding="6"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="Minimize_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/MinButton.png" Stretch="Uniform"/>
+          </Button>
+          <Button Width="50" Height="45"
+                  Background="#FFC466"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Padding="6"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="MaxRestore_Click">
+
+            <Image Source="avares://InsaitTextEditor/Icons/MaxButton.png" Stretch="Uniform"/>
+          </Button>
+          <Button Width="50" Height="45"
+                  Background="#FFC466"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Padding="6"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="Close_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/CloseButton.png" Stretch="Uniform"/>
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <Border Grid.Row="1" Background="{StaticResource AppPurpleBrush}">
+      <Grid ColumnDefinitions="Auto,*,Auto"
+            Margin="16,0"
+            VerticalAlignment="Center">
+        <StackPanel x:Name="SecondLineLeft"
+                    Grid.Column="0"
+                    Orientation="Horizontal"
+                    Spacing="6"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center">
+          <Button Width="60" Height="35"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="{StaticResource AppGreenBrush}"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="Menu_Click"
+                  Content="{DynamicResource Key.Menu}"/>
+          <Button Width="50" Height="35"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="{StaticResource AppGreenBrush}"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="FileMenu_Click"
+                  Content="{DynamicResource Key.File}"/>
+          <Button MinWidth="50" Height="35"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="{StaticResource AppGreenBrush}"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="View_Click"
+                  Content="{DynamicResource Key.View}"/>
+          <Button Width="50" Height="35"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="{StaticResource AppGreenBrush}"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="Ai_Click"
+                  Content="{DynamicResource Key.Ai}"/>
+          <Button Width="64" Height="35"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="{StaticResource AppGreenBrush}"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="ModeToggle_Click"
+                  Content="{DynamicResource Key.Mode}"/>
+        </StackPanel>
+
+        <StackPanel x:Name="SecondLineCenter"
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="6"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+
+        <StackPanel x:Name="SecondLineRight"
+                    Grid.Column="2"
+                    Orientation="Horizontal"
+                    Spacing="6"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center">
+          <Button Height="40" MinWidth="32" FontSize="13" Padding="6,2"
+                  Background="#FFFFFF" Foreground="#1A1A1A"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Focusable="False"
+                  Click="BoldButton_Click"
+                  Content="{DynamicResource Key.Bold}"/>
+          <Button Height="40" MinWidth="32" FontSize="13" Padding="6,2"
+                  Background="#FFFFFF" Foreground="#1A1A1A"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Focusable="False"
+                  Click="ItalicButton_Click"
+                  Content="{DynamicResource Key.Italic}"/>
+          <Button Height="40" MinWidth="32" FontSize="13" Padding="6,2"
+                  Background="#FFFFFF" Foreground="#1A1A1A"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Focusable="False"
+                  Click="StrikeButton_Click"
+
+                  Content="{DynamicResource Key.Strike}"/>
+          <Button Height="40" MinWidth="38" FontSize="13" Padding="6,2"
+                  Background="#FFFFFF" Foreground="#1A1A1A"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Focusable="False"
+                  Click="IncreaseFont_Click">A+</Button>
+          <Button Height="40" MinWidth="38" FontSize="13" Padding="6,2"
+                  Background="#FFFFFF" Foreground="#1A1A1A"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Focusable="False"
+                  Click="DecreaseFont_Click">A-</Button>
+          <Button Height="40" MinWidth="56" FontSize="13" Padding="6,2"
+                  Background="#FFFFFF" Foreground="#1A1A1A"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Focusable="False"
+                  Click="ClearSelection_Click" Content="{DynamicResource Key.Clear}"/>
+
+          <!-- Undo / Redo ribbon buttons -->
+          <Button Height="40" MinWidth="56" FontSize="13" Padding="6,2"
+                  Background="#FFFFFF" Foreground="#1A1A1A"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Focusable="False"
+                  Click="UndoRibbon_Click">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <TextBlock Text="↶" FontSize="16" VerticalAlignment="Center"/>
+              <TextBlock Text="{DynamicResource Key.Undo}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+          <Button Height="40" MinWidth="56" FontSize="13" Padding="6,2"
+                  Background="#FFFFFF" Foreground="#1A1A1A"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Focusable="False"
+                  Click="RedoRibbon_Click">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <TextBlock Text="↷" FontSize="16" VerticalAlignment="Center"/>
+              <TextBlock Text="{DynamicResource Key.Redo}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Тестовий майданчик: зліва редактор, справа RichTextOverlay -->
+    <Border Grid.Row="2" Background="Transparent" Padding="16">
+      <controls:LinedTextInput x:Name="LinedEditorHost"
+          Text="{Binding CurrentText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+          BackgroundMode="{Binding CurrentBackgroundMode, Mode=TwoWay}"
+          EditorFontSize="{Binding CurrentFontSize, Mode=TwoWay}"
+          LineBrush="{Binding CurrentLineBrush, Mode=TwoWay}"
+          TextBrush="{Binding CurrentTextBrush, Mode=TwoWay}"
+          BoldDefault="{Binding CurrentBold, Mode=TwoWay}"
+          ItalicDefault="{Binding CurrentItalic, Mode=TwoWay}"
+          LeftMargin="2"
+          TopMargin="0"
+          BottomMargin="0"
+          DrawVerticalMarginLine="True"/>
+    </Border>
+
+    <Grid Grid.Row="0" Grid.RowSpan="3"
+          ColumnDefinitions="8,*,8"
+          RowDefinitions="8,*,8"
+          IsHitTestVisible="False">
+      <Border x:Name="Resize_TL" Grid.Row="0" Grid.Column="0"
+              Background="Transparent"
+              IsHitTestVisible="True"
+              PointerPressed="Resize_TopLeft_PointerPressed"/>
+      <Border x:Name="Resize_TR" Grid.Row="0" Grid.Column="2"
+              Background="Transparent"
+              IsHitTestVisible="True"
+              PointerPressed="Resize_TopRight_PointerPressed"/>
+      <Border x:Name="Resize_BL" Grid.Row="2" Grid.Column="0"
+              Background="Transparent"
+              IsHitTestVisible="True"
+              PointerPressed="Resize_BottomLeft_PointerPressed"/>
+      <Border x:Name="Resize_BR" Grid.Row="2" Grid.Column="2"
+              Background="Transparent"
+              IsHitTestVisible="True"
+              PointerPressed="Resize_BottomRight_PointerPressed"/>
+
+      <Border x:Name="Resize_T" Grid.Row="0" Grid.Column="1"
+              Background="Transparent"
+              IsHitTestVisible="True"
+              PointerPressed="Resize_Top_PointerPressed"/>
+      <Border x:Name="Resize_B" Grid.Row="2" Grid.Column="1"
+              Background="Transparent"
+              IsHitTestVisible="True"
+              PointerPressed="Resize_Bottom_PointerPressed"/>
+      <Border x:Name="Resize_L" Grid.Row="1" Grid.Column="0"
+              Background="Transparent"
+              IsHitTestVisible="True"
+              PointerPressed="Resize_Left_PointerPressed"/>
+      <Border x:Name="Resize_R" Grid.Row="1" Grid.Column="2"
+              Background="Transparent"
+              IsHitTestVisible="True"
+              PointerPressed="Resize_Right_PointerPressed"/>
+    </Grid>
+  </Grid>
+</Window>

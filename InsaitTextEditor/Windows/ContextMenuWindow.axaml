@@ -1,0 +1,119 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="InsaitTextEditor.Windows.ContextMenuWindow"
+        Title="{DynamicResource Key.Context}"
+        Width="240"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="Manual"
+        SystemDecorations="None"
+        CanResize="False"
+        Background="#6A0DAD">
+  <Window.Resources>
+    <SolidColorBrush x:Key="AppGreenBrush" Color="#00C853"/>
+    <SolidColorBrush x:Key="AppPurpleBrush" Color="#6A0DAD"/>
+    <SolidColorBrush x:Key="AppGreyTopBrush" Color="#A9A9A9"/>
+    <SolidColorBrush x:Key="AppDarkOrangeBrush" Color="#CC5500"/>
+    <ControlTemplate x:Key="FlatButtonTemplate">
+      <Border Background="{TemplateBinding Background}"
+              CornerRadius="6"
+              Padding="{TemplateBinding Padding}">
+        <ContentPresenter
+          Content="{TemplateBinding Content}"
+          ContentTemplate="{TemplateBinding ContentTemplate}"
+          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      </Border>
+    </ControlTemplate>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="40"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Background="{StaticResource AppGreyTopBrush}">
+      <DockPanel Margin="10,0" PointerPressed="TitleBar_PointerPressed">
+        <Border DockPanel.Dock="Left"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                CornerRadius="6"
+                Height="28" MinWidth="110"
+                VerticalAlignment="Center"
+                Padding="8,2">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Image Source="avares://InsaitTextEditor/Icons/AppIcon.png" Width="16" Height="16" Stretch="Uniform"/>
+            <TextBlock Text="{DynamicResource Key.Context}" Foreground="{StaticResource AppGreenBrush}" FontSize="12" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Right">
+          <Button Width="36" Height="30"
+                  Background="#FFC466"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Padding="4" Template="{StaticResource FlatButtonTemplate}"
+                  Click="Minimize_Click">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Image Source="avares://InsaitTextEditor/Icons/MinButton.png" Stretch="Uniform"/>
+              <TextBlock Text="{DynamicResource Key.Minimize}" Margin="4,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+          <Button Width="36" Height="30"
+                  Background="#FFC466"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Padding="4" Template="{StaticResource FlatButtonTemplate}"
+                  Click="Close_Click">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Image Source="avares://InsaitTextEditor/Icons/CloseButton.png" Stretch="Uniform"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <Border Grid.Row="1" Padding="8" Background="{StaticResource AppPurpleBrush}">
+      <StackPanel Orientation="Vertical" Spacing="8">
+        <Button Height="32"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="Cut_Click"
+                Content="{DynamicResource Key.Cut}"/>
+        <Button Height="32"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="Copy_Click"
+                Content="{DynamicResource Key.Copy}"/>
+        <Button Height="32"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="SelectAll_Click"
+                Content="{DynamicResource Key.SelectAll}"/>
+        <Button Height="32"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="Rewrite_Click"
+                Content="{DynamicResource Key.Rewrite}"/>
+        <Button Height="32"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="Undo_Click"
+                Content="{DynamicResource Key.Undo}"/>
+        <Button Height="32"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="Redo_Click"
+                Content="{DynamicResource Key.Redo}"/>
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>
