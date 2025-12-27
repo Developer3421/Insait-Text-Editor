@@ -71,9 +71,9 @@
 
     <!-- Content row: Settings and About App buttons -->
     <Border Grid.Row="1"
-         
+            
             PointerPressed="DragSurface_PointerPressed">
-      <Grid Margin="12,6,12,10" VerticalAlignment="Center" ColumnDefinitions="Auto,8,Auto,8,Auto">
+      <Grid Margin="12,6,12,10" VerticalAlignment="Center" ColumnDefinitions="Auto,8,Auto,8,Auto,8,Auto">
         <Button Grid.Column="0" Height="34" MinWidth="120"
                 Background="{StaticResource AppDarkOrangeBrush}"
                 Foreground="{StaticResource AppGreenBrush}"
@@ -97,6 +97,14 @@
                 Template="{StaticResource FlatButtonTemplate}"
                 Click="Language_Click"
                 Content="{DynamicResource Key.Language}"/>
+
+        <Button Grid.Column="6" Height="34" MinWidth="160"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                Foreground="{StaticResource AppGreenBrush}"
+                BorderBrush="Transparent" BorderThickness="0"
+                Template="{StaticResource FlatButtonTemplate}"
+                Click="UserAgreement_Click"
+                Content="{DynamicResource Key.UserAgreement}"/>
       </Grid>
     </Border>
   </Grid>

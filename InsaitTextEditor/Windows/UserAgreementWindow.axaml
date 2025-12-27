@@ -1,0 +1,163 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="InsaitTextEditor.Windows.UserAgreementWindow"
+        Title="{DynamicResource Key.UserAgreementTitle}"
+        Width="820"
+        Height="520"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="None"
+        CanResize="False"
+        Background="{StaticResource AppPurpleBrush}">
+  <Window.Resources>
+    <SolidColorBrush x:Key="AppGreenBrush" Color="#00C853"/>
+    <SolidColorBrush x:Key="AppPurpleBrush" Color="#6A0DAD"/>
+    <SolidColorBrush x:Key="AppGreyTopBrush" Color="#A9A9A9"/>
+    <SolidColorBrush x:Key="AppDarkOrangeBrush" Color="#CC5500"/>
+
+    <!-- Will be updated from code-behind to reflect workspace colors -->
+    <SolidColorBrush x:Key="WorkspaceBackgroundBrush" Color="#A9A9A9"/>
+    <SolidColorBrush x:Key="WorkspaceTextBrush" Color="#FF000000"/>
+
+    <ControlTemplate x:Key="FlatButtonTemplate">
+      <Border Background="{TemplateBinding Background}"
+              CornerRadius="6"
+              Padding="{TemplateBinding Padding}">
+        <ContentPresenter
+          Content="{TemplateBinding Content}"
+          ContentTemplate="{TemplateBinding ContentTemplate}"
+          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      </Border>
+    </ControlTemplate>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="56"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- Header -->
+    <Border Grid.Row="0" Background="{StaticResource AppGreyTopBrush}">
+      <DockPanel Margin="10,0" PointerPressed="TitleBar_PointerPressed">
+        <Border DockPanel.Dock="Left"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                CornerRadius="6"
+                Height="36" MinWidth="260"
+                VerticalAlignment="Center"
+                Padding="8,3">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Image Source="avares://InsaitTextEditor/Icons/AppIcon.png" Width="20" Height="20" Stretch="Uniform"/>
+            <TextBlock Text="{DynamicResource Key.UserAgreementHeader}"
+                       Foreground="{StaticResource AppGreenBrush}"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6"
+                    VerticalAlignment="Center" HorizontalAlignment="Right">
+          <Button Width="44" Height="40"
+                  Background="#FFC466" BorderBrush="Transparent" BorderThickness="0"
+                  Padding="6" Template="{StaticResource FlatButtonTemplate}"
+                  Click="Minimize_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/MinButton.png" Stretch="Uniform"/>
+          </Button>
+          <Button Width="44" Height="40"
+                  Background="#FFC466" BorderBrush="Transparent" BorderThickness="0"
+                  Padding="6" Template="{StaticResource FlatButtonTemplate}"
+                  Click="Close_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/CloseButton.png" Stretch="Uniform"/>
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- Content -->
+    <Border Grid.Row="1"
+            Background="{StaticResource WorkspaceBackgroundBrush}"
+            PointerPressed="DragSurface_PointerPressed">
+      <ScrollViewer Margin="14,10" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="10">
+          <TextBlock Text="{DynamicResource Key.UserAgreementSectionTitle}"
+                     FontSize="16" FontWeight="Bold"
+                     Foreground="{StaticResource WorkspaceTextBrush}"/>
+
+          <TextBlock TextWrapping="Wrap"
+                     Foreground="{StaticResource WorkspaceTextBrush}"
+                     Text="{DynamicResource Key.UserAgreementOffline}"/>
+
+          <TextBlock Text="{DynamicResource Key.UserAgreementWhatTitle}" FontSize="14" FontWeight="Bold"
+                     Foreground="{StaticResource WorkspaceTextBrush}"/>
+
+          <TextBlock TextWrapping="Wrap" Foreground="{StaticResource WorkspaceTextBrush}"
+                     Text="{DynamicResource Key.UserAgreementWhatItem1}"/>
+          <TextBlock TextWrapping="Wrap" Foreground="{StaticResource WorkspaceTextBrush}"
+                     Text="{DynamicResource Key.UserAgreementWhatItem2}"/>
+          <TextBlock TextWrapping="Wrap" Foreground="{StaticResource WorkspaceTextBrush}"
+                     Text="{DynamicResource Key.UserAgreementWhatItem3}"/>
+
+          <TextBlock Text="{DynamicResource Key.UserAgreementWhereTitle}" FontSize="14" FontWeight="Bold"
+                     Foreground="{StaticResource WorkspaceTextBrush}"/>
+
+          <TextBlock TextWrapping="Wrap" Foreground="{StaticResource WorkspaceTextBrush}"
+                     Text="{DynamicResource Key.UserAgreementWhereIntro}"/>
+
+          <TextBlock TextWrapping="Wrap" Foreground="{StaticResource WorkspaceTextBrush}"
+                     Text="{DynamicResource Key.UserAgreementWhereItem1}"/>
+          <TextBlock TextWrapping="Wrap" Foreground="{StaticResource WorkspaceTextBrush}"
+                     Text="{DynamicResource Key.UserAgreementWhereItem2}"/>
+          <TextBlock TextWrapping="Wrap" Foreground="{StaticResource WorkspaceTextBrush}"
+                     Text="{DynamicResource Key.UserAgreementWhereItem3}"/>
+
+          <TextBlock TextWrapping="Wrap" Foreground="{StaticResource WorkspaceTextBrush}"
+                     Text="{DynamicResource Key.UserAgreementDeleteNote}"/>
+
+          <TextBlock Text="{DynamicResource Key.UserAgreementRightsTitle}" FontSize="14" FontWeight="Bold"
+                     Foreground="{StaticResource WorkspaceTextBrush}"/>
+
+          <TextBlock TextWrapping="Wrap" Foreground="{StaticResource WorkspaceTextBrush}"
+                     Text="{DynamicResource Key.UserAgreementRightsText}"/>
+
+          <!-- Consent (only shown when agreement not yet accepted) -->
+          <StackPanel x:Name="ConsentPanel" Spacing="8">
+            <CheckBox x:Name="ConsentCheckBox"
+                      Content="{DynamicResource Key.UserAgreementConsent}"
+                      Foreground="{StaticResource WorkspaceTextBrush}"/>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+
+    <!-- Footer buttons -->
+    <Border x:Name="FooterPanel" Grid.Row="2" Background="{StaticResource AppPurpleBrush}">
+      <DockPanel Margin="14,10">
+        <TextBlock x:Name="MustAcceptText"
+                   DockPanel.Dock="Left"
+                   VerticalAlignment="Center"
+                   Foreground="#FFFFFF"
+                   Text="{DynamicResource Key.UserAgreementMustAccept}"/>
+
+        <StackPanel x:Name="ActionsPanel" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
+          <Button x:Name="DeclineButton"
+                  MinWidth="120" Height="36"
+                  Background="#444444" Foreground="#FFFFFF"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="Decline_Click"
+                  Content="{DynamicResource Key.Decline}"/>
+          <Button x:Name="AcceptButton"
+                  MinWidth="140" Height="36"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="{StaticResource AppGreenBrush}"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="Accept_Click"
+                  Content="{DynamicResource Key.Accept}"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+  </Grid>
+</Window>
+

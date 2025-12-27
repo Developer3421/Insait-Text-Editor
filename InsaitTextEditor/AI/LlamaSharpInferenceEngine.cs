@@ -83,10 +83,18 @@ public class LlamaSharpInferenceEngine : IDisposable
                             "Можливо потрібно виконати: dotnet restore", ex);
                     }
 
-                    if (!File.Exists(_config.ModelPath))
-                        throw new FileNotFoundException($"Модель Gemma-3-1B не знайдено: {_config.ModelPath}");
+                    var modelPath = _config.ModelPath;
+                    if (!File.Exists(modelPath))
+                        throw new FileNotFoundException($"Модель Gemma не знайдено: {modelPath}");
 
-                    _modelParams = new ModelParams(_config.ModelPath)
+                    var fi = new FileInfo(modelPath);
+                    if (fi.Length == 0)
+                        throw new InvalidOperationException(
+                            $"Файл моделі має 0 байт: {modelPath}. " +
+                            "Це зазвичай означає, що модель не була скопійована/завантажена (наприклад LFS placeholder) або build/publish поклав порожній файл. " +
+                            "Вкажіть реальний шлях через INSAIT_MODEL_PATH або файл AiModel\\model-path.txt.");
+
+                    _modelParams = new ModelParams(modelPath)
                     {
                         ContextSize = (uint)_config.ContextSize,
                         GpuLayerCount = _config.GpuLayerCount,

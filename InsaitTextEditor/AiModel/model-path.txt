@@ -1,0 +1,2 @@
+E:\InsaitTextEditor\Models\gemma-3-1b-it-UD-Q2_K_XL.gguf
+

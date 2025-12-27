@@ -21,96 +21,37 @@ public class PromptBuilder
         var userInstruction = _instructionService.GetUserInstruction();
         var aiLang = userInstruction?.AiLanguage;
         
-        // ✅ Базовий промпт залежно від вибраної мови AI
-        string basePrompt;
+        // Keep the system prompt short and unambiguous. Avoid mentioning translation.
+        // Language strategy:
+        // - If AiLanguage is null/empty => auto: reply in the same language as the user's last message.
+        // - If AiLanguage is set => force that language.
         
-        if (!string.IsNullOrEmpty(aiLang))
-        {
-            // Мапінг мов до обов'язкових інструкцій
-            var languageInstructions = new Dictionary<string, string>
+        string languageRule = string.IsNullOrWhiteSpace(aiLang)
+            ? "Language: Reply in the SAME LANGUAGE as the user's last message. If the user mixes languages, reply in the language they used most recently. Never say that you are translating."
+            : aiLang switch
             {
-                ["uk"] = "🇺🇦 ОБОВ'ЯЗКОВО: ЗАВЖДИ відповідай ТІЛЬКИ УКРАЇНСЬКОЮ МОВОЮ, незалежно від мови запиту користувача!\n\n" +
-                        "You are Insait Assistant, a helpful AI integrated into Insait Text Editor.\n\n" +
-                        "CRITICAL RULES:\n" +
-                        "1. **ALWAYS respond ONLY in UKRAINIAN language** - this is MANDATORY!\n" +
-                        "2. Give ONE clear, direct answer\n" +
-                        "3. Stop immediately after answering - do NOT continue with examples or questions\n" +
-                        "4. Do NOT add greetings unless asked\n" +
-                        "5. Be concise and helpful\n" +
-                        "6. Do NOT ask follow-up questions unless requested",
-                
-                ["en"] = "🇬🇧 MANDATORY: ALWAYS respond ONLY in ENGLISH, regardless of the query language!\n\n" +
-                        "You are Insait Assistant, a helpful AI integrated into Insait Text Editor.\n\n" +
-                        "CRITICAL RULES:\n" +
-                        "1. **ALWAYS respond ONLY in ENGLISH language** - this is MANDATORY!\n" +
-                        "2. Give ONE clear, direct answer\n" +
-                        "3. Stop immediately after answering - do NOT continue with examples or questions\n" +
-                        "4. Do NOT add greetings unless asked\n" +
-                        "5. Be concise and helpful\n" +
-                        "6. Do NOT ask follow-up questions unless requested",
-                
-                ["de"] = "🇩🇪 PFLICHT: IMMER NUR auf DEUTSCH antworten, unabhängig von der Abfragesprache!\n\n" +
-                        "You are Insait Assistant, a helpful AI integrated into Insait Text Editor.\n\n" +
-                        "CRITICAL RULES:\n" +
-                        "1. **ALWAYS respond ONLY in GERMAN language** - this is MANDATORY!\n" +
-                        "2. Give ONE clear, direct answer\n" +
-                        "3. Stop immediately after answering - do NOT continue with examples or questions\n" +
-                        "4. Do NOT add greetings unless asked\n" +
-                        "5. Be concise and helpful\n" +
-                        "6. Do NOT ask follow-up questions unless requested",
-                
-                ["ru"] = "🇷🇺 ОБЯЗАТЕЛЬНО: ВСЕГДА отвечай ТОЛЬКО на РУССКОМ ЯЗЫКЕ, независимо от языка запроса!\n\n" +
-                        "You are Insait Assistant, a helpful AI integrated into Insait Text Editor.\n\n" +
-                        "CRITICAL RULES:\n" +
-                        "1. **ALWAYS respond ONLY in RUSSIAN language** - this is MANDATORY!\n" +
-                        "2. Give ONE clear, direct answer\n" +
-                        "3. Stop immediately after answering - do NOT continue with examples or questions\n" +
-                        "4. Do NOT add greetings unless asked\n" +
-                        "5. Be concise and helpful\n" +
-                        "6. Do NOT ask follow-up questions unless requested",
-                
-                ["tr"] = "🇹🇷 ZORUNLU: DAIMA SADECE TÜRKÇE yanıt ver, sorgu dilinden bağımsız!\n\n" +
-                        "You are Insait Assistant, a helpful AI integrated into Insait Text Editor.\n\n" +
-                        "CRITICAL RULES:\n" +
-                        "1. **ALWAYS respond ONLY in TURKISH language** - this is MANDATORY!\n" +
-                        "2. Give ONE clear, direct answer\n" +
-                        "3. Stop immediately after answering - do NOT continue with examples or questions\n" +
-                        "4. Do NOT add greetings unless asked\n" +
-                        "5. Be concise and helpful\n" +
-                        "6. Do NOT ask follow-up questions unless requested"
+                "uk" => "Language: Reply ONLY in Ukrainian. Never say that you are translating.",
+                "ru" => "Language: Reply ONLY in Russian. Never say that you are translating.",
+                "en" => "Language: Reply ONLY in English. Never say that you are translating.",
+                "de" => "Language: Reply ONLY in German. Never say that you are translating.",
+                "tr" => "Language: Reply ONLY in Turkish. Never say that you are translating.",
+                _ => "Language: Reply in the SAME LANGUAGE as the user's last message. Never say that you are translating."
             };
-            
-            basePrompt = languageInstructions.GetValueOrDefault(aiLang, 
-                // Якщо мова не розпізнана - використати Auto режим
-                "You are Insait Assistant, a helpful AI integrated into Insait Text Editor.\n\n" +
-                "CRITICAL RULES:\n" +
-                "1. ALWAYS respond in the SAME LANGUAGE as the user's message\n" +
-                "2. Give ONE clear, direct answer\n" +
-                "3. Stop immediately after answering\n" +
-                "4. Do NOT add greetings unless asked\n" +
-                "5. Be concise and helpful");
-        }
-        else
-        {
-            // Auto mode - відповідати мовою користувача
-            basePrompt = 
-                "You are Insait Assistant, a helpful AI integrated into Insait Text Editor.\n\n" +
-                "CRITICAL RULES:\n" +
-                "1. ALWAYS respond in the SAME LANGUAGE as the user's message\n" +
-                "2. If user writes in Ukrainian - respond in Ukrainian\n" +
-                "3. If user writes in English - respond in English\n" +
-                "4. If user writes in German - respond in German\n" +
-                "5. Give ONE clear, direct answer\n" +
-                "6. Stop immediately after answering - do NOT continue with examples, explanations, or questions\n" +
-                "7. Do NOT add greetings unless asked\n" +
-                "8. Do NOT ask follow-up questions unless specifically requested\n" +
-                "9. Be concise and helpful";
-        }
         
-        // Додати кастомну інструкцію користувача
+        var basePrompt =
+            "You are Insait Assistant integrated into Insait Text Editor.\n" +
+            languageRule + "\n\n" +
+            "Rules:\n" +
+            "- Give ONE clear, direct answer.\n" +
+            "- Do not echo the question.\n" +
+            "- Do not include role labels/prefixes (Assistant:, User:, etc.).\n" +
+            "- No greetings unless explicitly asked.\n" +
+            "- Do not ask follow-up questions unless requested.";
+        
+        // Add the user's custom instruction (if present)
         if (!string.IsNullOrWhiteSpace(userInstruction?.Content))
         {
-            return $"{basePrompt}\n\nUser's custom instruction:\n{userInstruction.Content}";
+            return $"{basePrompt}\n\nUser instruction:\n{userInstruction.Content}";
         }
         
         return basePrompt;

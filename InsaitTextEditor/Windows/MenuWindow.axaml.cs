@@ -61,4 +61,11 @@ public partial class MenuWindow : Window
         await WindowManager.ShowDialogSingletonAsync<LanguageWindow>(owner);
         Close();
     }
+
+    private async void UserAgreement_Click(object? sender, RoutedEventArgs e)
+    {
+        var owner = this.IsVisible ? this : ((this.Owner as Window) ?? this);
+        await WindowManager.ShowDialogSingletonAsync<UserAgreementWindow>(owner);
+        Close();
+    }
 }

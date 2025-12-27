@@ -24,6 +24,7 @@
         <entry key="InsaitTextEditor/Windows/LanguageWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
         <entry key="InsaitTextEditor/Windows/MenuWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
         <entry key="InsaitTextEditor/Windows/SettingsWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/UserAgreementWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
         <entry key="InsaitTextEditor/Windows/ViewWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
       </map>
     </option>

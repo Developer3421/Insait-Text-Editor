@@ -181,10 +181,66 @@ public partial class App : Application
             
             var mainWindow = new MainWindow(suppressInit: false, startupFilePath: startupFilePath);
             desktop.MainWindow = mainWindow;
-            
+
             // ✅ Отримати TabManager з MainWindow
             TabManager = mainWindow.TabManager;
             System.Console.WriteLine("[App] ✅ TabManager експортовано з MainWindow");
+
+            // ✅ GDPR/User agreement (offline + local storage) on first run
+            try
+            {
+                if (!SettingsService.IsUserAgreementAccepted())
+                {
+                    mainWindow.Opened += (_, _) =>
+                    {
+                        // double-check in case something set it earlier
+                        if (SettingsService.IsUserAgreementAccepted())
+                            return;
+
+                        try
+                        {
+                            mainWindow.IsEnabled = false;
+
+                            var dlg = new Windows.UserAgreementWindow
+                            {
+                                WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner
+                            };
+
+                            dlg.Closed += (_, _) =>
+                            {
+                                // If user accepted, persist; otherwise exit.
+                                if (SettingsService.IsUserAgreementAccepted(Windows.UserAgreementWindow.CurrentAgreementVersion))
+                                {
+                                    mainWindow.IsEnabled = true;
+                                    return;
+                                }
+
+                                try
+                                {
+                                    mainWindow.Close();
+                                    desktop.Shutdown();
+                                }
+                                catch
+                                {
+                                    // ignore
+                                }
+                            };
+
+                            // Ensure owner is set for correct z-order and input behavior.
+                            dlg.Show(mainWindow);
+                        }
+                        catch
+                        {
+                            // Never leave the app in a disabled state.
+                            mainWindow.IsEnabled = true;
+                        }
+                    };
+                }
+            }
+            catch
+            {
+                // If anything goes wrong, don't block app startup.
+            }
         }
 
         base.OnFrameworkInitializationCompleted();

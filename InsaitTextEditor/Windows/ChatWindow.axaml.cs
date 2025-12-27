@@ -35,6 +35,10 @@ public partial class ChatWindow : Window
     private bool _isUserScrolling = false;
     private double _lastScrollPosition = 0;
 
+    // New: auto-scroll only when user stays near the bottom.
+    private bool _autoScrollEnabled = true;
+    private const double AutoScrollBottomThreshold = 48; // px
+
     // Styled property so XAML can bind to the window's current model name and update automatically
     public static readonly StyledProperty<string> CurrentModelDisplayNameProperty =
         AvaloniaProperty.Register<ChatWindow, string>(nameof(CurrentModelDisplayName));
@@ -92,6 +96,13 @@ public partial class ChatWindow : Window
         var inputBox = this.FindControl<TextBox>("InputTextBox");
         if (inputBox != null)
             inputBox.Watermark = LocalizationService.GetString("Key.TypeMessage", "Type your message here...");
+        
+        // Track scroll to avoid fighting the user, and to keep streaming updates visible.
+        var scroll = this.FindControl<ScrollViewer>("MessagesScroll");
+        if (scroll != null)
+        {
+            scroll.ScrollChanged += MessagesScroll_ScrollChanged;
+        }
     }
 
     private async void ChatWindow_Opened(object? sender, EventArgs e)
@@ -829,27 +840,41 @@ public partial class ChatWindow : Window
         ScrollToBottom();
     }
 
+    private void MessagesScroll_ScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (sender is not ScrollViewer sv)
+            return;
+
+        // Consider "at bottom" if within threshold, so small layout changes don't disable autoscroll.
+        var distanceToBottom = sv.Extent.Height - sv.Viewport.Height - sv.Offset.Y;
+        var isNearBottom = distanceToBottom <= AutoScrollBottomThreshold;
+
+        // If user scrolls up -> disable auto-scroll; if they return to bottom -> enable it again.
+        _autoScrollEnabled = isNearBottom;
+
+        // Keep existing fields updated (used elsewhere/logging)
+        _lastScrollPosition = sv.Offset.Y;
+        _isUserScrolling = !isNearBottom;
+    }
+
     private async Task ScrollToBottom()
     {
-        await Dispatcher.UIThread.InvokeAsync(async () =>
+        // Only scroll if user hasn't scrolled away from the bottom.
+        if (!_autoScrollEnabled)
+            return;
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
         {
             var scrollViewer = this.FindControl<ScrollViewer>("MessagesScroll");
-            if (scrollViewer != null)
-            {
-                // ✅ ПОКРАЩЕНИЙ СКРОЛ: Даємо час UI на рендеринг
-                await Task.Delay(50);
-                
-                // Прокручуємо до кінця двічі для надійності
-                scrollViewer.ScrollToEnd();
-                
-                // Додаткова затримка та повторний скрол для гарантії
-                await Task.Delay(50);
-                scrollViewer.ScrollToEnd();
-                
-                // Оновлюємо позицію скролу
-                _lastScrollPosition = scrollViewer.Offset.Y;
-            }
+            scrollViewer?.ScrollToEnd();
         });
+
+        // Ensure we scroll after layout is updated (streaming can change message height).
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            var scrollViewer = this.FindControl<ScrollViewer>("MessagesScroll");
+            scrollViewer?.ScrollToEnd();
+        }, DispatcherPriority.Render);
     }
 
     private void Messages_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -880,10 +905,8 @@ public partial class ChatWindow : Window
         // ✅ ПОКРАЩЕНИЙ автоскрол при додаванні/видаленні повідомлень
         _ = Dispatcher.UIThread.InvokeAsync(async () =>
         {
-            // Збільшена затримка для повного рендерингу
-            await Task.Delay(100);
             await ScrollToBottom();
-        });
+        }, DispatcherPriority.Background);
     }
 
     private void ChatMessage_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -897,9 +920,8 @@ public partial class ChatWindow : Window
                 _ = Dispatcher.UIThread.InvokeAsync(async () =>
                 {
                     // ✅ ПОКРАЩЕНИЙ скрол: збільшена затримка для streaming оновлень
-                    await Task.Delay(50);
                     await ScrollToBottom();
-                });
+                }, DispatcherPriority.Render);
             }
         }
     }

@@ -117,4 +117,41 @@
   <x:String x:Key="Key.ReasoningComplete">🎉 Рассуждения завершены!</x:String>
   <x:String x:Key="Key.ReasoningPlanCancelled">❌ Генерация плана отменена</x:String>
   <x:String x:Key="Key.ReasoningPlanFailed">❌ Не удалось сгенерировать план</x:String>
+
+  <!-- Complaint Window -->
+  <x:String x:Key="Key.ComplaintTitle">Жалоба</x:String>
+  <x:String x:Key="Key.ComplaintHeader">Жалоба</x:String>
+  <x:String x:Key="Key.ComplaintAiTitle">Жалоба на ответ ИИ</x:String>
+  <x:String x:Key="Key.ComplaintSendInstruction">Отправьте, пожалуйста, на vetalebrowser01@gmail.com</x:String>
+  <x:String x:Key="Key.ComplaintAiAnswerLabel">Ответ ИИ (контекст):</x:String>
+  <x:String x:Key="Key.ComplaintPlaceholder">Опишите, пожалуйста, вашу жалобу...</x:String>
+  <x:String x:Key="Key.ComplaintSaveToFile">Сохранить в файл</x:String>
+
+  <!-- User agreement / GDPR -->
+  <x:String x:Key="Key.UserAgreement">Пользовательское соглашение</x:String>
+  <x:String x:Key="Key.UserAgreementTitle">Пользовательское соглашение (GDPR)</x:String>
+  <x:String x:Key="Key.UserAgreementHeader">Пользовательское соглашение / GDPR</x:String>
+
+  <x:String x:Key="Key.UserAgreementSectionTitle">Конфиденциальность и локальное хранение данных</x:String>
+  <x:String x:Key="Key.UserAgreementOffline">InsaitTextEditor работает полностью офлайн. Приложение не использует Интернет, не отправляет телеметрию, не загружает ваш контент в облачные сервисы и не подключается к внешним серверам.</x:String>
+
+  <x:String x:Key="Key.UserAgreementWhatTitle">Какие данные хранятся (локально)</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem1">• Настройки приложения (цвета темы, размер шрифта, язык).</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem2">• История чата (ваши сообщения и ответы ассистента), включая временные метки.</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem3">• Функции reasoning/memory/documents могут хранить локальные заметки или фрагменты памяти для улучшения работы (локально).</x:String>
+
+  <x:String x:Key="Key.UserAgreementWhereTitle">Где это хранится</x:String>
+  <x:String x:Key="Key.UserAgreementWhereIntro">Данные сохраняются в локальных файлах LiteDB рядом с приложением (в папке программы). В зависимости от функции базы данных находятся здесь:</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem1">• Database\settings_v2.litedb (базовые настройки)</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem2">• Data\Encrypted\... (зашифрованные базы: ChatHistory, Memory, Reasoning, Documents, Settings)</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem3">• Data\Keys\master.key (локальный ключ шифрования для доступа к зашифрованным БД)</x:String>
+  <x:String x:Key="Key.UserAgreementDeleteNote">Вы можете удалить локальные данные в любой момент, удалив эти файлы/папки. Если удалить ключ шифрования, зашифрованные базы данных больше не удастся расшифровать.</x:String>
+
+  <x:String x:Key="Key.UserAgreementRightsTitle">Ваши права</x:String>
+  <x:String x:Key="Key.UserAgreementRightsText">Поскольку всё хранится на этом устройстве, вы полностью контролируете свои данные: доступ, изменения и удаление. Приложение не хранит удалённых копий.</x:String>
+
+  <x:String x:Key="Key.UserAgreementConsent">Я прочитал(а) и принимаю Пользовательское соглашение и политику локального хранения данных</x:String>
+  <x:String x:Key="Key.UserAgreementMustAccept">Чтобы продолжить, нужно принять соглашение.</x:String>
+  <x:String x:Key="Key.Accept">Принять</x:String>
+  <x:String x:Key="Key.Decline">Отказаться</x:String>
 </ResourceDictionary>

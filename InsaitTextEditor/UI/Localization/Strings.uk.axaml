@@ -117,4 +117,41 @@
   <x:String x:Key="Key.ReasoningComplete">🎉 Reasoning завершено!</x:String>
   <x:String x:Key="Key.ReasoningPlanCancelled">❌ Генерацію плану скасовано</x:String>
   <x:String x:Key="Key.ReasoningPlanFailed">❌ Не вдалося згенерувати план</x:String>
+
+  <!-- Complaint Window -->
+  <x:String x:Key="Key.ComplaintTitle">Скарга</x:String>
+  <x:String x:Key="Key.ComplaintHeader">Скарга</x:String>
+  <x:String x:Key="Key.ComplaintAiTitle">Скарга на відповідь AI</x:String>
+  <x:String x:Key="Key.ComplaintSendInstruction">Відправте будь ласка на vetalebrowser01@gmail.com</x:String>
+  <x:String x:Key="Key.ComplaintAiAnswerLabel">Відповідь AI (контекст):</x:String>
+  <x:String x:Key="Key.ComplaintPlaceholder">Опишіть, будь ласка, вашу скаргу...</x:String>
+  <x:String x:Key="Key.ComplaintSaveToFile">Зберегти в файл</x:String>
+
+  <!-- User agreement / GDPR -->
+  <x:String x:Key="Key.UserAgreement">Угода користувача</x:String>
+  <x:String x:Key="Key.UserAgreementTitle">Угода користувача (GDPR)</x:String>
+  <x:String x:Key="Key.UserAgreementHeader">Угода користувача / GDPR</x:String>
+
+  <x:String x:Key="Key.UserAgreementSectionTitle">Конфіденційність та локальне зберігання даних</x:String>
+  <x:String x:Key="Key.UserAgreementOffline">InsaitTextEditor працює повністю офлайн. Додаток не використовує Інтернет, не надсилає телеметрію, не завантажує ваш контент у хмарні сервіси та не підключається до зовнішніх серверів.</x:String>
+
+  <x:String x:Key="Key.UserAgreementWhatTitle">Які дані зберігаються (локально)</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem1">• Налаштування додатка (кольори теми, розмір шрифту, мова).</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem2">• Історія чату (ваші повідомлення та відповіді асистента), включно з часовими мітками.</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem3">• Функції reasoning/memory/documents можуть зберігати локальні нотатки або витяги пам’яті для покращення роботи (локально).</x:String>
+
+  <x:String x:Key="Key.UserAgreementWhereTitle">Де це зберігається</x:String>
+  <x:String x:Key="Key.UserAgreementWhereIntro">Дані зберігаються у локальних файлах LiteDB поруч із додатком (у папці програми). Залежно від функції, бази даних розміщені тут:</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem1">• Database\settings_v2.litedb (базові налаштування)</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem2">• Data\Encrypted\... (зашифровані бази: ChatHistory, Memory, Reasoning, Documents, Settings)</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem3">• Data\Keys\master.key (локальний ключ шифрування для доступу до зашифрованих БД)</x:String>
+  <x:String x:Key="Key.UserAgreementDeleteNote">Ви можете видалити локальні дані в будь-який момент, видаливши ці файли/папки. Якщо видалити ключ шифрування, зашифровані бази даних більше не вдасться розшифрувати.</x:String>
+
+  <x:String x:Key="Key.UserAgreementRightsTitle">Ваші права</x:String>
+  <x:String x:Key="Key.UserAgreementRightsText">Оскільки все зберігається на цьому пристрої, ви повністю контролюєте свої дані: доступ, зміни та видалення. Додаток не зберігає віддалених копій.</x:String>
+
+  <x:String x:Key="Key.UserAgreementConsent">Я прочитав(ла) і приймаю Угоду користувача та політику локального зберігання даних</x:String>
+  <x:String x:Key="Key.UserAgreementMustAccept">Щоб продовжити, потрібно прийняти угоду.</x:String>
+  <x:String x:Key="Key.Accept">Прийняти</x:String>
+  <x:String x:Key="Key.Decline">Відмовитись</x:String>
 </ResourceDictionary>

@@ -117,4 +117,41 @@ Just type your question! (Ctrl+Enter to send)</x:String>
   <x:String x:Key="Key.ReasoningComplete">🎉 Reasoning complete!</x:String>
   <x:String x:Key="Key.ReasoningPlanCancelled">❌ Plan generation cancelled</x:String>
   <x:String x:Key="Key.ReasoningPlanFailed">❌ Failed to generate plan</x:String>
+
+  <!-- Complaint Window -->
+  <x:String x:Key="Key.ComplaintTitle">Complaint</x:String>
+  <x:String x:Key="Key.ComplaintHeader">Complaint</x:String>
+  <x:String x:Key="Key.ComplaintAiTitle">Complaint about AI answer</x:String>
+  <x:String x:Key="Key.ComplaintSendInstruction">Please send to vetalebrowser01@gmail.com</x:String>
+  <x:String x:Key="Key.ComplaintAiAnswerLabel">AI answer (context):</x:String>
+  <x:String x:Key="Key.ComplaintPlaceholder">Please describe your complaint...</x:String>
+  <x:String x:Key="Key.ComplaintSaveToFile">Save to file</x:String>
+
+  <!-- User agreement / GDPR -->
+  <x:String x:Key="Key.UserAgreement">User Agreement</x:String>
+  <x:String x:Key="Key.UserAgreementTitle">User Agreement (GDPR)</x:String>
+  <x:String x:Key="Key.UserAgreementHeader">User agreement / GDPR</x:String>
+
+  <x:String x:Key="Key.UserAgreementSectionTitle">Privacy &amp; local data storage</x:String>
+  <x:String x:Key="Key.UserAgreementOffline">InsaitTextEditor works fully offline. The application does not use the Internet, does not send telemetry, does not upload your content to any cloud services, and does not connect to external servers.</x:String>
+
+  <x:String x:Key="Key.UserAgreementWhatTitle">What data is stored (locally)</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem1">• App settings (theme colors, font size, language).</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem2">• Chat history (your messages and assistant replies), including timestamps.</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem3">• Reasoning/memory/documents features may store derived notes or extracted memory snippets to improve local experience.</x:String>
+
+  <x:String x:Key="Key.UserAgreementWhereTitle">Where it is stored</x:String>
+  <x:String x:Key="Key.UserAgreementWhereIntro">Data is saved in local LiteDB files next to the app (inside the app folder). Depending on the feature, databases are stored under:</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem1">• Database\settings_v2.litedb (basic settings)</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem2">• Data\Encrypted\... (encrypted feature databases: ChatHistory, Memory, Reasoning, Documents, Settings)</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem3">• Data\Keys\master.key (local encryption key used to protect encrypted databases)</x:String>
+  <x:String x:Key="Key.UserAgreementDeleteNote">You can delete your local data at any time by removing these folders/files. If you delete the encryption key, encrypted databases can’t be decrypted anymore.</x:String>
+
+  <x:String x:Key="Key.UserAgreementRightsTitle">Your rights</x:String>
+  <x:String x:Key="Key.UserAgreementRightsText">Because everything stays on this device, you control your data directly: access, modification, and deletion. There’s no remote copy kept by the app.</x:String>
+
+  <x:String x:Key="Key.UserAgreementConsent">I have read and accept the User Agreement and local data storage policy</x:String>
+  <x:String x:Key="Key.UserAgreementMustAccept">You must accept to continue.</x:String>
+  <x:String x:Key="Key.Accept">Accept</x:String>
+  <x:String x:Key="Key.Decline">Decline</x:String>
 </ResourceDictionary>

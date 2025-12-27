@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="InsaitTextEditor.Windows.ComplaintWindow"
-        Title="Скарга"
+        Title="{DynamicResource Key.ComplaintTitle}"
         Width="720" Height="520"
         MinWidth="520" MinHeight="420"
         WindowStartupLocation="CenterOwner"
@@ -41,7 +41,7 @@
                 Padding="8,3">
           <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
             <TextBlock Text="⚠" FontSize="16" VerticalAlignment="Center"/>
-            <TextBlock Text="Скарга"
+            <TextBlock Text="{DynamicResource Key.ComplaintHeader}"
                        Foreground="{StaticResource AppGreenBrush}"
                        FontSize="13"
                        VerticalAlignment="Center"/>
@@ -69,16 +69,16 @@
     <!-- Body -->
     <Border Grid.Row="1" Background="#FFFFFF" Padding="14">
       <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
-        <TextBlock Text="Скарга на відповідь AI" FontSize="14" FontWeight="SemiBold"/>
+        <TextBlock Text="{DynamicResource Key.ComplaintAiTitle}" FontSize="14" FontWeight="SemiBold"/>
 
         <TextBlock Grid.Row="1" Margin="0,8,0,10"
-                   Text="Відправте будь ласка на vetalebrowser01@gmail.com"
+                   Text="{DynamicResource Key.ComplaintSendInstruction}"
                    FontSize="12" Opacity="0.85"/>
 
         <!-- AI answer context -->
         <Border Grid.Row="2" Background="#F5F5F5" CornerRadius="8" Padding="10" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,0,10">
           <Grid RowDefinitions="Auto,*">
-            <TextBlock Text="Відповідь AI (контекст):" FontSize="12" FontWeight="SemiBold" Opacity="0.9"/>
+            <TextBlock Text="{DynamicResource Key.ComplaintAiAnswerLabel}" FontSize="12" FontWeight="SemiBold" Opacity="0.9"/>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="140">
               <TextBox x:Name="AiAnswerTextBox" IsReadOnly="True" TextWrapping="Wrap" Background="Transparent" BorderThickness="0"/>
             </ScrollViewer>
@@ -92,7 +92,7 @@
           <TextBox x:Name="ComplaintTextBox"
                    AcceptsReturn="True"
                    TextWrapping="Wrap"
-                   Watermark="Опишіть, будь ласка, вашу скаргу..."
+                   Watermark="{DynamicResource Key.ComplaintPlaceholder}"
                    MinHeight="220"/>
         </ScrollViewer>
 
@@ -103,13 +103,13 @@
                   BorderBrush="Transparent" BorderThickness="0"
                   Template="{StaticResource FlatButtonTemplate}"
                   Click="SaveToFile_Click"
-                  Content="Зберегти в файл"/>
+                  Content="{DynamicResource Key.ComplaintSaveToFile}"/>
           <Button Width="110" Height="36"
                   Background="#DDDDDD" Foreground="#1A1A1A"
                   BorderBrush="Transparent" BorderThickness="0"
                   Template="{StaticResource FlatButtonTemplate}"
                   Click="Close_Click"
-                  Content="Закрити"/>
+                  Content="{DynamicResource Key.Close}"/>
         </StackPanel>
       </Grid>
     </Border>

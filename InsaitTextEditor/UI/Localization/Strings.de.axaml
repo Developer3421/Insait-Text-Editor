@@ -117,4 +117,41 @@ Geben Sie einfach Ihre Frage ein! (Strg+Eingabe zum Senden)</x:String>
   <x:String x:Key="Key.ReasoningComplete">🎉 Reasoning abgeschlossen!</x:String>
   <x:String x:Key="Key.ReasoningPlanCancelled">❌ Plan-Erstellung abgebrochen</x:String>
   <x:String x:Key="Key.ReasoningPlanFailed">❌ Plan konnte nicht erstellt werden</x:String>
+
+  <!-- Complaint Window -->
+  <x:String x:Key="Key.ComplaintTitle">Beschwerde</x:String>
+  <x:String x:Key="Key.ComplaintHeader">Beschwerde</x:String>
+  <x:String x:Key="Key.ComplaintAiTitle">Beschwerde über eine KI-Antwort</x:String>
+  <x:String x:Key="Key.ComplaintSendInstruction">Bitte senden an vetalebrowser01@gmail.com</x:String>
+  <x:String x:Key="Key.ComplaintAiAnswerLabel">KI-Antwort (Kontext):</x:String>
+  <x:String x:Key="Key.ComplaintPlaceholder">Bitte beschreiben Sie Ihre Beschwerde...</x:String>
+  <x:String x:Key="Key.ComplaintSaveToFile">In Datei speichern</x:String>
+
+  <!-- User agreement / GDPR -->
+  <x:String x:Key="Key.UserAgreement">Nutzungsvereinbarung</x:String>
+  <x:String x:Key="Key.UserAgreementTitle">Nutzungsvereinbarung (GDPR)</x:String>
+  <x:String x:Key="Key.UserAgreementHeader">Nutzungsvereinbarung / GDPR</x:String>
+
+  <x:String x:Key="Key.UserAgreementSectionTitle">Datenschutz &amp; lokale Datenspeicherung</x:String>
+  <x:String x:Key="Key.UserAgreementOffline">InsaitTextEditor arbeitet vollständig offline. Die Anwendung nutzt kein Internet, sendet keine Telemetrie, lädt Ihre Inhalte nicht in Cloud-Dienste hoch und verbindet sich nicht mit externen Servern.</x:String>
+
+  <x:String x:Key="Key.UserAgreementWhatTitle">Welche Daten werden (lokal) gespeichert</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem1">• App-Einstellungen (Theme-Farben, Schriftgröße, Sprache).</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem2">• Chat-Verlauf (Ihre Nachrichten und Antworten des Assistenten), inklusive Zeitstempel.</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem3">• Reasoning/Memory/Documents-Funktionen können lokale Notizen oder Speicher-Snippets speichern, um die Nutzung zu verbessern (lokal).</x:String>
+
+  <x:String x:Key="Key.UserAgreementWhereTitle">Wo wird es gespeichert</x:String>
+  <x:String x:Key="Key.UserAgreementWhereIntro">Die Daten werden in lokalen LiteDB-Dateien neben der App (im App-Ordner) gespeichert. Je nach Funktion befinden sich die Datenbanken hier:</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem1">• Database\settings_v2.litedb (Grundeinstellungen)</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem2">• Data\Encrypted\... (verschlüsselte Datenbanken: ChatHistory, Memory, Reasoning, Documents, Settings)</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem3">• Data\Keys\master.key (lokaler Verschlüsselungsschlüssel für verschlüsselte Datenbanken)</x:String>
+  <x:String x:Key="Key.UserAgreementDeleteNote">Sie können lokale Daten jederzeit löschen, indem Sie diese Dateien/Ordner entfernen. Wenn Sie den Verschlüsselungsschlüssel löschen, können verschlüsselte Datenbanken nicht mehr entschlüsselt werden.</x:String>
+
+  <x:String x:Key="Key.UserAgreementRightsTitle">Ihre Rechte</x:String>
+  <x:String x:Key="Key.UserAgreementRightsText">Da alles auf diesem Gerät bleibt, kontrollieren Sie Ihre Daten direkt: Zugriff, Änderung und Löschung. Es gibt keine entfernte Kopie, die von der App gespeichert wird.</x:String>
+
+  <x:String x:Key="Key.UserAgreementConsent">Ich habe die Nutzungsvereinbarung und die Richtlinie zur lokalen Datenspeicherung gelesen und akzeptiere sie</x:String>
+  <x:String x:Key="Key.UserAgreementMustAccept">Sie müssen akzeptieren, um fortzufahren.</x:String>
+  <x:String x:Key="Key.Accept">Akzeptieren</x:String>
+  <x:String x:Key="Key.Decline">Ablehnen</x:String>
 </ResourceDictionary>

@@ -9,6 +9,9 @@ public static class SettingsService
 {
     private const string Header = "# InsaitTextEditor Settings DB";
 
+    // GDPR / User agreement
+    private const int AgreementCurrentVersion = 1;
+
     private static string GetProjectDatabaseDir()
     {
         var baseDir = GetExecutableDirectory();
@@ -139,5 +142,48 @@ public static class SettingsService
             col.Upsert(doc);
         }
         catch { /* ignore */ }
+    }
+
+    public static bool IsUserAgreementAccepted(int requiredVersion = AgreementCurrentVersion)
+    {
+        try
+        {
+            using var db = OpenDb();
+            var col = db.GetCollection<BsonDocument>("settings");
+            var doc = col.FindById(1);
+            if (doc is null)
+                return false;
+
+            var accepted = doc.TryGetValue("agreementAccepted", out var a) && a.IsBoolean && a.AsBoolean;
+            if (!accepted)
+                return false;
+
+            var version = doc.TryGetValue("agreementVersion", out var v) && v.IsInt32 ? v.AsInt32 : 0;
+            return version >= requiredVersion;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public static void SetUserAgreementAccepted(int version = AgreementCurrentVersion)
+    {
+        try
+        {
+            using var db = OpenDb();
+            var col = db.GetCollection<BsonDocument>("settings");
+            var doc = col.FindById(1) ?? new BsonDocument { ["_id"] = 1 };
+
+            doc["agreementAccepted"] = true;
+            doc["agreementVersion"] = version;
+            doc["agreementAcceptedUtc"] = DateTime.UtcNow;
+
+            col.Upsert(doc);
+        }
+        catch
+        {
+            // ignore
+        }
     }
 }

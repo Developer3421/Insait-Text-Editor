@@ -116,4 +116,41 @@ Sadece sorunuzu yazın! (Göndermek için Ctrl+Enter)</x:String>
   <x:String x:Key="Key.ReasoningComplete">🎉 Akıl yürütme tamamlandı!</x:String>
   <x:String x:Key="Key.ReasoningPlanCancelled">❌ Plan oluşturma iptal edildi</x:String>
   <x:String x:Key="Key.ReasoningPlanFailed">❌ Plan oluşturulamadı</x:String>
+
+  <!-- Complaint Window -->
+  <x:String x:Key="Key.ComplaintTitle">Şikayet</x:String>
+  <x:String x:Key="Key.ComplaintHeader">Şikayet</x:String>
+  <x:String x:Key="Key.ComplaintAiTitle">Yapay zeka cevabı hakkında şikayet</x:String>
+  <x:String x:Key="Key.ComplaintSendInstruction">Lütfen vetalebrowser01@gmail.com adresine gönderin</x:String>
+  <x:String x:Key="Key.ComplaintAiAnswerLabel">Yapay zeka cevabı (bağlam):</x:String>
+  <x:String x:Key="Key.ComplaintPlaceholder">Lütfen şikayetinizi açıklayın...</x:String>
+  <x:String x:Key="Key.ComplaintSaveToFile">Dosyaya kaydet</x:String>
+
+  <!-- User agreement / GDPR -->
+  <x:String x:Key="Key.UserAgreement">Kullanıcı Sözleşmesi</x:String>
+  <x:String x:Key="Key.UserAgreementTitle">Kullanıcı Sözleşmesi (GDPR)</x:String>
+  <x:String x:Key="Key.UserAgreementHeader">Kullanıcı sözleşmesi / GDPR</x:String>
+
+  <x:String x:Key="Key.UserAgreementSectionTitle">Gizlilik ve yerel veri saklama</x:String>
+  <x:String x:Key="Key.UserAgreementOffline">InsaitTextEditor tamamen çevrimdışı çalışır. Uygulama internet kullanmaz, telemetri göndermez, içeriğinizi bulut servislerine yüklemez ve harici sunuculara bağlanmaz.</x:String>
+
+  <x:String x:Key="Key.UserAgreementWhatTitle">Hangi veriler (yerel olarak) saklanır</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem1">• Uygulama ayarları (tema renkleri, yazı tipi boyutu, dil).</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem2">• Sohbet geçmişi (mesajlarınız ve asistan yanıtları), zaman damgaları dahil.</x:String>
+  <x:String x:Key="Key.UserAgreementWhatItem3">• Reasoning/memory/documents özellikleri, deneyimi iyileştirmek için yerel notlar veya bellek parçacıkları saklayabilir (yerel).</x:String>
+
+  <x:String x:Key="Key.UserAgreementWhereTitle">Nerede saklanır</x:String>
+  <x:String x:Key="Key.UserAgreementWhereIntro">Veriler uygulamanın yanında (uygulama klasöründe) yerel LiteDB dosyalarında saklanır. Özelliğe göre veritabanları şurada bulunur:</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem1">• Database\settings_v2.litedb (temel ayarlar)</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem2">• Data\Encrypted\... (şifreli veritabanları: ChatHistory, Memory, Reasoning, Documents, Settings)</x:String>
+  <x:String x:Key="Key.UserAgreementWhereItem3">• Data\Keys\master.key (şifreli veritabanları için yerel şifreleme anahtarı)</x:String>
+  <x:String x:Key="Key.UserAgreementDeleteNote">Bu dosya/klasörleri silerek yerel verilerinizi istediğiniz zaman kaldırabilirsiniz. Şifreleme anahtarını silerseniz, şifreli veritabanları artık çözülemez.</x:String>
+
+  <x:String x:Key="Key.UserAgreementRightsTitle">Haklarınız</x:String>
+  <x:String x:Key="Key.UserAgreementRightsText">Her şey bu cihazda kaldığı için verilerinizi doğrudan kontrol edersiniz: erişim, değiştirme ve silme. Uygulama uzaktan bir kopya tutmaz.</x:String>
+
+  <x:String x:Key="Key.UserAgreementConsent">Kullanıcı Sözleşmesini ve yerel veri saklama politikasını okudum ve kabul ediyorum</x:String>
+  <x:String x:Key="Key.UserAgreementMustAccept">Devam etmek için kabul etmelisiniz.</x:String>
+  <x:String x:Key="Key.Accept">Kabul Et</x:String>
+  <x:String x:Key="Key.Decline">Reddet</x:String>
 </ResourceDictionary>
