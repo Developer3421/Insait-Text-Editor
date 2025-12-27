@@ -68,25 +68,35 @@
 
     <!-- Body -->
     <Border Grid.Row="1" Background="#FFFFFF" Padding="14">
-      <Grid RowDefinitions="Auto,Auto,*,Auto">
-        <TextBlock Text="Опишіть, будь ласка, вашу скаргу:" FontSize="14" FontWeight="SemiBold"/>
+      <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+        <TextBlock Text="Скарга на відповідь AI" FontSize="14" FontWeight="SemiBold"/>
 
         <TextBlock Grid.Row="1" Margin="0,8,0,10"
                    Text="Відправте будь ласка на vetalebrowser01@gmail.com"
                    FontSize="12" Opacity="0.85"/>
 
-        <!-- Complaint text input (wrapped in ScrollViewer for consistent Avalonia properties) -->
-        <ScrollViewer Grid.Row="2"
+        <!-- AI answer context -->
+        <Border Grid.Row="2" Background="#F5F5F5" CornerRadius="8" Padding="10" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,0,10">
+          <Grid RowDefinitions="Auto,*">
+            <TextBlock Text="Відповідь AI (контекст):" FontSize="12" FontWeight="SemiBold" Opacity="0.9"/>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="140">
+              <TextBox x:Name="AiAnswerTextBox" IsReadOnly="True" TextWrapping="Wrap" Background="Transparent" BorderThickness="0"/>
+            </ScrollViewer>
+          </Grid>
+        </Border>
+
+        <!-- Complaint text input -->
+        <ScrollViewer Grid.Row="3"
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
           <TextBox x:Name="ComplaintTextBox"
                    AcceptsReturn="True"
                    TextWrapping="Wrap"
-                   Watermark="Напишіть тут..."
-                   MinHeight="240"/>
+                   Watermark="Опишіть, будь ласка, вашу скаргу..."
+                   MinHeight="220"/>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0" Spacing="8">
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0" Spacing="8">
           <Button Width="160" Height="36"
                   Background="{StaticResource AppDarkOrangeBrush}"
                   Foreground="{StaticResource AppGreenBrush}"

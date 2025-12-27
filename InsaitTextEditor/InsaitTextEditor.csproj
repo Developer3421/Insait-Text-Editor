@@ -114,11 +114,6 @@
   </ItemGroup>
 
   <!-- Скрипт реєстрації файлових асоціацій для Windows -->
-  <ItemGroup>
-    <None Include="Register-FileAssociations.ps1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 
   <!-- Папки БД створюються автоматично при першому запуску додатка -->
 
