@@ -18,6 +18,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using Avalonia;
 using System.IO;
+using InsaitTextEditor.Scripts.WindowsControl;
 
 namespace InsaitTextEditor.Windows;
 
@@ -959,5 +960,18 @@ public partial class ChatWindow : Window
         // Відписатися від події при закритті вікна
         LocalizationService.LanguageChanged -= OnLanguageChanged;
         base.OnClosed(e);
+    }
+
+    private void ComplaintAboutAnswer_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem mi)
+            return;
+
+        if (mi.Tag is not ChatMessage msg)
+            return;
+
+        // Only makes sense for assistant answers, but we don't hard-block
+        var w = WindowManager.ShowSingleton<ComplaintWindow>(this, factory: () => new ComplaintWindow(msg.Content));
+        w.Activate();
     }
 }

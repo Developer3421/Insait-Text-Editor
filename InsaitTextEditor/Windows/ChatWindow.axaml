@@ -105,6 +105,7 @@
             <MenuItem Header="Copy" Click="CopyMessage_Click" Tag="{Binding}"/>
             <MenuItem Header="Save to File" Click="SaveMessageToFile_Click" Tag="{Binding}"/>
             <MenuItem Header="Regenerate" Click="RegenerateMessage_Click" Tag="{Binding}"/>
+            <MenuItem Header="Complaint about this answer" Click="ComplaintAboutAnswer_Click" Tag="{Binding}"/>
             <Separator/>
             <MenuItem Header="Delete" Click="DeleteMessage_Click" Tag="{Binding}"/>
           </ContextMenu>
