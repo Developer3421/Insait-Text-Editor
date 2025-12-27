@@ -1,0 +1,114 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="InsaitTextEditor.Windows.ComplaintWindow"
+        Title="Скарга"
+        Width="720" Height="520"
+        MinWidth="520" MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="None"
+        CanResize="True"
+        Background="#A9A9A9">
+
+  <Window.Resources>
+    <SolidColorBrush x:Key="AppGreenBrush" Color="#00C853"/>
+    <SolidColorBrush x:Key="AppPurpleBrush" Color="#6A0DAD"/>
+    <SolidColorBrush x:Key="AppGreyTopBrush" Color="#A9A9A9"/>
+    <SolidColorBrush x:Key="AppDarkOrangeBrush" Color="#CC5500"/>
+
+    <ControlTemplate x:Key="FlatButtonTemplate">
+      <Border Background="{TemplateBinding Background}"
+              CornerRadius="6"
+              Padding="{TemplateBinding Padding}">
+        <ContentPresenter
+          Content="{TemplateBinding Content}"
+          ContentTemplate="{TemplateBinding ContentTemplate}"
+          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      </Border>
+    </ControlTemplate>
+  </Window.Resources>
+
+  <Grid RowDefinitions="56,*,Auto">
+
+    <!-- Header -->
+    <Border Grid.Row="0" Background="{StaticResource AppGreyTopBrush}">
+      <DockPanel Margin="10,0" PointerPressed="TitleBar_PointerPressed">
+        <Border DockPanel.Dock="Left"
+                Background="{StaticResource AppDarkOrangeBrush}"
+                CornerRadius="6"
+                Height="36" MinWidth="150"
+                VerticalAlignment="Center"
+                Padding="8,3">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <TextBlock Text="⚠" FontSize="16" VerticalAlignment="Center"/>
+            <TextBlock Text="Скарга"
+                       Foreground="{StaticResource AppGreenBrush}"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6"
+                    VerticalAlignment="Center" HorizontalAlignment="Right">
+          <Button Width="44" Height="40"
+                  Background="#FFC466" BorderBrush="Transparent" BorderThickness="0"
+                  Padding="6" Template="{StaticResource FlatButtonTemplate}"
+                  Click="Minimize_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/MinButton.png" Stretch="Uniform"/>
+          </Button>
+          <Button Width="44" Height="40"
+                  Background="#FFC466" BorderBrush="Transparent" BorderThickness="0"
+                  Padding="6" Template="{StaticResource FlatButtonTemplate}"
+                  Click="Close_Click">
+            <Image Source="avares://InsaitTextEditor/Icons/CloseButton.png" Stretch="Uniform"/>
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- Body -->
+    <Border Grid.Row="1" Background="#FFFFFF" Padding="14">
+      <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Text="Опишіть, будь ласка, вашу скаргу:" FontSize="14" FontWeight="SemiBold"/>
+
+        <TextBlock Grid.Row="1" Margin="0,8,0,10"
+                   Text="Відправте будь ласка на vetalebrowser01@gmail.com"
+                   FontSize="12" Opacity="0.85"/>
+
+        <!-- Complaint text input (wrapped in ScrollViewer for consistent Avalonia properties) -->
+        <ScrollViewer Grid.Row="2"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+          <TextBox x:Name="ComplaintTextBox"
+                   AcceptsReturn="True"
+                   TextWrapping="Wrap"
+                   Watermark="Напишіть тут..."
+                   MinHeight="240"/>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0" Spacing="8">
+          <Button Width="160" Height="36"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="{StaticResource AppGreenBrush}"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="SaveToFile_Click"
+                  Content="Зберегти в файл"/>
+          <Button Width="110" Height="36"
+                  Background="#DDDDDD" Foreground="#1A1A1A"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="Close_Click"
+                  Content="Закрити"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Footer hint -->
+    <Border Grid.Row="2" Background="#F2F2F2" Padding="14,8">
+      <TextBlock x:Name="StatusText" Text="" FontSize="12" Opacity="0.9"/>
+    </Border>
+
+  </Grid>
+</Window>
+

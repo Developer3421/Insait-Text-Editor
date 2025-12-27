@@ -17,6 +17,7 @@
         <entry key="InsaitTextEditor/UI/Localization/Strings.uk.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
         <entry key="InsaitTextEditor/Windows/AboutWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
         <entry key="InsaitTextEditor/Windows/ChatWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
+        <entry key="InsaitTextEditor/Windows/ComplaintWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
         <entry key="InsaitTextEditor/Windows/ContextMenuWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
         <entry key="InsaitTextEditor/Windows/FileMenuWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />
         <entry key="InsaitTextEditor/Windows/InstructionEditorWindow.axaml" value="InsaitTextEditor/InsaitTextEditor.csproj" />

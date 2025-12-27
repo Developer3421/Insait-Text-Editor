@@ -249,6 +249,11 @@ public MainWindow(bool suppressInit, string? startupFilePath)
             WindowManager.ShowSingleton<ChatWindow>(this);
         }
 
+        private void Complaint_Click(object? sender, RoutedEventArgs e)
+        {
+            WindowManager.ShowSingleton<ComplaintWindow>(this);
+        }
+
         private void OnMainWindowKeyDown(object? sender, KeyEventArgs e)
         {
             if (e.Key != Key.T || (e.KeyModifiers & KeyModifiers.Alt) != KeyModifiers.Alt) return;
@@ -300,3 +305,4 @@ public MainWindow(bool suppressInit, string? startupFilePath)
         public TabManager GetTabManager() => _tabManager;
     }
 }
+

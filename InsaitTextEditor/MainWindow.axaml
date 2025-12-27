@@ -127,6 +127,17 @@
                   Template="{StaticResource FlatButtonTemplate}"
                   Click="ModeToggle_Click"
                   Content="{DynamicResource Key.Mode}"/>
+
+          <!-- Complaint button -->
+          <Button Width="44" Height="35"
+                  Background="{StaticResource AppDarkOrangeBrush}"
+                  Foreground="{StaticResource AppGreenBrush}"
+                  BorderBrush="Transparent" BorderThickness="0"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  Click="Complaint_Click"
+                  ToolTip.Tip="Скарга">
+            <TextBlock Text="⚠" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+          </Button>
         </StackPanel>
 
         <StackPanel x:Name="SecondLineCenter"
