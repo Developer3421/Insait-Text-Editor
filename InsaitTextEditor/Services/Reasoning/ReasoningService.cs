@@ -13,7 +13,7 @@ using InsaitTextEditor.Services.Database.Specialized;
 namespace InsaitTextEditor.Services.Reasoning;
 
 /// <summary>
-/// Сервіс для виконання reasoning chains (Chain-of-Thought)
+/// Service for executing reasoning chains (Chain-of-Thought)
 /// </summary>
 public class ReasoningService
 {
@@ -34,7 +34,7 @@ public class ReasoningService
     }
 
     /// <summary>
-    /// Забезпечує що база даних ініціалізована перед використанням
+    /// Ensure the database is initialized before use
     /// </summary>
     private async Task EnsureInitializedAsync()
     {
@@ -57,14 +57,14 @@ public class ReasoningService
     }
 
     /// <summary>
-    /// Генерує reasoning chain для запиту з streaming відображенням
+    /// Generate a reasoning chain for a query with streaming output
     /// </summary>
     public async IAsyncEnumerable<ReasoningStreamEvent> GenerateReasoningChainStreamAsync(
         string userQuery, 
         Guid conversationId,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        // ✅ Ініціалізувати БД перед використанням
+        // ✅ Initialize DB before use
         await EnsureInitializedAsync();
         
         var chain = new ReasoningChain
@@ -74,9 +74,9 @@ public class ReasoningService
             Status = ChainStatus.InProgress
         };
 
-        Console.WriteLine($"[ReasoningService] 🧠 Початок reasoning для: {userQuery}");
+        Console.WriteLine($"[ReasoningService] 🧠 Starting reasoning for: {userQuery}");
         
-        // Обгортка для обробки помилок без try-catch в генераторі
+        // Wrapper to handle streaming without try/catch in the generator
         var enumerator = GenerateReasoningChainStreamInternalAsync(userQuery, conversationId, chain, cancellationToken);
         
         await foreach (var evt in enumerator)
@@ -91,12 +91,12 @@ public class ReasoningService
         ReasoningChain chain,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        // === Крок 1: Генерація плану зі STREAMING та ФІЛЬТРАЦІЄЮ ===
-        // ✅ Використовуємо локалізацію для початкового повідомлення
+        // === Step 1: Generate plan with STREAMING and FILTERING ===
+        // ✅ Use localization for initial messages
         yield return new ReasoningStreamEvent 
         { 
             Type = ReasoningEventType.StatusUpdate, 
-            Message = Services.LocalizationService.GetString("Key.ReasoningGeneratingPlan", "📝 Генерую план міркування...")
+            Message = Services.LocalizationService.GetString("Key.ReasoningGeneratingPlan", "📝 Generating reasoning plan...")
         };
         
         var planPrompt = _promptBuilder.BuildPlanningPrompt(userQuery);
@@ -105,34 +105,34 @@ public class ReasoningService
         var tokenCount = 0;
         var lastUpdateTime = DateTime.UtcNow;
         
-        Console.WriteLine("[ReasoningService] 🔄 Початок streaming генерації плану з фільтрацією...");
+        Console.WriteLine("[ReasoningService] 🔄 Starting streaming plan generation with filtering...");
         
-        // ✅ ВИКОРИСТОВУЄМО ФІЛЬТРОВАНИЙ STREAMING з агента
+        // ✅ USE FILTERED STREAMING from the agent
         await foreach (var token in _agent.GenerateReasoningStepStreamAsync(planPrompt, maxTokens: 384, cancellationToken))
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 planHasError = true;
-                Console.WriteLine("[ReasoningService] ⚠️ План скасовано користувачем");
+                Console.WriteLine("[ReasoningService] ⚠️ Plan cancelled by user");
                 break;
             }
             
-            // 🛡️ ФІЛЬТРАЦІЯ: Перевіряємо чи токен не містить технічних символів
+            // 🛡️ FILTERING: ensure token does not contain technical symbols
             if (ContainsTechnicalTokens(token))
             {
-                Console.WriteLine("[ReasoningService] 🚫 Виявлено технічний токен у плані, зупинка");
+                Console.WriteLine("[ReasoningService] 🚫 Detected technical token in plan, stopping");
                 break;
             }
             
             planBuilder.Append(token);
             tokenCount++;
             
-            // Відправляти прогрес кожні 5 токенів або кожні 100ms, щоб не спамити UI
+            // Send progress every 5 tokens or every 100ms to avoid spamming UI
             if (tokenCount % 5 == 0 || (DateTime.UtcNow - lastUpdateTime).TotalMilliseconds > 100)
             {
-                // ✅ Використовуємо локалізацію
+                // ✅ Use localization
                 var progressMsg = string.Format(
-                    Services.LocalizationService.GetString("Key.ReasoningGeneratingPlanProgress", "📝 Генерую план... ({0} токенів)"),
+                    Services.LocalizationService.GetString("Key.ReasoningGeneratingPlanProgress", "📝 Generating plan... ({0} tokens)"),
                     tokenCount
                 );
                 yield return new ReasoningStreamEvent
@@ -151,7 +151,7 @@ public class ReasoningService
             yield return new ReasoningStreamEvent
             {
                 Type = ReasoningEventType.Error,
-                Message = Services.LocalizationService.GetString("Key.ReasoningPlanCancelled", "❌ Генерацію плану скасовано")
+                Message = Services.LocalizationService.GetString("Key.ReasoningPlanCancelled", "❌ Plan generation cancelled")
             };
             yield break;
         }
@@ -160,25 +160,25 @@ public class ReasoningService
         
         if (string.IsNullOrWhiteSpace(planResponse))
         {
-            Console.WriteLine("[ReasoningService] ❌ План порожній");
+            Console.WriteLine("[ReasoningService] ❌ Plan is empty");
             chain.Status = ChainStatus.Failed;
             await _reasoningDb.SaveChainAsync(chain);
             yield return new ReasoningStreamEvent
             {
                 Type = ReasoningEventType.Error,
-                Message = Services.LocalizationService.GetString("Key.ReasoningPlanFailed", "❌ Не вдалося згенерувати план")
+                Message = Services.LocalizationService.GetString("Key.ReasoningPlanFailed", "❌ Failed to generate plan")
             };
             yield break;
         }
         
-        Console.WriteLine($"[ReasoningService] ✅ План згенеровано: {planResponse.Length} символів");
+        Console.WriteLine($"[ReasoningService] ✅ Plan generated: {planResponse.Length} chars");
         
         var steps = _promptBuilder.ParsePlanIntoSteps(planResponse);
         chain.Steps = steps;
         
-        // ✅ Використовуємо локалізацію
+        // ✅ Use localization
         var planReadyMsg = string.Format(
-            Services.LocalizationService.GetString("Key.ReasoningPlanReady", "✅ План готовий: {0} кроків"),
+            Services.LocalizationService.GetString("Key.ReasoningPlanReady", "✅ Plan ready: {0} steps"),
             steps.Count
         );
         yield return new ReasoningStreamEvent 
@@ -189,10 +189,10 @@ public class ReasoningService
 
         await _reasoningDb.SaveChainAsync(chain);
         
-        // Невелика пауза для читабельності
+        // Small pause for readability
         await Task.Delay(500, cancellationToken);
 
-        // === Крок 2: Виконання кожного кроку з фільтрованим streaming ===
+        // === Step 2: Execute each step with filtered streaming ===
         int stepNum = 0;
         foreach (var step in chain.Steps)
         {
@@ -200,18 +200,18 @@ public class ReasoningService
             step.Status = StepStatus.Running;
             step.StartedAt = DateTime.UtcNow;
             
-            Console.WriteLine($"[ReasoningService] 🔄 Початок кроку {stepNum}/{steps.Count}: {step.Title}");
+            Console.WriteLine($"[ReasoningService] 🔄 Starting step {stepNum}/{steps.Count}: {step.Title}");
             
-            // Повідомити про початок кроку
+            // Notify about step start
             yield return new ReasoningStreamEvent
             {
                 Type = ReasoningEventType.StepStart,
                 StepNumber = stepNum,
                 StepTitle = step.Title,
-                Message = $"🔄 Крок {stepNum}/{steps.Count}: {step.Title}"
+                Message = $"🔄 Step {stepNum}/{steps.Count}: {step.Title}"
             };
 
-            // ✅ ГЕНЕРУВАТИ ВІДПОВІДЬ ДЛЯ КРОКУ З ФІЛЬТРАЦІЄЮ
+            // ✅ GENERATE STEP ANSWER WITH FILTERED STREAMING
             var stepPrompt = _promptBuilder.BuildStepPrompt(userQuery, step, chain.Steps);
             
             var stepContentBuilder = new System.Text.StringBuilder();
@@ -224,14 +224,14 @@ public class ReasoningService
                 if (cancellationToken.IsCancellationRequested)
                 {
                     hasError = true;
-                    Console.WriteLine($"[ReasoningService] ⚠️ Крок {stepNum} скасовано");
+                    Console.WriteLine($"[ReasoningService] ⚠️ Step {stepNum} cancelled");
                     break;
                 }
                 
-                // 🛡️ ФІЛЬТРАЦІЯ: Перевіряємо чи токен не містить технічних символів
+                // 🛡️ FILTERING: ensure token does not contain technical symbols
                 if (ContainsTechnicalTokens(token))
                 {
-                    Console.WriteLine($"[ReasoningService] 🚫 Виявлено технічний токен у кроці {stepNum}, зупинка");
+                    Console.WriteLine($"[ReasoningService] 🚫 Detected technical token in step {stepNum}, stopping");
                     hasError = true;
                     break;
                 }
@@ -239,7 +239,7 @@ public class ReasoningService
                 stepContentBuilder.Append(token);
                 stepTokenCount++;
                 
-                // Відправляти кожен токен для плавного відображення (throttling кожні 50ms)
+                // Send each token for smooth UI (throttle every 50ms)
                 if ((DateTime.UtcNow - stepLastUpdate).TotalMilliseconds >= 50)
                 {
                     yield return new ReasoningStreamEvent
@@ -252,7 +252,7 @@ public class ReasoningService
                 }
                 else
                 {
-                    // Все одно відправляємо, але без затримки
+                    // Still send without delay
                     yield return new ReasoningStreamEvent
                     {
                         Type = ReasoningEventType.StepContent,
@@ -272,29 +272,29 @@ public class ReasoningService
             step.CompletedAt = DateTime.UtcNow;
             await _reasoningDb.UpdateChainAsync(chain);
             
-            Console.WriteLine($"[ReasoningService] ✅ Крок {stepNum} завершено: {stepTokenCount} токенів");
+            Console.WriteLine($"[ReasoningService] ✅ Step {stepNum} completed: {stepTokenCount} tokens");
             
-            // Повідомити про завершення кроку
+            // Notify about step completion
             yield return new ReasoningStreamEvent
             {
                 Type = ReasoningEventType.StepComplete,
                 StepNumber = stepNum,
-                Message = $"✅ Крок {stepNum} завершено"
+                Message = $"✅ Step {stepNum} completed"
             };
             
-            // Невелика пауза між кроками для читабельності
+            // Small pause between steps for readability
             await Task.Delay(300, cancellationToken);
         }
 
-        // === Крок 3: Генерація фінальної відповіді з ФІЛЬТРАЦІЄЮ ===
-        // ✅ Використовуємо локалізацію
+        // === Step 3: Generate final answer with FILTERING ===
+        // ✅ Use localization
         yield return new ReasoningStreamEvent 
         { 
             Type = ReasoningEventType.StatusUpdate, 
-            Message = Services.LocalizationService.GetString("Key.ReasoningGeneratingFinalAnswer", "🎯 Генерую фінальну відповідь...")
+            Message = Services.LocalizationService.GetString("Key.ReasoningGeneratingFinalAnswer", "🎯 Generating final answer...")
         };
         
-        Console.WriteLine("[ReasoningService] 🎯 Початок генерації фінальної відповіді з фільтрацією...");
+        Console.WriteLine("[ReasoningService] 🎯 Starting final answer generation with filtering...");
         
         var finalPrompt = _promptBuilder.BuildFinalAnswerPrompt(userQuery, chain.Steps);
         
@@ -308,14 +308,14 @@ public class ReasoningService
             if (cancellationToken.IsCancellationRequested)
             {
                 finalHasError = true;
-                Console.WriteLine("[ReasoningService] ⚠️ Фінальна відповідь скасована");
+                Console.WriteLine("[ReasoningService] ⚠️ Final answer cancelled");
                 break;
             }
             
-            // 🛡️ ФІЛЬТРАЦІЯ: Перевіряємо чи токен не містить технічних символів
+            // 🛡️ FILTERING: ensure token does not contain technical symbols
             if (ContainsTechnicalTokens(token))
             {
-                Console.WriteLine("[ReasoningService] 🚫 Виявлено технічний токен у фінальній відповіді, зупинка");
+                Console.WriteLine("[ReasoningService] 🚫 Detected technical token in final answer, stopping");
                 finalHasError = true;
                 break;
             }
@@ -323,7 +323,7 @@ public class ReasoningService
             finalContentBuilder.Append(token);
             finalTokenCount++;
             
-            // Відправляти кожен токен (throttling кожні 50ms)
+            // Send each token (throttle every 50ms)
             if ((DateTime.UtcNow - finalLastUpdate).TotalMilliseconds >= 50)
             {
                 yield return new ReasoningStreamEvent
@@ -353,20 +353,20 @@ public class ReasoningService
         chain.CompletedAt = DateTime.UtcNow;
         await _reasoningDb.SaveChainAsync(chain);
 
-        Console.WriteLine($"[ReasoningService] ✅ Фінальна відповідь: {finalTokenCount} токенів");
+        Console.WriteLine($"[ReasoningService] ✅ Final answer: {finalTokenCount} tokens");
 
         yield return new ReasoningStreamEvent
         {
             Type = ReasoningEventType.Complete,
-            Message = Services.LocalizationService.GetString("Key.ReasoningComplete", "🎉 Reasoning завершено!"),
+            Message = Services.LocalizationService.GetString("Key.ReasoningComplete", "🎉 Reasoning completed!"),
             Chain = chain
         };
 
-        Console.WriteLine($"[ReasoningService] 🎉 Reasoning завершено успішно!");
+        Console.WriteLine("[ReasoningService] 🎉 Reasoning completed successfully!");
     }
 
     /// <summary>
-    /// Виконати async операцію безпечно без try-catch в генераторі
+    /// Execute async operation safely without try-catch in generator
     /// </summary>
     private async Task<T?> ExecuteSafeAsync<T>(Func<Task<T>> action, Action<Exception> onError) where T : class
     {
@@ -382,7 +382,7 @@ public class ReasoningService
     }
 
     /// <summary>
-    /// Отримати історію reasoning chains для розмови
+    /// Get reasoning chains history for a conversation
     /// </summary>
     public Task<List<ReasoningChain>> GetChainsForConversationAsync(Guid conversationId)
     {
@@ -390,7 +390,7 @@ public class ReasoningService
     }
 
     /// <summary>
-    /// Отримати конкретний reasoning chain
+    /// Get a specific reasoning chain
     /// </summary>
     public Task<ReasoningChain?> GetChainByIdAsync(Guid chainId)
     {
@@ -398,7 +398,7 @@ public class ReasoningService
     }
 
     /// <summary>
-    /// Перевірка чи текст містить технічні токени (для фільтрації)
+    /// Check whether text contains technical tokens (for filtering)
     /// </summary>
     private bool ContainsTechnicalTokens(string text)
     {
@@ -421,7 +421,7 @@ public class ReasoningService
 }
 
 /// <summary>
-/// Події reasoning stream для відображення прогресу
+/// Events for reasoning stream to display progress
 /// </summary>
 public class ReasoningStreamEvent
 {
@@ -435,11 +435,11 @@ public class ReasoningStreamEvent
 
 public enum ReasoningEventType
 {
-    StatusUpdate,      // Загальне повідомлення про статус
-    StepStart,         // Початок нового кроку
-    StepContent,       // Контент кроку (streaming токени)
-    StepComplete,      // Завершення кроку
-    FinalAnswerContent,// Контент фінальної відповіді (streaming)
-    Complete,          // Все завершено
-    Error             // Помилка
+    StatusUpdate,      // General status message
+    StepStart,         // Start of a new step
+    StepContent,       // Step content (streaming tokens)
+    StepComplete,      // Step finished
+    FinalAnswerContent,// Final answer content (streaming)
+    Complete,          // All done
+    Error             // Error
 }

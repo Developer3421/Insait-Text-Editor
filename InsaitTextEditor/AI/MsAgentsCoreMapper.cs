@@ -9,20 +9,20 @@ using InsaitTextEditor.Services; // for AssistantConfig.Name
 namespace InsaitTextEditor.AI;
 
 /// <summary>
-/// Mapper між внутрішніми моделями та типами з Microsoft.Agents.Core (через рефлексію).
-/// Без compile-time залежності від конкретних класів у пакеті.
+/// Mapper between internal models and types from Microsoft.Agents.Core (via reflection).
+/// No compile-time dependency on specific classes in the package.
 /// </summary>
 public static class MsAgentsCoreMapper
 {
     private static readonly string[] MessageTypeHints =
     {
-        // Імовірні назви типів повідомлень у Microsoft.Agents.Core
+        // Likely message type names in Microsoft.Agents.Core
         "Message", "ChatMessage", "AgentMessage", "Activity"
     };
 
     private static readonly string[] ContentPropertyHints = { "Content", "Text", "Value", "Body" };
     private static readonly string[] SenderPropertyHints = { "Role", "Author", "From", "Sender", "Name" };
-    private static readonly string[] TimestampPropertyHints = { "Timestamp", "CreatedAt", "Time" };
+    private static readonly string[] TimestampPropertyHints = ["Timestamp", "CreatedAt", "Time"];
 
     public static object? TryCreateCoreMessage(ChatMessage message)
     {
@@ -32,10 +32,10 @@ public static class MsAgentsCoreMapper
         var msgType = FindMessageType(asm);
         if (msgType == null) return null;
 
-        // Спроба створення екземпляра
+        // Attempt to create instance
         object? instance = null;
         var ctors = msgType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
-        // Перевагу надаємо безпараметровому
+        // Prefer parameterless constructor
         var defaultCtor = ctors.FirstOrDefault(c => c.GetParameters().Length == 0);
         if (defaultCtor != null)
         {
@@ -43,7 +43,7 @@ public static class MsAgentsCoreMapper
         }
         else
         {
-            // Спробувати найпростіші конструктори зі строковими параметрами
+            // Try the simplest constructors with string parameters
             var ctor = ctors.OrderBy(c => c.GetParameters().Length).FirstOrDefault();
             if (ctor != null)
             {
@@ -54,7 +54,7 @@ public static class MsAgentsCoreMapper
                     var p = prms[i];
                     if (p.ParameterType == typeof(string))
                     {
-                        // Першу строку віддамо як контент, інші — як роль/автор
+                        // First string goes as content, others as role/author
                         args[i] = i == 0 ? message.Content : NormalizeRole(message.Sender);
                     }
                     else if (p.ParameterType == typeof(DateTime) || p.ParameterType == typeof(DateTime?))
@@ -72,7 +72,7 @@ public static class MsAgentsCoreMapper
 
         if (instance == null) return null;
 
-        // Встановити основні властивості якщо існують
+        // Set core properties if they exist
         SetFirstStringProperty(instance, ContentPropertyHints, message.Content);
         SetFirstStringProperty(instance, SenderPropertyHints, NormalizeRole(message.Sender));
         SetFirstDateTimeProperty(instance, TimestampPropertyHints, message.Timestamp);
@@ -110,12 +110,12 @@ public static class MsAgentsCoreMapper
     {
         try
         {
-            // Спробувати знайти серед завантажених збірок
+            // Try to find among already loaded assemblies
             var loaded = AppDomain.CurrentDomain.GetAssemblies()
                 .FirstOrDefault(a => string.Equals(a.GetName().Name, "Microsoft.Agents.Core", StringComparison.OrdinalIgnoreCase));
             if (loaded != null) return loaded;
 
-            // Спробувати завантажити за ім'ям (має бути у probing paths .NET)
+            // Try to load by name (should be within .NET probing paths)
             return Assembly.Load("Microsoft.Agents.Core");
         }
         catch
@@ -129,7 +129,7 @@ public static class MsAgentsCoreMapper
         try
         {
             var types = asm.GetTypes();
-            // Шукаємо клас з підходящою назвою та публічним конструктором
+            // Look for a type with a suitable name and a public constructor
             return types.FirstOrDefault(t =>
                 t.IsClass && !t.IsAbstract &&
                 t.IsPublic &&

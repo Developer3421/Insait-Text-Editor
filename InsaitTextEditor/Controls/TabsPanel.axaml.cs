@@ -21,7 +21,7 @@ public partial class TabsPanel : UserControl
         _itemsHost = this.FindControl<StackPanel>("ItemsHost");
     }
 
-    // Висота вкладки
+    // Tab height
     public static readonly StyledProperty<double> TabHeightProperty =
         AvaloniaProperty.Register<TabsPanel, double>(nameof(TabHeight), 50d);
 
@@ -31,7 +31,7 @@ public partial class TabsPanel : UserControl
         set => SetValue(TabHeightProperty, value);
     }
 
-    // Розмір кнопки "додати" (ширина = висота)
+    // Size of the "add" button (width = height)
     public static readonly StyledProperty<double> AddButtonSizeProperty =
         AvaloniaProperty.Register<TabsPanel, double>(nameof(AddButtonSize), 40d);
 
@@ -41,7 +41,7 @@ public partial class TabsPanel : UserControl
         set => SetValue(AddButtonSizeProperty, value);
     }
 
-    // API для керування вкладками
+    // API for managing tabs
     public void AddTab(DocumentTab tab)
     {
         if (_itemsHost is null) return;
@@ -55,7 +55,7 @@ public partial class TabsPanel : UserControl
         _itemsHost.Children.Remove(tab);
     }
 
-    // Подія: запит на додавання вкладки
+    // Event: request to add a tab
     public event EventHandler? AddTabRequested;
 
     private void OnAddTabClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

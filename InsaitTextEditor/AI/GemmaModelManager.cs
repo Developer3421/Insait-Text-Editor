@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace InsaitTextEditor.AI;
 
 /// <summary>
-/// Менеджер життєвого циклу моделі Gemma-3-1B
+/// Lifecycle manager for Gemma-3-1B model
 /// </summary>
 public class GemmaModelManager : IDisposable
 {
@@ -22,7 +22,7 @@ public class GemmaModelManager : IDisposable
     }
 
     /// <summary>
-    /// Отримати або створити inference engine
+    /// Get or create inference engine
     /// </summary>
     private LlamaSharpInferenceEngine GetOrCreateEngine()
     {
@@ -34,7 +34,7 @@ public class GemmaModelManager : IDisposable
     }
 
     /// <summary>
-    /// Ініціалізація моделі (можна викликати заздалегідь для warm-up)
+    /// Initialize model (can be called ahead of time for warm-up)
     /// </summary>
     public async Task InitializeAsync()
     {
@@ -43,7 +43,7 @@ public class GemmaModelManager : IDisposable
     }
 
     /// <summary>
-    /// Генерація відповіді з форматованим промптом
+    /// Generate response with formatted prompt
     /// </summary>
     public async Task<string> GenerateResponseAsync(
         string userMessage, 
@@ -56,7 +56,7 @@ public class GemmaModelManager : IDisposable
     }
 
     /// <summary>
-    /// Стрімінгова генерація відповіді
+    /// Streaming response generation
     /// </summary>
     public async System.Collections.Generic.IAsyncEnumerable<string> GenerateResponseStreamAsync(
         string userMessage,
@@ -73,7 +73,7 @@ public class GemmaModelManager : IDisposable
     }
 
     /// <summary>
-    /// Отримати інформацію про модель
+    /// Get model information
     /// </summary>
     public async Task<ModelInfo> GetModelInfoAsync()
     {
@@ -82,7 +82,7 @@ public class GemmaModelManager : IDisposable
     }
 
     /// <summary>
-    /// Перезавантажити модель (якщо змінились налаштування)
+    /// Reload model (if settings have changed)
     /// </summary>
     public void ReloadModel()
     {

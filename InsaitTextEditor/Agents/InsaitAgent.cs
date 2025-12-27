@@ -12,7 +12,7 @@ using InsaitTextEditor.Models;
 namespace InsaitTextEditor.Agents;
 
 /// <summary>
-/// Головний агент на базі Gemma-3-1B з підтримкою інструментів
+/// Main agent based on Gemma-3-1B with tools support.
 /// </summary>
 public class InsaitAgent
 {
@@ -21,9 +21,9 @@ public class InsaitAgent
     private readonly AgentConfig _config;
     private readonly SaveToFileTool? _saveToFileTool;
 
-    // Обмеження для запобігання over-generation
-    private const int MAX_ITERATIONS = 1;           // ⛔ Тільки 1 ітерація
-    private const int MAX_RESPONSE_TOKENS = 1024;   // ⛔ Максимум токенів
+    // Limits to prevent over-generation
+    private const int MAX_ITERATIONS = 1;           // ⛔ Only 1 iteration
+    private const int MAX_RESPONSE_TOKENS = 1024;   // ⛔ Max tokens
 
     public InsaitAgent(
         GemmaModelManager modelManager,
@@ -38,7 +38,7 @@ public class InsaitAgent
     }
 
     /// <summary>
-    /// Обробити повідомлення користувача з можливістю використання інструментів
+    /// Process a user message with optional tool use.
     /// </summary>
     public async Task<AgentResponse> ProcessMessageAsync(
         string userMessage,
@@ -50,7 +50,7 @@ public class InsaitAgent
         var iteration = 0;
         var fullResponse = new StringBuilder();
 
-        LogAgent($"🚀 Початок обробки повідомлення (max {MAX_ITERATIONS} ітерацій)");
+        LogAgent($"🚀 Start processing message (max {MAX_ITERATIONS} iterations)");
 
         try
         {
@@ -70,14 +70,14 @@ public class InsaitAgent
                     break;
 
                 iteration++;
-                LogAgent($"🔧 Виклик інструменту: {toolCall.ToolName}");
+                LogAgent($"🔧 Tool call: {toolCall.ToolName}");
 
                 var toolResult = await ExecuteToolAsync(toolCall, cancellationToken);
                 toolsUsed.Add(toolResult);
 
                 if (iteration >= MAX_ITERATIONS)
                 {
-                    LogAgent($"⛔ Досягнуто максимум ітерацій: {MAX_ITERATIONS}");
+                    LogAgent($"⛔ Max iterations reached: {MAX_ITERATIONS}");
                     break;
                 }
 
@@ -87,7 +87,7 @@ public class InsaitAgent
             }
 
             var cleanedResponse = CleanResponse(fullResponse.ToString());
-            LogAgent($"✅ Відповідь згенерована: {cleanedResponse.Length} символів");
+            LogAgent($"✅ Response generated: {cleanedResponse.Length} chars");
 
             return new AgentResponse
             {
@@ -99,7 +99,7 @@ public class InsaitAgent
         }
         catch (Exception ex)
         {
-            LogAgent($"❌ Помилка: {ex.Message}");
+            LogAgent($"❌ Error: {ex.Message}");
             return new AgentResponse
             {
                 Content = $"Error processing message: {ex.Message}",
@@ -111,7 +111,7 @@ public class InsaitAgent
     }
 
     /// <summary>
-    /// Стрімінгова обробка повідомлення з фільтрацією stop tokens та запобіганням самоітерації
+    /// Streaming message processing with stop-token filtering and self-iteration prevention.
     /// </summary>
     public async IAsyncEnumerable<string> ProcessMessageStreamAsync(
         string userMessage,
@@ -123,19 +123,19 @@ public class InsaitAgent
         var yieldedLength = 0;
         var tokenCount = 0;
 
-        LogAgent($"🚀 Початок streaming (max {MAX_RESPONSE_TOKENS} токенів)");
+        LogAgent($"🚀 Start streaming (max {MAX_RESPONSE_TOKENS} tokens)");
 
         await foreach (var token in _modelManager.GenerateResponseStreamAsync(enhancedMessage, history, cancellationToken))
         {
             if (tokenCount >= MAX_RESPONSE_TOKENS)
             {
-                LogAgent($"⛔ Досягнуто максимум токенів: {MAX_RESPONSE_TOKENS}");
+                LogAgent($"⛔ Max tokens reached: {MAX_RESPONSE_TOKENS}");
                 yield break;
             }
 
             if (IsTechnicalToken(token))
             {
-                LogAgent($"🚫 Технічний токен, СТОП: {token}");
+                LogAgent($"🚫 Technical token, STOP: {token}");
                 yield break;
             }
 
@@ -149,7 +149,7 @@ public class InsaitAgent
             
             if (ContainsStopSequence(fullText))
             {
-                LogAgent($"🛑 Stop sequence виявлено");
+                LogAgent($"🛑 Stop sequence detected");
                 var cleanedText = RemoveStopSequences(fullText);
                 var remainingText = cleanedText.Substring(yieldedLength);
                 
@@ -158,7 +158,7 @@ public class InsaitAgent
                     yield return remainingText;
                 }
                 
-                LogAgent($"✅ Відповідь завершена ({tokenCount} токенів)");
+                LogAgent($"✅ Response completed ({tokenCount} tokens)");
                 yield break;
             }
             
@@ -166,7 +166,7 @@ public class InsaitAgent
                 fullText.Contains("\nUser:", StringComparison.OrdinalIgnoreCase) ||
                 fullText.Contains("\nYou:", StringComparison.OrdinalIgnoreCase))
             {
-                LogAgent($"🚫 Самоітерація виявлена, СТОП");
+                LogAgent($"🚫 Self-iteration detected, STOP");
                 var stopPosition = FindSelfIterationStart(fullText);
                 if (stopPosition > 0 && stopPosition > yieldedLength)
                 {
@@ -187,11 +187,11 @@ public class InsaitAgent
             }
         }
 
-        LogAgent($"✅ Streaming завершено ({tokenCount} токенів)");
+        LogAgent($"✅ Streaming completed ({tokenCount} tokens)");
     }
 
     /// <summary>
-    /// Перевірка чи токен є технічним (не для відображення)
+    /// Check whether a token is technical (not for display).
     /// </summary>
     private bool IsTechnicalToken(string token)
     {
@@ -206,7 +206,11 @@ public class InsaitAgent
             "<|im_end|>",
             "<|im_start|>",
             "<|",
-            "|>"
+            "|>",
+            "</s>",
+            "<s>",
+            "<<SYS>>",
+            "<</SYS>>"
         };
         
         return technicalPatterns.Any(p => token.Contains(p, StringComparison.OrdinalIgnoreCase));
@@ -235,11 +239,11 @@ public class InsaitAgent
 
     private ToolCall? ExtractToolCall(string response)
     {
-        // Покращений regex, який правильно обробляє JSON з дужками
+        // Improved regex that correctly handles JSON with braces
         var match = Regex.Match(response, @"\[TOOL:(\w+)\|(.*?)\](?=\s*$|\s*\n|$)", RegexOptions.Singleline);
         if (!match.Success)
         {
-            // Спробувати альтернативний патерн для складних випадків
+            // Try an alternative pattern for complex cases
             match = Regex.Match(response, @"\[TOOL:(\w+)\|(\{.*?\})\]", RegexOptions.Singleline);
         }
         
@@ -286,13 +290,13 @@ public class InsaitAgent
 
     private string CleanResponse(string response)
     {
-        // Видаляємо всі маркери TOOL, включаючи можливі JSON параметри
+        // Remove all TOOL markers, including possible JSON parameters
         var cleaned = Regex.Replace(response, @"\[TOOL:\w+\|.*?\]", string.Empty, RegexOptions.Singleline);
         
-        // Додатковий прохід для складних випадків
+        // Extra pass for complex cases
         cleaned = Regex.Replace(cleaned, @"\[TOOL:\w+\|\{.*?\}\]", string.Empty, RegexOptions.Singleline);
         
-        // Видаляємо зайві порожні рядки
+        // Remove extra blank lines
         cleaned = Regex.Replace(cleaned, @"(\r?\n){3,}", "\n\n", RegexOptions.Multiline);
         
         return cleaned.Trim();

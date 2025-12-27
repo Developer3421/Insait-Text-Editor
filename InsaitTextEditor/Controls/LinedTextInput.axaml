@@ -4,7 +4,7 @@
              x:Class="InsaitTextEditor.Controls.LinedTextInput"
              x:Name="Root">
   <UserControl.Styles>
-    <!-- Тонкий вертикальний скролбар як у Notepad -->
+    <!-- Thin vertical scrollbar similar to Notepad -->
     <Style Selector="ScrollViewer.ThinScrollBar">
       <Setter Property="AllowAutoHide" Value="False"/>
     </Style>
@@ -37,7 +37,7 @@
                 MinWidth="200"
                 Padding="0,0,16,0">
 
-    <!-- Контейнер, який реально росте по висоті => ScrollViewer показує скролбар -->
+    <!-- Container that actually grows in height => ScrollViewer shows scrollbar -->
     <Grid x:Name="LayoutRoot" Background="Transparent" ClipToBounds="True">
       <sk:RuledBackground x:Name="Bg"
           HorizontalAlignment="Stretch"

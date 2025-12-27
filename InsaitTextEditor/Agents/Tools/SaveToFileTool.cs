@@ -10,7 +10,7 @@ using InsaitTextEditor.Services;
 namespace InsaitTextEditor.Agents.Tools;
 
 /// <summary>
-/// Інструмент для збереження відповіді асистента у текстовий файл
+/// Tool for saving the assistant response to a text file.
 /// </summary>
 public class SaveToFileTool
 {
@@ -31,7 +31,7 @@ public class SaveToFileTool
     }
 
     /// <summary>
-    /// Автоматичний виклик після генерації агентом (без UI блокування)
+    /// Auto-invoke after agent generation (without blocking the UI).
     /// </summary>
     public async Task<ToolResult> AutoSaveAsync(
         string content, 
@@ -46,7 +46,7 @@ public class SaveToFileTool
         }
         else if (!suggestedFileName.Contains('.'))
         {
-            // Додати розширення якщо його немає
+            // Add extension if missing
             suggestedFileName += extension;
         }
         
@@ -54,28 +54,28 @@ public class SaveToFileTool
     }
 
     /// <summary>
-    /// Визначити тип контенту та запропонувати розширення
+    /// Detect content type and suggest an extension.
     /// </summary>
     private (string extension, string fileType) DetectContentType(string content)
     {
-        // Перевірка на вірш (кілька рядків, римування)
+        // Check for a poem (multiple lines, rhyming)
         if (IsPoem(content))
             return (".txt", "Poem");
         
-        // Перевірка на markdown
+        // Check for markdown
         if (content.Contains("##") || content.Contains("**") || content.Contains("```"))
             return (".md", "Markdown");
         
-        // Перевірка на код
+        // Check for code
         if (content.Contains("function") || content.Contains("class ") || content.Contains("public "))
             return (".txt", "Code");
         
-        // За замовчуванням
+        // Default
         return (".txt", "Text");
     }
 
     /// <summary>
-    /// Перевірити чи це вірш
+    /// Check whether this is a poem.
     /// </summary>
     private bool IsPoem(string content)
     {
@@ -87,25 +87,25 @@ public class SaveToFileTool
             .Where(l => l.Length > 0)
             .ToArray();
         
-        // Вірш зазвичай має 4+ рядки
+        // A poem usually has 4+ lines
         if (lines.Length < 4) 
             return false;
         
-        // Короткі рядки (характерно для віршів)
+        // Short lines (typical for poems)
         var avgLength = lines.Average(l => l.Length);
         if (avgLength > 80) 
             return false;
         
-        // Вірші часто мають рядки середньої довжини (20-60 символів)
+        // Poems often have medium-length lines (20-60 characters)
         if (avgLength < 15)
             return false;
         
-        // Перевірка на наявність розділових знаків в кінці рядків (характерно для віршів)
+        // Check punctuation at line endings (typical for poems)
         var linesWithPunctuation = lines.Count(l => 
             l.EndsWith(',') || l.EndsWith('.') || l.EndsWith('!') || l.EndsWith('?') || 
             l.EndsWith(':') || l.EndsWith(';') || l.EndsWith("..."));
         
-        // Якщо більше 30% рядків мають розділові знаки - ймовірно вірш
+        // If >30% of lines end with punctuation, it's likely a poem
         var punctuationRatio = (double)linesWithPunctuation / lines.Length;
         if (punctuationRatio > 0.3)
             return true;
@@ -114,7 +114,7 @@ public class SaveToFileTool
     }
 
     /// <summary>
-    /// Виконати збереження файлу
+    /// Execute file save.
     /// </summary>
     public async Task<ToolResult> ExecuteAsync(string content, string? suggestedFileName = null)
     {
@@ -130,12 +130,12 @@ public class SaveToFileTool
                 };
             }
 
-            // Використати пропоновану назву або дефолтну
+            // Use suggested name or default
             var fileName = string.IsNullOrWhiteSpace(suggestedFileName)
                 ? "response.txt"
                 : suggestedFileName;
 
-            // Відкрити діалог збереження файлу
+            // Open save file dialog
             var filePath = await ShowSaveFileDialogAsync(fileName);
 
             if (string.IsNullOrEmpty(filePath))
@@ -148,10 +148,10 @@ public class SaveToFileTool
                 };
             }
 
-            // Зберегти контент у файл
+            // Save content to file
             await File.WriteAllTextAsync(filePath, content);
 
-            // Відкрити файл як нову вкладку
+            // Open the file as a new tab
             await _tabManager.OpenFileAsync(filePath);
 
             return new ToolResult
@@ -173,13 +173,13 @@ public class SaveToFileTool
     }
 
     /// <summary>
-    /// Показати Windows Save File Dialog
+    /// Show the Windows Save File Dialog.
     /// </summary>
     private async Task<string?> ShowSaveFileDialogAsync(string suggestedFileName)
     {
         if (_ownerWindow?.StorageProvider == null)
         {
-            // Fallback: зберегти у тимчасову директорію
+            // Fallback: save to a temp directory
             var tempPath = Path.Combine(Path.GetTempPath(), suggestedFileName);
             return tempPath;
         }
@@ -206,7 +206,7 @@ public class SaveToFileTool
     }
 
     /// <summary>
-    /// Парсити параметри з JSON строки
+    /// Parse parameters from a JSON string.
     /// </summary>
     public async Task<ToolResult> ExecuteFromJsonAsync(string parametersJson)
     {
@@ -239,7 +239,7 @@ public class SaveToFileTool
 }
 
 /// <summary>
-/// Параметри для SaveToFileTool
+/// Parameters for SaveToFileTool.
 /// </summary>
 public class SaveToFileParameters
 {
@@ -248,7 +248,7 @@ public class SaveToFileParameters
 }
 
 /// <summary>
-/// Результат виконання інструменту
+/// Tool execution result.
 /// </summary>
 public class ToolResult
 {

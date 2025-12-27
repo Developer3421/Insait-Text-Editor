@@ -9,7 +9,7 @@
     <Grid ColumnDefinitions="*,Auto"
           Height="{Binding TabHeight, ElementName=root}"
           VerticalAlignment="Center">
-      <!-- Хост для вкладок -->
+      <!-- Host for tabs -->
       <StackPanel x:Name="ItemsHost"
                   Grid.Column="0"
                   Orientation="Horizontal"
@@ -17,7 +17,7 @@
                   VerticalAlignment="Center"
                   HorizontalAlignment="Left"/>
 
-      <!-- Кнопка Додати вкладку (30x30, зелений фон, чорний плюс) -->
+      <!-- Add tab button (30x30, green background, black plus) -->
       <Button Grid.Column="1"
               Width="{Binding AddButtonSize, ElementName=root}"
               Height="{Binding AddButtonSize, ElementName=root}"

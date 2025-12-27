@@ -12,7 +12,7 @@ using LLama.Sampling;
 namespace InsaitTextEditor.AI;
 
 /// <summary>
-/// Адаптер між LlamaSharp та Agent Framework для моделі Gemma-3-1B
+/// Adapter between LlamaSharp and Agent Framework for Gemma-3-1B model
 /// </summary>
 public class LlamaSharpInferenceEngine : IDisposable
 {
@@ -24,7 +24,7 @@ public class LlamaSharpInferenceEngine : IDisposable
     private Exception? _initError;
     private bool _disposed;
 
-    // Stop sequences для Gemma-3
+    // Stop sequences for Gemma-3
     private readonly HashSet<string> _stopSequences = new()
     {
         "<end_of_turn>",
@@ -54,23 +54,23 @@ public class LlamaSharpInferenceEngine : IDisposable
     }
 
     /// <summary>
-    /// Асинхронна ініціалізація моделі (викликається автоматично перед інференсом)
+    /// Async model initialization (automatically called before inference).
     /// </summary>
     public async Task InitializeAsync()
     {
         lock (_initLock)
         {
             if (_weights != null && _modelParams != null)
-                return; // Вже ініціалізовано
+                return; // Already initialized
 
             if (_initTask != null)
-                return; // Вже в процесі ініціалізації
+                return; // Already initializing
 
             _initTask = Task.Run(() =>
             {
                 try
                 {
-                    // Перевірка наявності нативних бібліотек
+                    // Check availability of native libraries
                     try
                     {
                         var _ = LLama.Native.NativeApi.llama_max_devices();
@@ -78,21 +78,21 @@ public class LlamaSharpInferenceEngine : IDisposable
                     catch (Exception ex)
                     {
                         throw new InvalidOperationException(
-                            "Не вдалося завантажити нативні бібліотеки llama.cpp. " +
-                            "Переконайтеся, що встановлено пакет LLamaSharp.Backend.Cpu. " +
-                            "Можливо потрібно виконати: dotnet restore", ex);
+                            "Failed to load llama.cpp native libraries. " +
+                            "Make sure the LLamaSharp.Backend.Cpu package is installed. " +
+                            "You may need to run: dotnet restore", ex);
                     }
 
                     var modelPath = _config.ModelPath;
                     if (!File.Exists(modelPath))
-                        throw new FileNotFoundException($"Модель Gemma не знайдено: {modelPath}");
+                        throw new FileNotFoundException($"Gemma model not found: {modelPath}");
 
                     var fi = new FileInfo(modelPath);
                     if (fi.Length == 0)
                         throw new InvalidOperationException(
-                            $"Файл моделі має 0 байт: {modelPath}. " +
-                            "Це зазвичай означає, що модель не була скопійована/завантажена (наприклад LFS placeholder) або build/publish поклав порожній файл. " +
-                            "Вкажіть реальний шлях через INSAIT_MODEL_PATH або файл AiModel\\model-path.txt.");
+                            $"Model file is 0 bytes: {modelPath}. " +
+                            "This usually means the model was not copied/downloaded (e.g. an LFS placeholder) or build/publish produced an empty file. " +
+                            "Specify a real path via INSAIT_MODEL_PATH or AiModel\\model-path.txt.");
 
                     _modelParams = new ModelParams(modelPath)
                     {
@@ -117,7 +117,7 @@ public class LlamaSharpInferenceEngine : IDisposable
     }
 
     /// <summary>
-    /// Синхронна генерація відповіді (для Agent Framework)
+    /// Non-streaming response generation.
     /// </summary>
     public async Task<string> GenerateResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
@@ -126,12 +126,12 @@ public class LlamaSharpInferenceEngine : IDisposable
         if (_weights == null || _modelParams == null)
         {
             var errorMsg = _initError != null
-                ? $"Не вдалося ініціалізувати модель: {_initError.Message}"
-                : "Модель не ініціалізована.";
+                ? $"Failed to initialize model: {_initError.Message}"
+                : "Model is not initialized.";
             throw new InvalidOperationException(errorMsg);
         }
 
-        // Створюємо новий контекст для кожного запиту (stateless)
+        // Create a new context for each request (stateless)
         using var context = _weights.CreateContext(_modelParams);
         var executor = new InteractiveExecutor(context);
 
@@ -150,32 +150,32 @@ public class LlamaSharpInferenceEngine : IDisposable
         var sb = new StringBuilder();
         var tokenCount = 0;
 
-        LogGeneration($"🚀 Початок генерації (max {_config.MaxTokens} токенів)");
+        LogGeneration($"🚀 Generation started (max {_config.MaxTokens} tokens)");
 
         await foreach (var token in executor.InferAsync(prompt, inferenceParams, cancellationToken))
         {
             if (tokenCount >= _config.MaxTokens)
             {
-                LogGeneration($"⛔ Досягнуто максимум токенів: {_config.MaxTokens}");
+                LogGeneration($"⛔ Max tokens reached: {_config.MaxTokens}");
                 break;
             }
 
             sb.Append(token);
             var currentText = sb.ToString();
 
-            // Перевірити на stop sequences
+            // Check stop sequences
             foreach (var stopSeq in _stopSequences)
             {
                 if (currentText.Contains(stopSeq))
                 {
-                    LogGeneration($"🛑 Stop sequence виявлено: {stopSeq}");
+                    LogGeneration($"🛑 Stop sequence detected: {stopSeq}");
                     
-                    // Повернути тільки текст до stop sequence
+                    // Return only content before stop sequence
                     var stopIndex = currentText.IndexOf(stopSeq);
                     if (stopIndex > 0)
                     {
                         var cleanText = currentText.Substring(0, stopIndex).Trim();
-                        LogGeneration($"✅ Згенеровано {tokenCount} токенів");
+                        LogGeneration($"✅ Generated {tokenCount} tokens");
                         return cleanText;
                     }
                     break;
@@ -185,12 +185,12 @@ public class LlamaSharpInferenceEngine : IDisposable
             tokenCount++;
         }
 
-        LogGeneration($"✅ Згенеровано {tokenCount} токенів");
+        LogGeneration($"✅ Generated {tokenCount} tokens");
         return sb.ToString().Trim();
     }
 
     /// <summary>
-    /// Стрімінгова генерація відповіді (для UI)
+    /// Streaming response generation (for UI).
     /// </summary>
     public async IAsyncEnumerable<string> GenerateResponseStreamAsync(
         string prompt, 
@@ -201,12 +201,12 @@ public class LlamaSharpInferenceEngine : IDisposable
         if (_weights == null || _modelParams == null)
         {
             var errorMsg = _initError != null
-                ? $"Не вдалося ініціалізувати модель: {_initError.Message}"
-                : "Модель не ініціалізована.";
+                ? $"Failed to initialize model: {_initError.Message}"
+                : "Model is not initialized.";
             throw new InvalidOperationException(errorMsg);
         }
 
-        // Створюємо новий контекст для кожного запиту (stateless)
+        // Create a new context for each request (stateless)
         using var context = _weights.CreateContext(_modelParams);
         var executor = new InteractiveExecutor(context);
 
@@ -225,29 +225,29 @@ public class LlamaSharpInferenceEngine : IDisposable
         var buffer = new StringBuilder();
         var generatedTokens = 0;
 
-        LogGeneration($"🚀 Початок streaming генерації (max {_config.MaxTokens} токенів)");
+        LogGeneration($"🚀 Streaming generation started (max {_config.MaxTokens} tokens)");
 
         await foreach (var token in executor.InferAsync(prompt, inferenceParams, cancellationToken))
         {
-            // Перевірка ліміту токенів
+            // Token limit check
             if (generatedTokens >= _config.MaxTokens)
             {
-                LogGeneration($"⛔ Досягнуто максимум токенів: {_config.MaxTokens}");
+                LogGeneration($"⛔ Max tokens reached: {_config.MaxTokens}");
                 break;
             }
 
             buffer.Append(token);
             var currentText = buffer.ToString();
 
-            // Перевірити на stop sequences
+            // Check stop sequences
             bool shouldStop = false;
             foreach (var stopSeq in _stopSequences)
             {
                 if (currentText.Contains(stopSeq))
                 {
-                    LogGeneration($"🛑 Stop sequence виявлено: {stopSeq}");
+                    LogGeneration($"🛑 Stop sequence detected: {stopSeq}");
                     
-                    // Повернути тільки текст до stop sequence
+                    // Return only content before stop sequence
                     var stopIndex = currentText.IndexOf(stopSeq);
                     if (stopIndex > 0)
                     {
@@ -265,7 +265,7 @@ public class LlamaSharpInferenceEngine : IDisposable
 
             if (shouldStop)
             {
-                LogGeneration($"✅ Згенеровано {generatedTokens} токенів, зупинка");
+                LogGeneration($"✅ Generated {generatedTokens} tokens, stopping");
                 yield break;
             }
 
@@ -273,7 +273,7 @@ public class LlamaSharpInferenceEngine : IDisposable
             generatedTokens++;
         }
 
-        LogGeneration($"✅ Згенеровано {generatedTokens} токенів");
+        LogGeneration($"✅ Generated {generatedTokens} tokens");
     }
 
     private void LogGeneration(string message)
@@ -282,7 +282,7 @@ public class LlamaSharpInferenceEngine : IDisposable
     }
 
     /// <summary>
-    /// Отримати інформацію про модель
+    /// Get model information.
     /// </summary>
     public async Task<ModelInfo> GetModelInfoAsync()
     {
@@ -310,7 +310,7 @@ public class LlamaSharpInferenceEngine : IDisposable
 }
 
 /// <summary>
-/// Інформація про завантажену модель
+/// Information about the loaded model.
 /// </summary>
 public class ModelInfo
 {

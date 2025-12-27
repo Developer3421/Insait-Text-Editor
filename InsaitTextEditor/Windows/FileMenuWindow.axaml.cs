@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.VisualTree; // додано
+using Avalonia.VisualTree; // added
 
 namespace InsaitTextEditor.Windows;
 
@@ -37,7 +37,7 @@ public partial class FileMenuWindow : Window
             BeginMoveDrag(e);
     }
 
-    // Перетягування за фіолетові області; ігноруємо кліки по кнопках
+    // Drag via purple areas; ignore button clicks
     private void DragSurface_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
@@ -45,7 +45,7 @@ public partial class FileMenuWindow : Window
 
         if (e.Source is Visual v)
         {
-            // Якщо натиснули на кнопку або всередині неї — не перетягуємо
+            // If clicked on a button or inside it — don't drag
             if (v is Button || v.FindAncestorOfType<Button>() is not null)
                 return;
         }

@@ -10,10 +10,10 @@ public class AgentConfig
     public int MaxIterations => 5;
     public bool EnableToolUse => true;
     
-    // ✅ НОВИЙ параметр для автоматичного збереження
+    // ✅ NEW parameter for automatic saving
     public bool AutoSaveCreativeContent => true;
     
-    // Тригери для автоматичного збереження
+    // Triggers for automatic saving
     public List<string> AutoSaveTriggers => new()
     {
         "напиши вірш",
@@ -24,7 +24,7 @@ public class AgentConfig
         "згенеруй текст",
         "напиши есе",
         "напиши оповідання",
-        // Додаткові тригери без "напиши/створи"
+        // Additional triggers without "write/create"
         "вірш про",
         "вірш ",
         "історія про",

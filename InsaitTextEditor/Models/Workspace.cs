@@ -19,10 +19,10 @@ public sealed class Workspace : System.IDisposable
     public System.Guid Id { get; }
     public string Text { get; set; }
 
-    // Режим фону сторінки для цієї вкладки (зберігаємо на рівні Workspace)
+    // Page background mode for this tab (stored per Workspace)
     public PageBackgroundMode BackgroundMode { get; set; }
 
-    // Пер-сторінкові візуальні налаштування
+    // Per-page visual settings
     public string LineColorHex { get; set; }
     public string TextColorHex { get; set; }
     public double FontSize { get; set; }
@@ -31,6 +31,6 @@ public sealed class Workspace : System.IDisposable
 
     public void Dispose()
     {
-        // Якщо зʼявляться керовані/некеровані ресурси — вичистити тут.
+        // If managed/unmanaged resources appear later - clean up here.
     }
 }

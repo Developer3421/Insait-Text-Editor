@@ -59,7 +59,7 @@ public class PromptBuilder
     
     public string FormatMessage(string role, string content)
     {
-        // Gemma-3 формат: <start_of_turn>user\n...<end_of_turn>\n
+        // Gemma-3 format: <start_of_turn>user\n...<end_of_turn>\n
         if (role == "user")
             return $"{_config.UserTurnStart}{content}{_config.UserTurnEnd}";
         else
@@ -67,24 +67,24 @@ public class PromptBuilder
     }
     
     /// <summary>
-    /// Побудова повного промпту з історією повідомлень для Gemma-3
+    /// Build a full prompt with message history for Gemma-3.
     /// </summary>
     public string BuildPromptWithHistory(string userMessage, List<ChatMessage>? history = null)
     {
         var sb = new StringBuilder();
         
-        // Системний промпт як перше повідомлення від user
+        // System prompt as the first user message
         var systemPrompt = BuildSystemPrompt();
         
-        // ✅ НОВИЙ ПІДХІД: Додаємо інструкції про інструменти ТУТ, в системному промпті
-        // Це означає що вони НЕ будуть в історії чату, але AI їх побачить
+        // ✅ NEW APPROACH: add tool instructions HERE, inside system prompt.
+        // This means they will NOT be stored in chat history, but the AI will see them.
         var enhancedSystemPrompt = AppendToolInstructionsIfAvailable(systemPrompt);
         
         sb.Append(_config.UserTurnStart);
         sb.Append(enhancedSystemPrompt);
         sb.Append(_config.UserTurnEnd);
         
-        // Додаємо історію (якщо є)
+        // Append history (if any)
         if (history != null && history.Count > 0)
         {
             foreach (var msg in history)
@@ -94,19 +94,19 @@ public class PromptBuilder
             }
         }
         
-        // Додаємо поточне повідомлення користувача (БЕЗ інструкцій про інструменти)
+        // Append the current user message (WITHOUT tool instructions)
         sb.Append(_config.UserTurnStart);
         sb.Append(userMessage);
         sb.Append(_config.UserTurnEnd);
         
-        // Початок відповіді моделі
+        // Model answer start
         sb.Append(_config.ModelTurnStart);
         
         return sb.ToString();
     }
     
     /// <summary>
-    /// Побудова простого промпту без історії
+    /// Build a simple prompt without history.
     /// </summary>
     public string BuildSimplePrompt(string userMessage)
     {
@@ -114,11 +114,11 @@ public class PromptBuilder
     }
     
     /// <summary>
-    /// Додати інструкції про інструменти до системного промпту (НЕ до повідомлення користувача)
+    /// Append tool instructions to the system prompt (NOT to the user message).
     /// </summary>
     private string AppendToolInstructionsIfAvailable(string systemPrompt)
     {
-        // Перевіряємо чи є SaveToFileTool через App (це не ідеально, але працює)
+        // Check whether SaveToFileTool is available via App (not ideal, but works)
         var saveToFileTool = App.MicrosoftInsaitAgent?.GetType()
             .GetField("_saveToFileTool", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
             ?.GetValue(App.MicrosoftInsaitAgent);
@@ -128,7 +128,7 @@ public class PromptBuilder
             return systemPrompt;
         }
         
-        // Отримуємо опис інструменту
+        // Get tool description
         var description = saveToFileTool.GetType()
             .GetProperty("Description")
             ?.GetValue(saveToFileTool) as string ?? "Saves content to a file";

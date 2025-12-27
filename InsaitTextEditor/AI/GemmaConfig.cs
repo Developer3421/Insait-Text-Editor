@@ -63,13 +63,13 @@ public class GemmaConfig
         }
     }
     
-    // ========== ОБМЕЖЕННЯ ГЕНЕРАЦІЇ ==========
+    // ========== GENERATION LIMITS ==========
     public int ContextSize 
     {
         get
         {
             var instruction = _instructionService.GetUserInstruction();
-            return instruction?.ContextSize ?? 4096;  // Дефолт: 4K токенів
+            return instruction?.ContextSize ?? 4096;  // Default: 4K tokens
         }
     }
     
@@ -78,11 +78,11 @@ public class GemmaConfig
         get
         {
             var instruction = _instructionService.GetUserInstruction();
-            return instruction?.MaxTokens ?? 1024;  // Дефолт: 1K токенів
+            return instruction?.MaxTokens ?? 1024;  // Default: 1K tokens
         }
     }
     
-    // ========== STOP TOKENS ДЛЯ GEMMA-3 ==========
+    // ========== STOP TOKENS FOR GEMMA-3 ==========
     public List<string> StopSequences => new()
     {
         "<end_of_turn>",
@@ -100,13 +100,13 @@ public class GemmaConfig
     public int Threads => Environment.ProcessorCount / 2;
     
     // ========== ANTI-REPETITION PARAMETERS ==========
-    public float RepeatPenalty => 1.2f;     // Збільшити для запобігання повторенням (було 1.15)
-    public int RepeatLastN => 256;          // Збільшити кількість токенів для перевірки (було 128)
+    public float RepeatPenalty => 1.2f;     // Increase to prevent repetitions (was 1.15)
+    public int RepeatLastN => 256;          // Increase number of tokens to check (was 128)
     
-    // ========== ТЕМПЕРАТУРА ТА SAMPLING ==========
-    public float Temperature => 0.6f;       // Знизити для більш точних відповідей (було 0.7)
-    public float TopP => 0.85f;             // Знизити для менш креативних відповідей (було 0.9)
-    public int TopK => 30;                  // Знизити для більш фокусованих відповідей (було 40)
+    // ========== TEMPERATURE AND SAMPLING ==========
+    public float Temperature => 0.6f;       // Lower for more accurate responses (was 0.7)
+    public float TopP => 0.85f;             // Lower for less creative responses (was 0.9)
+    public int TopK => 30;                  // Lower for more focused responses (was 40)
     
     // ========== TIMEOUT ==========
     public TimeSpan MaxResponseTime => TimeSpan.FromSeconds(60);  // Hard timeout

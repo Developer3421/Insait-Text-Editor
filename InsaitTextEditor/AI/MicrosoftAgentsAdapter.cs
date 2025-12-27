@@ -7,7 +7,7 @@ using InsaitTextEditor.Models;
 namespace InsaitTextEditor.AI;
 
 /// <summary>
-/// Адаптер між LlamaSharp та Microsoft Agent Framework (через локальний інференс)
+/// Adapter between LlamaSharp and Microsoft Agent Framework (via local inference)
 /// </summary>
 public class MicrosoftAgentsAdapter
 {
@@ -23,7 +23,7 @@ public class MicrosoftAgentsAdapter
     }
 
     /// <summary>
-    /// Відправити повідомлення агенту та отримати відповідь
+    /// Send message to agent and get response
     /// </summary>
     public async Task<AgentResponse> SendMessageAsync(
         string message,
@@ -34,10 +34,10 @@ public class MicrosoftAgentsAdapter
         
         try
         {
-            // Побудувати промпт з історією
+            // Build prompt with history
             var prompt = _promptBuilder.BuildPromptWithHistory(message, history);
             
-            // Отримати відповідь від LlamaSharp
+            // Get response from LlamaSharp
             var response = await _inferenceEngine.GenerateResponseAsync(prompt, cancellationToken);
             
             return new AgentResponse
@@ -61,17 +61,17 @@ public class MicrosoftAgentsAdapter
     }
 
     /// <summary>
-    /// Стрімінгова відповідь від агента
+    /// Streaming response from agent
     /// </summary>
     public async IAsyncEnumerable<string> SendMessageStreamAsync(
         string message,
         List<ChatMessage> history,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        // Побудувати промпт з історією
+        // Build prompt with history
         var prompt = _promptBuilder.BuildPromptWithHistory(message, history);
         
-        // Стримити відповідь від LlamaSharp
+        // Stream response from LlamaSharp
         await foreach (var token in _inferenceEngine.GenerateResponseStreamAsync(prompt, cancellationToken))
         {
             yield return token;

@@ -13,7 +13,7 @@ using InsaitTextEditor.Models;
 namespace InsaitTextEditor.Agents;
 
 /// <summary>
-/// Агент на базі Microsoft Agent Framework з інтеграцією LlamaSharp (без локальних базових класів)
+/// Agent based on Microsoft Agent Framework with LlamaSharp integration (without local base classes).
 /// </summary>
 public class MicrosoftInsaitAgent(
     MicrosoftAgentsAdapter adapter,
@@ -24,21 +24,21 @@ public class MicrosoftInsaitAgent(
     private readonly AgentConfig _config = config ?? throw new ArgumentNullException(nameof(config));
     private SaveToFileTool? _saveToFileTool = saveToFileTool;
 
-    // Обмеження для запобігання over-generation
+    // Limits to prevent over-generation
     private const int MaxIterations = 1;
     private const int MaxResponseTokens = 1024;
 
     /// <summary>
-    /// Встановити SaveToFileTool після створення Window
+    /// Set SaveToFileTool after the Window is created.
     /// </summary>
     public void SetSaveToFileTool(SaveToFileTool tool)
     {
         _saveToFileTool = tool;
-        LogAgent("✅ SaveToFileTool встановлено");
+        LogAgent("✅ SaveToFileTool set");
     }
 
     /// <summary>
-    /// Обробка повідомлення з використанням Microsoft Agent Framework
+    /// Message processing using Microsoft Agent Framework.
     /// </summary>
     public async Task<AgentResponse> ProcessAsync(
         string userMessage,
@@ -48,32 +48,32 @@ public class MicrosoftInsaitAgent(
         var toolsUsed = new List<ToolInvocation>();
         var startTime = DateTime.UtcNow;
 
-        LogAgent($"🚀 [Microsoft.Agents] Початок обробки (max {MaxIterations} ітерацій)");
+        LogAgent($"🚀 [Microsoft.Agents] Start processing (max {MaxIterations} iterations)");
 
         try
         {
-            // Підготувати повідомлення з інформацією про інструменти
+            // Prepare a message with tools information
             var enhancedMessage = PrepareMessageWithToolInfo(userMessage);
 
-            // Відправити через адаптер
+            // Send via adapter
             var response = await _adapter.SendMessageAsync(enhancedMessage, history, cancellationToken);
 
-            // Перевірити чи потрібно використати інструменти
+            // Check whether we need to use tools
             if (_config.EnableToolUse && _saveToFileTool != null)
             {
                 var toolCall = ExtractToolCall(response.Content);
                 if (toolCall != null)
                 {
-                    LogAgent($"🔧 Виклик інструменту: {toolCall.ToolName}");
+                    LogAgent($"🔧 Tool call: {toolCall.ToolName}");
                     var toolResult = await ExecuteToolAsync(toolCall);
                     toolsUsed.Add(toolResult);
 
-                    // Оновити відповідь
+                    // Update response
                     response.Content = CleanResponse(response.Content);
                 }
             }
 
-            LogAgent($"✅ Відповідь згенерована: {response.Content.Length} символів");
+            LogAgent($"✅ Response generated: {response.Content.Length} chars");
 
             return new AgentResponse
             {
@@ -85,7 +85,7 @@ public class MicrosoftInsaitAgent(
         }
         catch (Exception ex)
         {
-            LogAgent($"❌ Помилка: {ex.Message}");
+            LogAgent($"❌ Error: {ex.Message}");
             return new AgentResponse
             {
                 Content = $"Error: {ex.Message}",
@@ -97,7 +97,7 @@ public class MicrosoftInsaitAgent(
     }
 
     /// <summary>
-    /// Стрімінгова обробка через Microsoft Agent Framework
+    /// Streaming processing via Microsoft Agent Framework.
     /// </summary>
     public async IAsyncEnumerable<string> ProcessStreamAsync(
         string userMessage,
@@ -106,26 +106,26 @@ public class MicrosoftInsaitAgent(
     {
         var tokenCount = 0;
         var accumulatedText = new StringBuilder();
-        var accumulatedResponse = new StringBuilder(); // Для збереження повної відповіді
+        var accumulatedResponse = new StringBuilder(); // For keeping the full response
         var consecutiveWhitespace = 0;
-        var pendingBuffer = new StringBuilder(); // Буфер для перевірки stop sequences
+        var pendingBuffer = new StringBuilder(); // Buffer for stop-sequence checks
         var shouldAutoSave = ShouldAutoSaveResponse(userMessage);
 
-        LogAgent($"🚀 [Microsoft.Agents] Початок streaming (max {MaxResponseTokens} токенів)");
+        LogAgent($"🚀 [Microsoft.Agents] Start streaming (max {MaxResponseTokens} tokens)");
         if (shouldAutoSave)
         {
-            LogAgent("💾 Автоматичне збереження активовано для цього запиту");
+            LogAgent("💾 Auto-save enabled for this prompt");
         }
 
         var enhancedMessage = PrepareMessageWithToolInfo(userMessage);
 
         await foreach (var token in _adapter.SendMessageStreamAsync(enhancedMessage, history, cancellationToken))
         {
-            // Перевірка ліміту токенів
+            // Token limit check
             if (tokenCount >= MaxResponseTokens)
             {
-                LogAgent($"⛔ Досягнуто максимум токенів: {MaxResponseTokens}");
-                // Повернути залишок з буфера
+                LogAgent($"⛔ Max tokens reached: {MaxResponseTokens}");
+                // Return the remaining buffer
                 if (pendingBuffer.Length > 0)
                 {
                     var bufferContent = pendingBuffer.ToString();
@@ -135,23 +135,23 @@ public class MicrosoftInsaitAgent(
                 break;
             }
 
-            // Фільтр технічних токенів
+            // Technical token filter
             if (IsTechnicalToken(token))
             {
-                LogAgent($"🚫 Технічний токен, СТОП: {token}");
+                LogAgent($"🚫 Technical token, STOP: {token}");
                 break;
             }
 
-            // Рахуємо послідовні whitespace токени для раннього виявлення кінця
+            // Count consecutive whitespace tokens for early end detection
             if (string.IsNullOrWhiteSpace(token))
             {
                 consecutiveWhitespace++;
                 if (consecutiveWhitespace > 5)
                 {
-                    LogAgent($"🛑 Виявлено багато пустих токенів підряд, СТОП");
+                    LogAgent($"🛑 Too many empty tokens in a row, STOP");
                     break;
                 }
-                // Додаємо пробіли до буфера
+                // Add whitespace to buffer
                 pendingBuffer.Append(token);
                 continue;
             }
@@ -160,18 +160,18 @@ public class MicrosoftInsaitAgent(
                 consecutiveWhitespace = 0;
             }
 
-            // Додаємо токен до буфера
+            // Add token to buffer
             pendingBuffer.Append(token);
             accumulatedText.Append(token);
             var fullText = accumulatedText.ToString();
 
-            // Перевірка на stop sequences в повному тексті
+            // Stop sequence check in the full text
             if (ContainsStopSequence(fullText))
             {
-                LogAgent($"🛑 Stop sequence виявлено");
+                LogAgent($"🛑 Stop sequence detected");
                 var cleanedText = RemoveStopSequences(fullText);
                 
-                // Повернути тільки очищений залишок
+                // Return only the cleaned remainder
                 var alreadyYielded = fullText.Length - pendingBuffer.Length;
                 var toYield = cleanedText.Substring(Math.Min(alreadyYielded, cleanedText.Length));
                 
@@ -181,24 +181,24 @@ public class MicrosoftInsaitAgent(
                     yield return toYield.Trim();
                 }
                 
-                LogAgent($"✅ Відповідь завершена ({tokenCount} токенів)");
+                LogAgent($"✅ Response completed ({tokenCount} tokens)");
                 break;
             }
 
-            // Перевірка на самоітерацію або продовження нісенітниці
+            // Check for self-iteration or unwanted continuation
             if (fullText.Length > 50)
             {
                 if (IsUnwantedContinuation(fullText))
                 {
-                    LogAgent($"🚫 Виявлено небажаний контент (самоітерація/нісенітниця), СТОП");
+                    LogAgent($"🚫 Unwanted content detected (self-iteration/gibberish), STOP");
                     break;
                 }
             }
 
-            // Перевірка на часткові stop sequences (lookahead)
+            // Partial stop sequence check (lookahead)
             if (pendingBuffer.Length > 0 && !MightBePartialStopSequence(pendingBuffer.ToString()))
             {
-                // Безпечно повертаємо буфер
+                // Safe to flush buffer
                 var bufferContent = pendingBuffer.ToString();
                 accumulatedResponse.Append(bufferContent);
                 yield return bufferContent;
@@ -208,7 +208,7 @@ public class MicrosoftInsaitAgent(
             tokenCount++;
         }
 
-        // Повернути залишок з буфера після завершення стріму
+        // Return remaining buffer after stream ends
         if (pendingBuffer.Length > 0)
         {
             var finalText = pendingBuffer.ToString();
@@ -219,18 +219,18 @@ public class MicrosoftInsaitAgent(
             }
         }
 
-        LogAgent($"✅ Streaming завершено ({tokenCount} токенів)");
+        LogAgent($"✅ Streaming completed ({tokenCount} tokens)");
 
-        // ПІСЛЯ завершення стрімінгу - автоматичне збереження
-        // ⚠️ ВАЖЛИВО: Викликаємо з UI потоку через Dispatcher
+        // AFTER streaming ends - auto-save
+        // ⚠️ IMPORTANT: invoke from the UI thread via Dispatcher
         if (shouldAutoSave && _saveToFileTool != null && accumulatedResponse.Length > 0)
         {
             var finalResponse = accumulatedResponse.ToString().Trim();
-            var promptCopy = userMessage; // Копія для використання в async контексті
+            var promptCopy = userMessage; // Copy for use in async context
             
-            LogAgent("💾 Планування автоматичного збереження...");
+            LogAgent("💾 Scheduling auto-save...");
             
-            // Викликаємо з UI потоку через Dispatcher
+            // Invoke from the UI thread via Dispatcher
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 await AutoInvokeSaveToolAsync(finalResponse, promptCopy);
@@ -238,15 +238,15 @@ public class MicrosoftInsaitAgent(
         }
         else
         {
-            // ⚡ НОВИЙ ПІДХІД: Якщо тригер не спрацював, перевіряємо сам контент
+            // ⚡ NEW APPROACH: if the trigger didn't fire, analyze the content itself
             if (!shouldAutoSave && _saveToFileTool != null && accumulatedResponse.Length > 0)
             {
                 var finalResponse = accumulatedResponse.ToString().Trim();
                 
-                // Використовуємо IsPoem() з SaveToFileTool для перевірки контенту
+                // Use IsPoem() from SaveToFileTool to analyze content
                 if (IsLikelyCreativeContent(finalResponse))
                 {
-                    LogAgent("💾 Виявлено творчий контент (вірш/текст) за аналізом відповіді!");
+                    LogAgent("💾 Creative content detected (poem/text) by response analysis!");
                     
                     var promptCopy = userMessage;
                     await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
@@ -256,14 +256,14 @@ public class MicrosoftInsaitAgent(
                 }
                 else
                 {
-                    LogAgent($"ℹ️ Автоматичне збереження не активовано (shouldAutoSave={shouldAutoSave}, tool={_saveToFileTool != null}, length={accumulatedResponse.Length})");
+                    LogAgent($"ℹ️ Auto-save not enabled (shouldAutoSave={shouldAutoSave}, tool={_saveToFileTool != null}, length={accumulatedResponse.Length})");
                 }
             }
         }
     }
 
     /// <summary>
-    /// Генерація reasoning кроку з повною фільтрацією (для ReasoningService)
+    /// Reasoning-step generation with full filtering (for ReasoningService).
     /// </summary>
     public async IAsyncEnumerable<string> GenerateReasoningStepStreamAsync(
         string stepPrompt,
@@ -275,14 +275,14 @@ public class MicrosoftInsaitAgent(
         var consecutiveWhitespace = 0;
         var pendingBuffer = new StringBuilder();
 
-        LogAgent($"🧠 [Reasoning Step] Початок (max {maxTokens} токенів)");
+        LogAgent($"🧠 [Reasoning Step] Start (max {maxTokens} tokens)");
 
         await foreach (var token in _adapter.SendMessageStreamAsync(stepPrompt, new List<ChatMessage>(), cancellationToken))
         {
-            // Перевірка ліміту токенів
+            // Token limit check
             if (tokenCount >= maxTokens)
             {
-                LogAgent($"⛔ Reasoning step: досягнуто максимум токенів: {maxTokens}");
+                LogAgent($"⛔ Reasoning step: max tokens reached: {maxTokens}");
                 if (pendingBuffer.Length > 0)
                 {
                     var bufferContent = pendingBuffer.ToString();
@@ -291,20 +291,20 @@ public class MicrosoftInsaitAgent(
                 break;
             }
 
-            // Фільтр технічних токенів
+            // Technical token filter
             if (IsTechnicalToken(token))
             {
-                LogAgent($"🚫 Reasoning step: технічний токен, СТОП: {token}");
+                LogAgent($"🚫 Reasoning step: technical token, STOP: {token}");
                 break;
             }
 
-            // Рахуємо послідовні whitespace токени
+            // Count consecutive whitespace tokens
             if (string.IsNullOrWhiteSpace(token))
             {
                 consecutiveWhitespace++;
                 if (consecutiveWhitespace > 5)
                 {
-                    LogAgent($"🛑 Reasoning step: багато пустих токенів, СТОП");
+                    LogAgent($"🛑 Reasoning step: too many empty tokens, STOP");
                     break;
                 }
                 pendingBuffer.Append(token);
@@ -315,15 +315,15 @@ public class MicrosoftInsaitAgent(
                 consecutiveWhitespace = 0;
             }
 
-            // Додаємо токен до буфера
+            // Add token to buffer
             pendingBuffer.Append(token);
             accumulatedText.Append(token);
             var fullText = accumulatedText.ToString();
 
-            // Перевірка на stop sequences
+            // Stop sequence check
             if (ContainsStopSequence(fullText))
             {
-                LogAgent($"🛑 Reasoning step: stop sequence виявлено");
+                LogAgent($"🛑 Reasoning step: stop sequence detected");
                 var cleanedText = RemoveStopSequences(fullText);
                 var alreadyYielded = fullText.Length - pendingBuffer.Length;
                 var toYield = cleanedText.Substring(Math.Min(alreadyYielded, cleanedText.Length));
@@ -335,17 +335,17 @@ public class MicrosoftInsaitAgent(
                 break;
             }
 
-            // Перевірка на самоітерацію або нісенітницю
+            // Check for self-iteration or gibberish
             if (fullText.Length > 50)
             {
                 if (IsUnwantedContinuation(fullText))
                 {
-                    LogAgent($"🚫 Reasoning step: виявлено нісенітницю/самоітерацію, СТОП");
+                    LogAgent($"🚫 Reasoning step: gibberish/self-iteration detected, STOP");
                     break;
                 }
             }
 
-            // Перевірка на часткові stop sequences
+            // Partial stop sequence check
             if (pendingBuffer.Length > 0 && !MightBePartialStopSequence(pendingBuffer.ToString()))
             {
                 var bufferContent = pendingBuffer.ToString();
@@ -356,7 +356,7 @@ public class MicrosoftInsaitAgent(
             tokenCount++;
         }
 
-        // Повернути залишок з буфера
+        // Return remaining buffer
         if (pendingBuffer.Length > 0)
         {
             var finalText = pendingBuffer.ToString();
@@ -366,11 +366,11 @@ public class MicrosoftInsaitAgent(
             }
         }
 
-        LogAgent($"✅ Reasoning step завершено ({tokenCount} токенів)");
+        LogAgent($"✅ Reasoning step completed ({tokenCount} tokens)");
     }
 
     /// <summary>
-    /// Визначити чи потрібно зберігати відповідь
+    /// Determine whether the response should be auto-saved.
     /// </summary>
     private bool ShouldAutoSaveResponse(string userMessage)
     {
@@ -382,7 +382,7 @@ public class MicrosoftInsaitAgent(
     }
 
     /// <summary>
-    /// Перевірити чи відповідь схожа на творчий контент (вірш, історія)
+    /// Check whether the response looks like creative content (poem, story).
     /// </summary>
     private bool IsLikelyCreativeContent(string content)
     {
@@ -394,29 +394,29 @@ public class MicrosoftInsaitAgent(
             .Where(l => l.Length > 0)
             .ToArray();
         
-        // Вірш зазвичай має 4+ рядки
+        // A poem usually has 4+ lines
         if (lines.Length < 4) 
             return false;
         
-        // Середня довжина рядка (вірші мають коротші рядки)
+        // Average line length (poems have shorter lines)
         var avgLength = lines.Average(l => l.Length);
         
-        // Вірші: 15-80 символів на рядок
-        // Історії/оповідання: можуть бути довші
+        // Poems: 15-80 chars per line
+        // Stories: can be longer
         if (avgLength < 15)
             return false;
         
-        // Перевірка на розділові знаки в кінці рядків (характерно для віршів)
+        // Check punctuation at line endings (common for poems)
         var linesWithPunctuation = lines.Count(l => 
             l.EndsWith(',') || l.EndsWith('.') || l.EndsWith('!') || l.EndsWith('?') || 
             l.EndsWith(':') || l.EndsWith(';') || l.EndsWith("...") || l.EndsWith('—') || l.EndsWith('-'));
         
-        // Якщо більше 25% рядків мають розділові знаки - ймовірно вірш або оповідання
+        // If >25% of lines end with punctuation, it's likely a poem or a story
         var punctuationRatio = (double)linesWithPunctuation / lines.Length;
         if (punctuationRatio > 0.25)
             return true;
         
-        // Перевірка на довгий багаторядковий текст (історія/оповідання)
+        // Long multiline text (story)
         if (lines.Length >= 8 && content.Length > 200)
             return true;
         
@@ -424,21 +424,21 @@ public class MicrosoftInsaitAgent(
     }
 
     /// <summary>
-    /// Автоматичний виклик інструменту збереження
+    /// Automatically invoke the save tool.
     /// </summary>
     private async Task AutoInvokeSaveToolAsync(string content, string userPrompt)
     {
         if (_saveToFileTool == null)
         {
-            LogAgent("⚠️ SaveToFileTool не встановлено");
+            LogAgent("⚠️ SaveToFileTool is not set");
             return;
         }
 
         try
         {
-            LogAgent("💾 Автоматичний виклик SaveToFileTool...");
+            LogAgent("💾 Auto-invoking SaveToFileTool...");
             
-            // Згенерувати назву файлу з промпту
+            // Generate file name from prompt
             var fileName = GenerateFileNameFromPrompt(userPrompt);
             
             var result = await _saveToFileTool.AutoSaveAsync(
@@ -449,21 +449,21 @@ public class MicrosoftInsaitAgent(
             
             if (result.Success)
             {
-                LogAgent($"✅ Файл збережено: {result.FilePath}");
+                LogAgent($"✅ File saved: {result.FilePath}");
             }
             else
             {
-                LogAgent($"❌ Помилка збереження: {result.Message}");
+                LogAgent($"❌ Save error: {result.Message}");
             }
         }
         catch (Exception ex)
         {
-            LogAgent($"❌ Помилка auto-save: {ex.Message}");
+            LogAgent($"❌ Auto-save error: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// Згенерувати назву файлу з промпту користувача
+    /// Generate a file name from the user's prompt.
     /// </summary>
     private string GenerateFileNameFromPrompt(string prompt)
     {
@@ -483,18 +483,18 @@ public class MicrosoftInsaitAgent(
             .Replace(" ", "_")
             .Trim();
         
-        // Видалити недопустимі символи для файлової системи
+        // Remove invalid file-system characters
         var invalidChars = System.IO.Path.GetInvalidFileNameChars();
         foreach (var c in invalidChars)
         {
             cleaned = cleaned.Replace(c.ToString(), "");
         }
         
-        // Обрізати до 30 символів
+        // Trim to 30 characters
         if (cleaned.Length > 30)
             cleaned = cleaned.Substring(0, 30);
         
-        // Якщо назва порожня - використати timestamp
+        // If empty, use a timestamp
         if (string.IsNullOrWhiteSpace(cleaned))
             cleaned = "Відповідь";
         
@@ -502,7 +502,7 @@ public class MicrosoftInsaitAgent(
     }
 
     /// <summary>
-    /// Обробка повідомлення, приймаючи історію у вигляді об'єктів Microsoft.Agents.Core
+    /// Process a message, accepting history as Microsoft.Agents.Core objects.
     /// </summary>
     public Task<AgentResponse> ProcessAsyncCore(
         string userMessage,
@@ -514,7 +514,7 @@ public class MicrosoftInsaitAgent(
     }
 
     /// <summary>
-    /// Стрімінгова обробка з історією у вигляді об'єктів Microsoft.Agents.Core
+    /// Stream processing with history as Microsoft.Agents.Core objects.
     /// </summary>
     public async IAsyncEnumerable<string> ProcessStreamAsyncCore(
         string userMessage,
@@ -528,7 +528,7 @@ public class MicrosoftInsaitAgent(
         }
     }
 
-    // Допоміжні методи
+    // Helper methods
     private bool IsTechnicalToken(string token)
     {
         var technicalPatterns = new[]
@@ -552,7 +552,7 @@ public class MicrosoftInsaitAgent(
 
     private bool MightBePartialStopSequence(string text)
     {
-        // Перевіряємо чи може це бути початок stop sequence
+        // Check whether this could be the beginning of a stop sequence
         var stopSequences = new[] 
         { 
             "<end_of_turn>", "<eos>", "</s>", "<|im_end|>", "<|endoftext|>",
@@ -561,7 +561,7 @@ public class MicrosoftInsaitAgent(
         
         foreach (var stopSeq in stopSequences)
         {
-            // Якщо текст є початком stop sequence
+            // If the text is a prefix of a stop sequence
             for (int i = 1; i <= Math.Min(text.Length, stopSeq.Length); i++)
             {
                 if (stopSeq.StartsWith(text.Substring(text.Length - i), StringComparison.OrdinalIgnoreCase))
@@ -617,19 +617,19 @@ public class MicrosoftInsaitAgent(
 
     private string PrepareMessageWithToolInfo(string userMessage)
     {
-        // ✅ НЕ модифікуємо оригінальне повідомлення користувача
-        // Інструкції про інструменти додаються тільки для AI моделі внутрішньо
-        // і НЕ зберігаються в історію чату
+        // ✅ Do NOT modify the original user message
+        // Tool instructions are added only internally for the AI model,
+        // and are NOT saved into the chat history
         return userMessage;
     }
 
     private ToolCall? ExtractToolCall(string response)
     {
-        // Покращений regex, який правильно обробляє JSON з дужками
+        // Improved regex that correctly handles JSON with braces
         var match = Regex.Match(response, @"\[TOOL:(\w+)\|(.*?)\](?=\s*$|\s*\n|$)", RegexOptions.Singleline);
         if (!match.Success)
         {
-            // Спробувати альтернативний патерн для складних випадків
+            // Try an alternative pattern for complex cases
             match = Regex.Match(response, @"\[TOOL:(\w+)\|(\{.*?\})\]", RegexOptions.Singleline);
         }
         
@@ -673,13 +673,13 @@ public class MicrosoftInsaitAgent(
 
     private string CleanResponse(string response)
     {
-        // Видаляємо всі маркери TOOL, включаючи можливі JSON параметри
+        // Remove all TOOL markers, including possible JSON parameters
         var cleaned = Regex.Replace(response, @"\[TOOL:\w+\|.*?\]", string.Empty, RegexOptions.Singleline);
         
-        // Додатковий прохід для складних випадків
+        // Extra pass for complex cases
         cleaned = Regex.Replace(cleaned, @"\[TOOL:\w+\|\{.*?\}\]", string.Empty, RegexOptions.Singleline);
         
-        // Видаляємо зайві порожні рядки
+        // Remove extra blank lines
         cleaned = Regex.Replace(cleaned, @"(\r?\n){3,}", "\n\n", RegexOptions.Multiline);
         
         return cleaned.Trim();
