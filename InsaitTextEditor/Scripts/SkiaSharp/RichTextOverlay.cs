@@ -6,13 +6,16 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
+using Avalonia.Controls.Primitives;
 
 namespace InsaitTextEditor.Scripts.SkiaSharp;
 
 public sealed class RichTextOverlay : Control
 {
     public static readonly StyledProperty<string?> TextProperty =
-        AvaloniaProperty.Register<RichTextOverlay, string?>(nameof(Text), string.Empty);
+        AvaloniaProperty.Register<RichTextOverlay, string?>(
+            nameof(Text), 
+            string.Empty);
 
     public static readonly StyledProperty<double> FontSizeProperty =
         AvaloniaProperty.Register<RichTextOverlay, double>(nameof(FontSize), 16d);
@@ -64,25 +67,90 @@ public sealed class RichTextOverlay : Control
     public double FirstLineOffset { get => GetValue(FirstLineOffsetProperty); set => SetValue(FirstLineOffsetProperty, value); }
     public double TopMargin { get => GetValue(TopMarginProperty); set => SetValue(TopMarginProperty, value); }
 
+    private Size _measured = new Size(1, 1);
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == TextProperty ||
-            change.Property == FontSizeProperty ||
-            change.Property == TextBrushProperty ||
-            change.Property == DefaultBoldProperty ||
-            change.Property == DefaultItalicProperty ||
-            change.Property == SelectionStartProperty ||
-            change.Property == SelectionEndProperty ||
-            change.Property == LineSpacingProperty ||
-            change.Property == FirstLineOffsetProperty ||
-            change.Property == TopMarginProperty ||
-            change.Property == CaretBrushProperty ||
-            change.Property == CaretWidthProperty ||
-            change.Property == ShowCaretProperty)
+        
+        if (change.Property == TextProperty)
         {
+            // Text changed - trigger layout update
+            InvalidateMeasure();
             InvalidateVisual();
         }
+    }
+
+    // --- Measure / Arrange for ScrollViewer (no IScrollable needed) ---
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        var raw = (Text ?? string.Empty).Replace("\r\n", "\n");
+
+        var w = double.IsInfinity(availableSize.Width) ? Math.Max(1, Bounds.Width) : Math.Max(1, availableSize.Width);
+
+        double lineHeight = LineSpacing > 0 ? LineSpacing : Math.Max(10, Math.Round(FontSize * 1.3));
+
+        double visualTextHeight = Math.Max(8, Math.Round(FontSize * 1.0));
+        double bottomGap = Math.Max(1, Math.Round(FontSize * 0.12));
+        double y0 = TopMargin + FirstLineOffset - (visualTextHeight + bottomGap);
+        if (double.IsNaN(y0) || double.IsInfinity(y0)) y0 = 0;
+
+        // Estimate number of visual lines, including wrapping.
+        // This gives ScrollViewer a correct Extent so the scrollbar thumb has a real size.
+        int visualLines = 1;
+        if (raw.Length > 0)
+        {
+            visualLines = 0;
+            var brush = TextBrush;
+            var typeface = new Typeface(Typeface.Default.FontFamily);
+            double textWidth = Math.Max(1, w);
+
+            int start = 0;
+            while (start <= raw.Length)
+            {
+                int nl = raw.IndexOf('\n', start);
+                int end = nl < 0 ? raw.Length : nl;
+                var line = raw.Substring(start, end - start);
+
+                if (line.Length == 0)
+                {
+                    visualLines += 1;
+                }
+                else
+                {
+                    int pos = 0;
+                    while (pos < line.Length)
+                    {
+                        int count = FitCount(line, pos, typeface, FontSize, brush, textWidth);
+                        if (count <= 0)
+                        {
+                            // safeguard: at least advance 1 char
+                            count = 1;
+                        }
+                        pos += count;
+                        visualLines += 1;
+                    }
+                }
+
+                if (nl < 0)
+                    break;
+                start = nl + 1;
+            }
+        }
+
+        // extra padding lines
+        double h = Math.Max(1, y0 + (visualLines + 2) * lineHeight);
+
+        _measured = new Size(w, h);
+        return _measured;
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        // IMPORTANT: return desired size so ScrollViewer gets correct Extent.
+        // Width is constrained to viewport; height can exceed viewport.
+        var arranged = new Size(finalSize.Width, Math.Max(finalSize.Height, _measured.Height));
+        return arranged;
     }
 
     public override void Render(DrawingContext context)
@@ -145,6 +213,7 @@ public sealed class RichTextOverlay : Control
             double x = 0d;
             int lineDisplayStart = globalDisplayIndex;
             bool caretDrawnForThisLine = false;
+            bool isStartOfLogicalLine = true; // Track if we're at the start of the actual line
 
             foreach (var run in line)
             {
@@ -159,10 +228,19 @@ public sealed class RichTextOverlay : Control
 
                 while (pos < text.Length)
                 {
+                    // Skip leading whitespace ONLY at the start of a wrapped line (not logical line start)
+                    if (x == 0 && !isStartOfLogicalLine && char.IsWhiteSpace(text[pos]))
+                    {
+                        pos++;
+                        globalDisplayIndex++;
+                        continue;
+                    }
+                    
                     if (x >= maxWidth - 0.5)
                     {
                         y += lineHeight;
                         x = 0d;
+                        isStartOfLogicalLine = false; // After wrapping, we're no longer at logical line start
                         if (y > maxHeight + lineHeight) return;
                     }
 
@@ -171,6 +249,7 @@ public sealed class RichTextOverlay : Control
                     {
                         y += lineHeight;
                         x = 0d;
+                        isStartOfLogicalLine = false; // After wrapping, we're no longer at logical line start
                         if (y > maxHeight + lineHeight) return;
                         continue;
                     }
@@ -240,6 +319,7 @@ public sealed class RichTextOverlay : Control
                     x += w;
                     globalDisplayIndex += count;
                     pos += count;
+                    isStartOfLogicalLine = false; // We've rendered something, no longer at start
                 }
             }
 
@@ -267,80 +347,252 @@ public sealed class RichTextOverlay : Control
         }
     }
 
-    public int GetCaretPositionFromPoint(Point point)
+    public Point GetCaretLocation(int caretRawIndex)
     {
+        // Returns caret position (top-left) in Overlay coordinates.
         var raw = (Text ?? string.Empty).Replace("\r\n", "\n");
-        if (string.IsNullOrEmpty(raw)) return 0;
+        caretRawIndex = Math.Clamp(caretRawIndex, 0, raw.Length);
 
         double maxWidth = Math.Max(0, Bounds.Width);
-        if (maxWidth < 2) return 0;
-
-        var brush = TextBrush ?? Brushes.Black;
+        var brush = TextBrush;
         double lineHeight = LineSpacing > 0 ? LineSpacing : Math.Max(10, Math.Round(FontSize * 1.3));
+
         double visualTextHeight = Math.Max(8, Math.Round(FontSize * 1.0));
         double bottomGap = Math.Max(1, Math.Round(FontSize * 0.12));
         double y = TopMargin + FirstLineOffset - (visualTextHeight + bottomGap);
         if (double.IsNaN(y) || double.IsInfinity(y)) y = 0;
 
-        var (lines, _) = ParseRunsWithMap(raw);
+        if (maxWidth < 2 || raw.Length == 0)
+            return new Point(0, y);
 
-        // Find the line index based on Y coordinate
-        int lineIndex = (int)Math.Floor((point.Y - y) / lineHeight);
+        var (lines, rawToDisplay) = ParseRunsWithMap(raw);
+        int caretDisplay = caretRawIndex < rawToDisplay.Length ? rawToDisplay[caretRawIndex] : 0;
 
-        // If clicked below all text, place caret at the end of the document
-        if (lineIndex >= lines.Count)
+        int globalDisplayIndex = 0;
+        foreach (var line in lines)
         {
-            return raw.Length;
-        }
-        lineIndex = Math.Clamp(lineIndex, 0, lines.Count - 1);
-
-        // Calculate the starting character index for the target line
-        int rawCharIndex = 0;
-        for (int i = 0; i < lineIndex; i++)
-        {
-            foreach (var run in lines[i])
+            double x = 0d;
+            bool isStartOfLogicalLine = true;
+            foreach (var run in line)
             {
-                rawCharIndex += run.Text.Length;
-            }
-            rawCharIndex++; // Account for newline character
-        }
+                var typeface = new Typeface(
+                    Typeface.Default.FontFamily,
+                    run.Italic ? FontStyle.Italic : FontStyle.Normal,
+                    run.Bold ? FontWeight.Bold : FontWeight.Normal
+                );
 
-        var targetLine = lines[lineIndex];
-        double x = 0;
-
-        foreach (var run in targetLine)
-        {
-            var typeface = new Typeface(
-                Typeface.Default.FontFamily,
-                run.Italic ? FontStyle.Italic : FontStyle.Normal,
-                run.Bold ? FontWeight.Bold : FontWeight.Normal
-            );
-
-            var layout = new TextLayout(run.Text, typeface, FontSize, brush, TextAlignment.Left);
-            
-            if (x <= point.X && point.X < x + layout.Width)
-            {
-                // Click is within this run, find the exact character
-                for (int i = 0; i < run.Text.Length; i++)
+                string text = run.Text;
+                int pos = 0;
+                while (pos < text.Length)
                 {
-                    var subLayout = new TextLayout(run.Text.Substring(0, i + 1), typeface, FontSize, brush, TextAlignment.Left);
-                    var charWidth = subLayout.Width - (i > 0 ? new TextLayout(run.Text.Substring(0, i), typeface, FontSize, brush, TextAlignment.Left).Width : 0);
-
-                    if (x + subLayout.Width - (charWidth / 2) > point.X)
+                    // Skip leading whitespace ONLY at the start of a wrapped line (not logical line start)
+                    if (x == 0 && !isStartOfLogicalLine && char.IsWhiteSpace(text[pos]))
                     {
-                        return Math.Clamp(rawCharIndex + i, 0, raw.Length);
+                        pos++;
+                        globalDisplayIndex++;
+                        continue;
                     }
+                    
+                    if (x >= maxWidth - 0.5)
+                    {
+                        y += lineHeight;
+                        x = 0d;
+                        isStartOfLogicalLine = false;
+                    }
+
+                    int count = FitCount(text, pos, typeface, FontSize, brush, maxWidth - x);
+                    if (count == 0)
+                    {
+                        y += lineHeight;
+                        x = 0d;
+                        isStartOfLogicalLine = false;
+                        continue;
+                    }
+
+                    int fragStart = globalDisplayIndex;
+                    int fragEnd = globalDisplayIndex + count;
+                    if (caretDisplay >= fragStart && caretDisplay <= fragEnd)
+                    {
+                        int offset = Math.Clamp(caretDisplay - fragStart, 0, count);
+                        double xCaret = x;
+                        if (offset > 0)
+                        {
+                            var preCaret = new TextLayout(text.Substring(pos, offset), typeface, FontSize, brush, TextAlignment.Left);
+                            xCaret += preCaret.Width;
+                        }
+                        return new Point(xCaret, y);
+                    }
+
+                    var layout = new TextLayout(text.Substring(pos, count), typeface, FontSize, brush, TextAlignment.Left);
+                    x += layout.Width;
+                    globalDisplayIndex += count;
+                    pos += count;
+                    isStartOfLogicalLine = false;
                 }
-                // Click is in the second half of the last character of the run
-                return Math.Clamp(rawCharIndex + run.Text.Length, 0, raw.Length);
             }
-            
-            x += layout.Width;
-            rawCharIndex += run.Text.Length;
+
+            globalDisplayIndex += 1; // '\n'
+            y += lineHeight;
         }
 
-        // Click was to the right of all text on the line, so place caret at the end of the line
-        return Math.Clamp(rawCharIndex, 0, raw.Length);
+        return new Point(0, y);
+    }
+
+    // NOTE: старий GetCaretPositionFromPoint видалено, бо він не враховує перенос рядків (wrap)
+    // і через це клік/каретка "зсуваються".
+
+    public int GetCaretPositionFromPoint(Point point)
+    {
+        var raw = (Text ?? string.Empty).Replace("\r\n", "\n");
+        if (raw.Length == 0) return 0;
+
+        // clamp
+        if (point.X < 0) point = new Point(0, point.Y);
+
+        double maxWidth = Math.Max(0, Bounds.Width);
+        if (maxWidth < 2) return 0;
+
+        var brush = TextBrush;
+        double lineHeight = LineSpacing > 0 ? LineSpacing : Math.Max(10, Math.Round(FontSize * 1.3));
+
+        double visualTextHeight = Math.Max(8, Math.Round(FontSize * 1.0));
+        double bottomGap = Math.Max(1, Math.Round(FontSize * 0.12));
+        double y0 = TopMargin + FirstLineOffset - (visualTextHeight + bottomGap);
+        if (double.IsNaN(y0) || double.IsInfinity(y0)) y0 = 0;
+
+        // If click is above first line, go to start
+        if (point.Y <= y0) return 0;
+
+        // Use the same parsing logic as rendering to maintain consistency
+        var (lines, rawToDisplay) = ParseRunsWithMap(raw);
+
+        double y = y0;
+        int globalDisplayIndex = 0;
+
+        foreach (var line in lines)
+        {
+            double x = 0d;
+            bool isStartOfLogicalLine = true;
+
+            foreach (var run in line)
+            {
+                var typeface = new Typeface(
+                    Typeface.Default.FontFamily,
+                    run.Italic ? FontStyle.Italic : FontStyle.Normal,
+                    run.Bold ? FontWeight.Bold : FontWeight.Normal
+                );
+
+                string text = run.Text;
+                int pos = 0;
+
+                while (pos < text.Length)
+                {
+                    // Skip leading whitespace ONLY at the start of a wrapped line (not logical line start)
+                    if (x == 0 && !isStartOfLogicalLine && char.IsWhiteSpace(text[pos]))
+                    {
+                        pos++;
+                        globalDisplayIndex++;
+                        continue;
+                    }
+                    
+                    // Handle wrapping
+                    if (x >= maxWidth - 0.5)
+                    {
+                        y += lineHeight;
+                        x = 0d;
+                        isStartOfLogicalLine = false;
+                    }
+
+                    int count = FitCount(text, pos, typeface, FontSize, brush, maxWidth - x);
+                    if (count == 0)
+                    {
+                        y += lineHeight;
+                        x = 0d;
+                        isStartOfLogicalLine = false;
+                        continue;
+                    }
+
+                    string frag = text.Substring(pos, count);
+                    var layout = new TextLayout(frag, typeface, FontSize, brush, TextAlignment.Left);
+                    double w = layout.Width;
+
+                    // Check if click is in this fragment
+                    if (point.Y >= y && point.Y < y + lineHeight)
+                    {
+                        if (point.X <= x)
+                        {
+                            // Before this fragment - return start of fragment
+                            int displayPos = globalDisplayIndex;
+                            // Find raw index for this display position
+                            for (int i = 0; i < rawToDisplay.Length; i++)
+                            {
+                                if (rawToDisplay[i] == displayPos)
+                                    return i;
+                            }
+                            return Math.Clamp(globalDisplayIndex, 0, raw.Length);
+                        }
+                        
+                        if (point.X < x + w)
+                        {
+                            // Inside this fragment - find exact character
+                            double prevW = 0;
+                            for (int i = 0; i < frag.Length; i++)
+                            {
+                                var sub = new TextLayout(frag.Substring(0, i + 1), typeface, FontSize, brush, TextAlignment.Left);
+                                double charW = sub.Width;
+                                double charMid = x + prevW + (charW - prevW) / 2;
+                                
+                                if (point.X <= charMid)
+                                {
+                                    int displayPos = globalDisplayIndex + i;
+                                    // Find raw index for this display position
+                                    for (int j = 0; j < rawToDisplay.Length; j++)
+                                    {
+                                        if (rawToDisplay[j] == displayPos)
+                                            return j;
+                                    }
+                                    return Math.Clamp(displayPos, 0, raw.Length);
+                                }
+                                prevW = charW;
+                            }
+                            
+                            // After last char in fragment
+                            int endDisplayPos = globalDisplayIndex + frag.Length;
+                            for (int j = 0; j < rawToDisplay.Length; j++)
+                            {
+                                if (rawToDisplay[j] == endDisplayPos)
+                                    return j;
+                            }
+                            return Math.Clamp(endDisplayPos, 0, raw.Length);
+                        }
+                    }
+
+                    x += w;
+                    globalDisplayIndex += count;
+                    pos += count;
+                    isStartOfLogicalLine = false;
+                }
+            }
+
+            // Check if click is at end of line (after all text)
+            if (point.Y >= y && point.Y < y + lineHeight && point.X >= x)
+            {
+                // End of this visual line
+                int displayPos = globalDisplayIndex;
+                for (int i = 0; i < rawToDisplay.Length; i++)
+                {
+                    if (rawToDisplay[i] == displayPos)
+                        return i;
+                }
+                return Math.Clamp(displayPos, 0, raw.Length);
+            }
+
+            globalDisplayIndex += 1; // '\n'
+            y += lineHeight;
+        }
+
+        // Click is below all text
+        return raw.Length;
     }
 
     private static int FitCount(string text, int start, Typeface typeface, double fontSize, IBrush brush, double remainWidth)
@@ -372,14 +624,37 @@ public sealed class RichTextOverlay : Control
 
         if (best == 0) return 0;
 
-        // Try wrap on whitespace
+        // Try to wrap on whitespace - find last space before the break point
         int end = start + best;
-        if (end < text.Length && !char.IsWhiteSpace(text[end - 1]) && !char.IsWhiteSpace(text[end]))
+        
+        // If we're not at the end and we're breaking in the middle of a word
+        if (end < text.Length)
         {
-            for (int i = end - 1; i > start; i--)
+            // Check if we're breaking in the middle of a word (no space at break point)
+            bool breakingWord = !char.IsWhiteSpace(text[end]) && 
+                               (end > start && !char.IsWhiteSpace(text[end - 1]));
+            
+            if (breakingWord)
             {
-                if (char.IsWhiteSpace(text[i]))
-                    return i - start + 1;
+                // Search backwards for the last whitespace
+                for (int i = end - 1; i > start; i--)
+                {
+                    if (char.IsWhiteSpace(text[i]))
+                    {
+                        // Found a space - break here (don't include the space)
+                        return i - start;
+                    }
+                }
+                
+                // No space found - we have to break the word
+                // But make sure we at least take 1 character to avoid infinite loop
+                return Math.Max(1, best);
+            }
+            
+            // If we're at a space, don't include it in the line
+            if (char.IsWhiteSpace(text[end]))
+            {
+                return best;
             }
         }
 

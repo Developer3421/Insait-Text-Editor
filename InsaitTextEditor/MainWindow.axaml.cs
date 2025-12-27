@@ -56,20 +56,29 @@ public MainWindow(bool suppressInit, string? startupFilePath)
             // Hotkey: Alt+T opens current tab in a new MainWindow
             this.KeyDown += OnMainWindowKeyDown;
             
-            // Listen to tab changes to reset caret position and focus
+            // Subscribe to ResetCaretRequested event
+            _tabManager.ResetCaretRequested += (_, _) =>
+            {
+                var editor = this.FindControl<LinedTextInput>("LinedEditorHost");
+                if (editor != null)
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        editor.ResetCaret();
+                    }, Avalonia.Threading.DispatcherPriority.Background);
+                }
+            };
+            
+            // Listen to tab changes to focus editor (without resetting caret position)
             _tabManager.PropertyChanged += (sender, args) =>
             {
                 if (args.PropertyName == nameof(TabManager.CurrentText) || 
                     args.PropertyName == nameof(TabManager.ActiveTabId))
                 {
-                    // Reset caret position and focus editor when tab changes
+                    // Focus the editor when tab changes (without moving caret)
                     var editor = this.FindControl<LinedTextInput>("LinedEditorHost");
                     if (editor != null)
                     {
-                        // Reset caret to start of document
-                        editor.SelectionStart = 0;
-                        editor.SelectionEnd = 0;
-                        
                         // Focus the editor after a short delay to ensure it's ready
                         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                         {
@@ -101,12 +110,10 @@ public MainWindow(bool suppressInit, string? startupFilePath)
                 // Для спеціально створеного вікна (Alt+T) не відновлюємо сесію і не створюємо зайві вкладки
                 _sessionService.StartAutoSave(_tabManager, TimeSpan.FromSeconds(10));
                 
-                // Focus editor on startup
+                // Focus editor on startup (without moving caret)
                 var editor = this.FindControl<LinedTextInput>("LinedEditorHost");
                 if (editor != null)
                 {
-                    editor.SelectionStart = 0;
-                    editor.SelectionEnd = 0;
                     editor.Focus();
                 }
             };

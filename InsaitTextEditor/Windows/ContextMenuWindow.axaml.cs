@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 using Avalonia.Markup.Xaml;
+using InsaitTextEditor.Utils;
 
 namespace InsaitTextEditor.Windows
 {
@@ -133,7 +134,7 @@ namespace InsaitTextEditor.Windows
                 var clipboard = _owner?.Clipboard ?? TopLevel.GetTopLevel(tb)?.Clipboard;
                 if (clipboard is not null)
                 {
-                    var text = await clipboard.GetTextAsync();
+                    var text = await ClipboardCompat.TryGetTextAsync((Avalonia.Input.Platform.IClipboard)clipboard);
                     if (!string.IsNullOrEmpty(text))
                     {
                         // Замінюємо виділення вставкою

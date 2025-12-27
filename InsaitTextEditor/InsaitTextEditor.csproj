@@ -117,15 +117,15 @@
     </AvaloniaXaml>
   </ItemGroup>
 
-
-
   <ItemGroup>
-    <!-- AI model(s): copy to output so the app can load from AppContext.BaseDirectory\AiModel\... -->
-    <None Include="AiModel\**\*.gguf"
-          Condition="Exists('AiModel')">
+    <!-- AI model: copy to output/publish so the app can load from AppContext.BaseDirectory\AiModel\... -->
+    <!-- NOTE: absolute path as requested -->
+    <None Include="E:\InsaitTextEditor\InsaitTextEditor\AiModel\gemma-3-1b-it-UD-Q2_K_XL.gguf">
+      <Link>AiModel\gemma-3-1b-it-UD-Q2_K_XL.gguf</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
+
     <None Update="Icons\AppIcon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -138,7 +138,8 @@
   <Target Name="RemovePdbFromPublish" AfterTargets="ComputeFilesToPublish">
     <ItemGroup>
       <!-- Remove any PDBs (managed or native) from publish output -->
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.RelativePath)'.EndsWith('.pdb')" />
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                            Condition="$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').ToLowerInvariant().EndsWith('.pdb'))" />
     </ItemGroup>
   </Target>
 

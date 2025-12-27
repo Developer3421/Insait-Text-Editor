@@ -80,7 +80,7 @@ public partial class InstructionEditorWindow : Window
         }
         
         // Оновлюємо статистику пам'яті при відкритті вікна
-        UpdateMemoryStats();
+        _ = UpdateMemoryStats();
     }
 
     private async void OnGlobalMemoryToggleChanged(object? sender, RoutedEventArgs e)

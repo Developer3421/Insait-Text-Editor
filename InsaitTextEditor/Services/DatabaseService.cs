@@ -11,6 +11,9 @@ namespace InsaitTextEditor.Services
     /// </summary>
     public class DatabaseService
     {
+        private static readonly Lazy<DatabaseService> _instance = new(() => new DatabaseService());
+        public static DatabaseService Instance => _instance.Value;
+        
         private readonly string _dbPath;
 
         public DatabaseService()

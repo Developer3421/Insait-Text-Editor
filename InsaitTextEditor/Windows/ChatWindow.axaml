@@ -28,6 +28,7 @@
     <SolidColorBrush x:Key="TextSecondary" Color="#757575"/>
     <SolidColorBrush x:Key="BorderColor" Color="#BDBDBD"/>
 
+
     <ControlTemplate x:Key="FlatButtonTemplate">
       <Border Background="{TemplateBinding Background}"
               CornerRadius="6"
@@ -124,14 +125,20 @@
                          Foreground="{StaticResource AppPurpleBrush}"
                          Margin="4,0,0,0"/>
             </StackPanel>
-            <!-- Індикатор використання інструментів -->
-            <TextBlock x:Name="ToolIndicator"
-                       Text="🔧 Used tools"
-                       FontSize="11"
-                       Foreground="{StaticResource AppDarkOrangeBrush}"
-                       Margin="8,0,0,0"
-                       DockPanel.Dock="Right"
-                       IsVisible="False"/>
+            <!-- Індикатор використання інструментів (emoji + text split so emoji can use emoji font) -->
+            <StackPanel x:Name="ToolIndicator"
+                        Orientation="Horizontal"
+                        Margin="8,0,0,0"
+                        DockPanel.Dock="Right"
+                        IsVisible="False">
+              <TextBlock Text="🔧"
+                         FontFamily="Segoe UI Emoji"
+                         FontSize="11"
+                         Foreground="{StaticResource AppDarkOrangeBrush}"/>
+              <TextBlock Text=" Used tools"
+                         FontSize="11"
+                         Foreground="{StaticResource AppDarkOrangeBrush}"/>
+            </StackPanel>
           </DockPanel>
           <SelectableTextBlock Text="{Binding Content}" 
                                TextWrapping="Wrap"
@@ -239,6 +246,34 @@
     </selectors:ChatMessageTemplateSelector>
   </Window.Resources>
 
+  <Window.Styles>
+    <!-- Тонкий вертикальний скролбар як у Notepad -->
+    <Style Selector="ScrollViewer.ThinScrollBar">
+      <Setter Property="AllowAutoHide" Value="False"/>
+    </Style>
+    <Style Selector="ScrollViewer.ThinScrollBar /template/ ScrollBar:vertical">
+      <Setter Property="Width" Value="16"/>
+      <Setter Property="MinWidth" Value="16"/>
+    </Style>
+    <Style Selector="ScrollViewer.ThinScrollBar /template/ ScrollBar:vertical /template/ RepeatButton">
+      <Setter Property="Width" Value="16"/>
+    </Style>
+    <Style Selector="ScrollViewer.ThinScrollBar /template/ ScrollBar:vertical /template/ Border#TrackBorder">
+      <Setter Property="Background" Value="#F0F0F0"/>
+      <Setter Property="Width" Value="16"/>
+    </Style>
+    <Style Selector="ScrollViewer.ThinScrollBar /template/ ScrollBar:vertical /template/ Thumb">
+      <Setter Property="Background" Value="#C0C0C0"/>
+      <Setter Property="Width" Value="16"/>
+    </Style>
+    <Style Selector="ScrollViewer.ThinScrollBar /template/ ScrollBar:vertical /template/ Thumb:pointerover">
+      <Setter Property="Background" Value="#A0A0A0"/>
+    </Style>
+    <Style Selector="ScrollViewer.ThinScrollBar /template/ ScrollBar:vertical /template/ Thumb:pressed">
+      <Setter Property="Background" Value="#808080"/>
+    </Style>
+  </Window.Styles>
+
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="60" />
@@ -259,6 +294,7 @@
                   Background="{StaticResource AppPurpleBrush}"
                   CornerRadius="18">
             <TextBlock Text="🤖" 
+                       FontFamily="Segoe UI Emoji"
                        FontSize="20"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
@@ -282,7 +318,7 @@
                   BorderBrush="Transparent"
                   ToolTip.Tip="Clear History"
                   Click="ClearHistory_Click">
-            <TextBlock Text="🗑️" FontSize="18"/>
+            <TextBlock Text="🗑️" FontFamily="Segoe UI Emoji" FontSize="18"/>
           </Button>
           <!-- Edit Instruction Button -->
           <Button Width="40" Height="40"
@@ -290,7 +326,7 @@
                   BorderBrush="Transparent"
                   ToolTip.Tip="Edit Custom Instruction"
                   Click="EditInstruction_Click">
-            <TextBlock Text="⚙️" FontSize="18"/>
+            <TextBlock Text="⚙️" FontFamily="Segoe UI Emoji" FontSize="18"/>
           </Button>
           <!-- Minimize Button -->
           <Button Width="50" Height="45"
@@ -335,6 +371,7 @@
             BorderBrush="{StaticResource BorderColor}"
             BorderThickness="0,1,0,1">
       <ScrollViewer x:Name="MessagesScroll"
+                    Classes="ThinScrollBar"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled"
                     Padding="16,12,16,40">

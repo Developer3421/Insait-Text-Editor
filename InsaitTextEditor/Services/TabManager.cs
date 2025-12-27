@@ -283,11 +283,13 @@ public class TabManager : INotifyPropertyChanged
 
     public event EventHandler<DocumentTabViewModel>? TabAdded;
     public event EventHandler<DocumentTabViewModel>? TabRemoved;
+    public event EventHandler<Guid>? TabClosed;
+    public event EventHandler? ResetCaretRequested; // Нова подія для скидання каретки
 
     public TabManager(TabsPanel tabsPanel)
     {
-        _tabsPanel = tabsPanel ?? throw new ArgumentNullException(nameof(tabsPanel));
-        _databaseService = new DatabaseService();
+        _tabsPanel = tabsPanel;
+        _databaseService = DatabaseService.Instance;
         Tabs = new ReadOnlyObservableCollection<DocumentTabViewModel>(_tabs);
 
         _tabsPanel.AddTabRequested += (_, __) => CreateNewTab();
@@ -349,6 +351,9 @@ public class TabManager : INotifyPropertyChanged
         
         // Save initial state to DB
         _databaseService.SaveDocumentAsync(id, ws.Text);
+        
+        // Request caret reset to position 0
+        ResetCaretRequested?.Invoke(this, EventArgs.Empty);
         
         return vm;
     }
@@ -427,11 +432,16 @@ public class TabManager : INotifyPropertyChanged
                     ws.Text = task.Result;
                     activeVm.DocumentText = task.Result;
                     OnPropertyChanged(nameof(CurrentText));
+                    // Reset caret when loading from DB
+                    ResetCaretRequested?.Invoke(this, EventArgs.Empty);
                 }
             }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         OnPropertyChanged(nameof(CurrentText));
+        
+        // Request caret reset when switching tabs
+        ResetCaretRequested?.Invoke(this, EventArgs.Empty);
     }
 
     public string GetCurrentText() => CurrentText;
@@ -443,6 +453,30 @@ public class TabManager : INotifyPropertyChanged
     /// <summary>
     /// Відкрити файл за шляхом (для SaveToFileTool)
     /// </summary>
+    private const long MaxTextFileBytes = 100L * 1024 * 1024; // 100 MB
+
+    private static async Task<string> ReadTextFileStreamingAsync(string path)
+    {
+        var fi = new FileInfo(path);
+        if (fi.Exists && fi.Length > MaxTextFileBytes)
+            throw new IOException($"File is too large to open ({fi.Length} bytes). Limit: {MaxTextFileBytes} bytes.");
+
+        // Read as UTF-8 (with BOM detection)
+        await using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite,
+            bufferSize: 1 << 20, options: FileOptions.SequentialScan | FileOptions.Asynchronous);
+
+        using var sr = new StreamReader(fs, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1 << 16, leaveOpen: false);
+
+        var sb = new StringBuilder(capacity: (int)Math.Min(fi.Length, 8L * 1024 * 1024));
+        var buf = new char[1 << 16];
+        int read;
+        while ((read = await sr.ReadAsync(buf, 0, buf.Length)) > 0)
+            sb.Append(buf, 0, read);
+
+        // Normalize line endings to '\n' to keep editor logic consistent
+        return sb.ToString().Replace("\r\n", "\n");
+    }
+
     public async Task OpenFileAsync(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
@@ -450,8 +484,8 @@ public class TabManager : INotifyPropertyChanged
 
         try
         {
-            var text = await File.ReadAllTextAsync(filePath, Encoding.UTF8);
-            
+            var text = await ReadTextFileStreamingAsync(filePath);
+
             // Створити нову вкладку
             CreateNewTab();
 
@@ -463,7 +497,7 @@ public class TabManager : INotifyPropertyChanged
             if (_workspaces.TryGetValue(id, out var ws))
             {
                 ws.Text = text;
-                await _databaseService.SaveDocumentAsync(id, text);
+                await _databaseService.SaveDocumentAsync(id, text); // Save to DB
             }
 
             var fileName = Path.GetFileName(filePath);
@@ -474,11 +508,16 @@ public class TabManager : INotifyPropertyChanged
             }
 
             _filePaths[id] = filePath;
+            
+            // Notify UI to update text
             OnPropertyChanged(nameof(CurrentText));
+            
+            // Reset caret to the beginning of the file
+            ResetCaretRequested?.Invoke(this, EventArgs.Empty);
         }
-        catch
+        catch (Exception ex)
         {
-            // TODO: опційно показати повідомлення користувачу
+            System.Console.WriteLine($"[TabManager] Failed to open file: {filePath}. {ex}");
         }
     }
 
@@ -500,9 +539,19 @@ public class TabManager : INotifyPropertyChanged
 
         try
         {
-            using var s = await file.OpenReadAsync();
-            using var sr = new StreamReader(s, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-            var text = await sr.ReadToEndAsync();
+            var localPath = file.TryGetLocalPath();
+            string text;
+            if (!string.IsNullOrWhiteSpace(localPath) && File.Exists(localPath))
+            {
+                text = await ReadTextFileStreamingAsync(localPath);
+            }
+            else
+            {
+                // Fallback for non-local storage items
+                using var s = await file.OpenReadAsync();
+                using var sr = new StreamReader(s, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+                text = (await sr.ReadToEndAsync()).Replace("\r\n", "\n");
+            }
 
             if (ActiveTabId is null)
                 CreateNewTab();
@@ -515,7 +564,7 @@ public class TabManager : INotifyPropertyChanged
             if (_workspaces.TryGetValue(id, out var ws))
             {
                 ws.Text = text;
-                _databaseService.SaveDocumentAsync(id, text); // Save to DB
+                await _databaseService.SaveDocumentAsync(id, text); // Save to DB
             }
 
             var displayName = file.Name;
@@ -525,13 +574,12 @@ public class TabManager : INotifyPropertyChanged
                 vm.Title = string.IsNullOrWhiteSpace(displayName) ? vm.Title : displayName;
             }
 
-            var localPath = file.TryGetLocalPath();
             _filePaths[id] = string.IsNullOrWhiteSpace(localPath) ? null : localPath;
             OnPropertyChanged(nameof(CurrentText));
         }
-        catch
+        catch (Exception ex)
         {
-            // TODO: опційно показати повідомлення користувачу
+            System.Console.WriteLine($"[TabManager] Failed to open picked file. {ex}");
         }
     }
 

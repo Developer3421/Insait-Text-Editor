@@ -157,7 +157,7 @@ public partial class ChatWindow : Window
             }
             
             await Task.Delay(100);
-            ScrollToBottom();
+            await ScrollToBottom();
         }
         catch (Exception ex)
         {
@@ -331,7 +331,7 @@ public partial class ChatWindow : Window
         _lastUserMessage = userMsg;
         
         input.Text = string.Empty;
-        ScrollToBottom();
+        await ScrollToBottom();
 
         // Показати typing indicator
         if (typingIndicator != null)
@@ -837,7 +837,7 @@ public partial class ChatWindow : Window
         };
         
         _messages.Add(sysMsg);
-        ScrollToBottom();
+        _ = ScrollToBottom();
     }
 
     private void MessagesScroll_ScrollChanged(object? sender, ScrollChangedEventArgs e)

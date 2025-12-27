@@ -48,7 +48,7 @@ public class ReasoningChainStorage
         return Task.Run(() =>
         {
             var collection = _dbService.GetCollection<ReasoningChain>(CollectionName);
-            return collection.FindById(id);
+            return (ReasoningChain?)collection.FindById(id);
         });
     }
 
@@ -84,4 +84,3 @@ public class ReasoningChainStorage
         });
     }
 }
-

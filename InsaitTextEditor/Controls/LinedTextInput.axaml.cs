@@ -11,6 +11,8 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using InsaitTextEditor.Scripts.SkiaSharp;
 using InsaitTextEditor.Models;
+using InsaitTextEditor.Utils;
+using Avalonia.Threading;
 
 namespace InsaitTextEditor.Controls;
 
@@ -100,8 +102,10 @@ public partial class LinedTextInput : UserControl
     public PageBackgroundMode BackgroundMode { get => GetValue(BackgroundModeProperty); set => SetValue(BackgroundModeProperty, value); }
 
     private RichTextOverlay? _overlay;
+    private ScrollViewer? _scroll;
     private bool _isPointerPressed;
-    
+    private bool _hasLoadedFile; // Flag to track if file was loaded
+
     // Undo/Redo stacks
     private Stack<string> _undoStack = new();
     private Stack<string> _redoStack = new();
@@ -124,15 +128,28 @@ public partial class LinedTextInput : UserControl
     }
 
     // Public method to focus the editor
-    public new void Focus()
+    public void FocusEditor()
     {
         _overlay?.Focus();
+    }
+    
+    // Public method to reset caret to the beginning
+    public void ResetCaret()
+    {
+        UpdateSelection(0, 0);
+        
+        // Scroll to top
+        if (_scroll != null)
+        {
+            _scroll.Offset = new Vector(0, 0);
+        }
     }
 
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
         _overlay = this.FindControl<RichTextOverlay>("Overlay");
+        _scroll = this.FindControl<ScrollViewer>("EditorScroll");
 
         if (_overlay is null)
             return;
@@ -150,28 +167,25 @@ public partial class LinedTextInput : UserControl
         UpdateSelection(0, 0);
     }
 
-    private void ShowContextMenu()
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        var menu = new ContextMenu();
-        var cut = new MenuItem { Header = "Cut" };
-        cut.Click += async (_, _) => await CutAsync();
-        
-        var copy = new MenuItem { Header = "Copy" };
-        copy.Click += async (_, _) => await CopyAsync();
+        base.OnDetachedFromVisualTree(e);
+        if (_overlay is not null)
+        {
+            _overlay.KeyDown -= OnOverlayKeyDown;
+            _overlay.TextInput -= OnOverlayTextInput;
+            _overlay.GotFocus -= OnOverlayGotFocus;
+            _overlay.LostFocus -= OnOverlayLostFocus;
+            _overlay.PointerPressed -= OnOverlayPointerPressed;
+            _overlay.PointerMoved -= OnOverlayPointerMoved;
+            _overlay.PointerReleased -= OnOverlayPointerReleased;
+        }
+    }
 
-        var paste = new MenuItem { Header = "Paste" };
-        paste.Click += async (_, _) => await PasteAsync();
-
-        var selectAll = new MenuItem { Header = "Select All" };
-        selectAll.Click += (_, _) => SelectAll();
-
-        menu.Items.Add(cut);
-        menu.Items.Add(copy);
-        menu.Items.Add(paste);
-        menu.Items.Add(new Separator());
-        menu.Items.Add(selectAll);
-
-        menu.Open(_overlay);
+    // Public method to focus the editor (kept for existing call sites)
+    public new void Focus()
+    {
+        _overlay?.Focus();
     }
 
     private void OnOverlayGotFocus(object? sender, GotFocusEventArgs e)
@@ -256,6 +270,11 @@ public partial class LinedTextInput : UserControl
         }
     }
 
+    private int CaretIndex => SelectionStart == SelectionEnd ? SelectionEnd : Math.Min(SelectionStart, SelectionEnd);
+
+    private int SelectionAnchor => Math.Min(SelectionStart, SelectionEnd);
+    private int SelectionCaret => Math.Max(SelectionStart, SelectionEnd);
+
     private void OnOverlayTextInput(object? sender, TextInputEventArgs e)
     {
         if (string.IsNullOrEmpty(e.Text)) return;
@@ -263,18 +282,14 @@ public partial class LinedTextInput : UserControl
         string text = Text ?? string.Empty;
         int start = Math.Min(SelectionStart, SelectionEnd);
         int end = Math.Max(SelectionStart, SelectionEnd);
-        int caretPos = SelectionEnd;
 
         SaveUndoState();
 
-        // Delete selection if exists
         if (end > start)
-        {
             text = text.Remove(start, end - start);
-            caretPos = start;
-        }
 
-        // Insert new text at caret position
+        int caretPos = start; // always insert at selection start (or caret if no selection)
+
         text = text.Insert(caretPos, e.Text);
         int newCaretPos = caretPos + e.Text.Length;
 
@@ -289,7 +304,9 @@ public partial class LinedTextInput : UserControl
         int start = Math.Min(SelectionStart, SelectionEnd);
         int end = Math.Max(SelectionStart, SelectionEnd);
         bool hasSelection = end > start;
-        int caretPos = SelectionEnd;
+
+        // caret for editing operations: end of selection when collapsed, otherwise start
+        int caretPos = CaretIndex;
 
         // Alt+K for context menu
         if (e.Key == Key.K && e.KeyModifiers.HasFlag(KeyModifiers.Alt))
@@ -364,13 +381,14 @@ public partial class LinedTextInput : UserControl
                 }
                 else if (caretPos > 0)
                 {
-                    int newPos = e.KeyModifiers.HasFlag(KeyModifiers.Control) 
+                    int newPos = e.KeyModifiers.HasFlag(KeyModifiers.Control)
                         ? GetPreviousWordPosition(text, caretPos)
                         : caretPos - 1;
+
                     if (!e.KeyModifiers.HasFlag(KeyModifiers.Shift))
                         UpdateSelection(newPos, newPos);
                     else
-                        UpdateSelection(start, newPos);
+                        UpdateSelection(SelectionStart, newPos);
                 }
                 e.Handled = true;
                 return;
@@ -385,13 +403,36 @@ public partial class LinedTextInput : UserControl
                     int newPos = e.KeyModifiers.HasFlag(KeyModifiers.Control)
                         ? GetNextWordPosition(text, caretPos)
                         : caretPos + 1;
+
                     if (!e.KeyModifiers.HasFlag(KeyModifiers.Shift))
                         UpdateSelection(newPos, newPos);
                     else
-                        UpdateSelection(start, newPos);
+                        UpdateSelection(SelectionStart, newPos);
                 }
                 e.Handled = true;
                 return;
+
+            case Key.Up:
+            {
+                int newPos = GetCaretUp(text, caretPos);
+                if (!e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                    UpdateSelection(newPos, newPos);
+                else
+                    UpdateSelection(SelectionStart, newPos);
+                e.Handled = true;
+                return;
+            }
+
+            case Key.Down:
+            {
+                int newPos = GetCaretDown(text, caretPos);
+                if (!e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                    UpdateSelection(newPos, newPos);
+                else
+                    UpdateSelection(SelectionStart, newPos);
+                e.Handled = true;
+                return;
+            }
 
             case Key.Home:
             {
@@ -418,28 +459,6 @@ public partial class LinedTextInput : UserControl
                 e.Handled = true;
                 return;
             }
-
-            case Key.Up:
-            {
-                int newPos = GetCaretUp(text, caretPos);
-                if (!e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-                    UpdateSelection(newPos, newPos);
-                else
-                    UpdateSelection(start, newPos);
-                e.Handled = true;
-                return;
-            }
-
-            case Key.Down:
-            {
-                int newPos = GetCaretDown(text, caretPos);
-                if (!e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-                    UpdateSelection(newPos, newPos);
-                else
-                    UpdateSelection(start, newPos);
-                e.Handled = true;
-                return;
-            }
         }
 
         // Editing keys
@@ -457,14 +476,21 @@ public partial class LinedTextInput : UserControl
                 {
                     int deleteCount = 1;
                     int deletePos = caretPos - 1;
-                    
+
+                    // Handle CRLF as a single newline (Notepad-like)
+                    if (deletePos > 0 && text[deletePos] == '\n' && text[deletePos - 1] == '\r')
+                    {
+                        deleteCount = 2;
+                        deletePos -= 1;
+                    }
+
                     if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
                     {
                         int wordStart = GetPreviousWordPosition(text, caretPos);
                         deleteCount = caretPos - wordStart;
                         deletePos = wordStart;
                     }
-                    
+
                     text = text.Remove(deletePos, deleteCount);
                     Text = text;
                     UpdateSelection(deletePos, deletePos);
@@ -483,13 +509,17 @@ public partial class LinedTextInput : UserControl
                 else if (caretPos < text.Length)
                 {
                     int deleteCount = 1;
-                    
+
+                    // Handle CRLF as a single newline (Notepad-like)
+                    if (text[caretPos] == '\r' && caretPos + 1 < text.Length && text[caretPos + 1] == '\n')
+                        deleteCount = 2;
+
                     if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
                     {
                         int wordEnd = GetNextWordPosition(text, caretPos);
                         deleteCount = wordEnd - caretPos;
                     }
-                    
+
                     text = text.Remove(caretPos, deleteCount);
                     Text = text;
                     UpdateSelection(caretPos, caretPos);
@@ -509,7 +539,7 @@ public partial class LinedTextInput : UserControl
                 UpdateSelection(caretPos + Environment.NewLine.Length, caretPos + Environment.NewLine.Length);
                 e.Handled = true;
                 return;
-                
+
             case Key.Tab:
                 SaveUndoState();
                 string tabText = "    ";
@@ -703,12 +733,12 @@ public partial class LinedTextInput : UserControl
         if (TopLevel.GetTopLevel(this) is not { Clipboard: not null } topLevel)
             return;
 
-        string? clipboardText = await topLevel.Clipboard.GetTextAsync();
+        string? clipboardText = await ClipboardCompat.TryGetTextAsync((Avalonia.Input.Platform.IClipboard)topLevel.Clipboard);
         if (string.IsNullOrEmpty(clipboardText))
             return;
 
         SaveUndoState();
-        
+
         string text = Text ?? string.Empty;
         int start = Math.Min(SelectionStart, SelectionEnd);
         int end = Math.Max(SelectionStart, SelectionEnd);
@@ -740,21 +770,54 @@ public partial class LinedTextInput : UserControl
             _overlay.SelectionEnd = end;
             _overlay.InvalidateVisual();
         }
+
+        ScrollCaretIntoView();
     }
 
-    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    private void ScrollCaretIntoView()
     {
-        base.OnDetachedFromVisualTree(e);
-        if (_overlay is not null)
+        if (_overlay is null || _scroll is null)
+            return;
+
+        if (SelectionStart != SelectionEnd)
+            return;
+
+        Dispatcher.UIThread.Post(() =>
         {
-            _overlay.KeyDown -= OnOverlayKeyDown;
-            _overlay.TextInput -= OnOverlayTextInput;
-            _overlay.GotFocus -= OnOverlayGotFocus;
-            _overlay.LostFocus -= OnOverlayLostFocus;
-            _overlay.PointerPressed -= OnOverlayPointerPressed;
-            _overlay.PointerMoved -= OnOverlayPointerMoved;
-            _overlay.PointerReleased -= OnOverlayPointerReleased;
-        }
+            if (_overlay is null || _scroll is null)
+                return;
+
+            // caret point in overlay coordinates
+            var caretPt = _overlay.GetCaretLocation(SelectionEnd);
+
+            // Translate to scrollviewer viewport coordinates
+            var tx = _overlay.TransformToVisual(_scroll);
+            if (tx is null)
+                return;
+
+            var caretInScroll = caretPt.Transform(tx.Value);
+
+            // Current viewport and offset
+            var viewportH = _scroll.Viewport.Height;
+            if (viewportH <= 0) return;
+
+            var top = _scroll.Offset.Y;
+            var bottom = top + viewportH;
+
+            // Add small padding
+            const double pad = 12;
+            var caretTop = caretInScroll.Y + _scroll.Offset.Y;
+            var caretBottom = caretTop + Math.Max(1, LineSpacing);
+
+            double targetY = _scroll.Offset.Y;
+            if (caretTop < top + pad)
+                targetY = Math.Max(0, caretTop - pad);
+            else if (caretBottom > bottom - pad)
+                targetY = Math.Max(0, caretBottom - viewportH + pad);
+
+            if (Math.Abs(targetY - _scroll.Offset.Y) > 0.5)
+                _scroll.Offset = new Vector(_scroll.Offset.X, targetY);
+        }, DispatcherPriority.Background);
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -765,6 +828,47 @@ public partial class LinedTextInput : UserControl
             SyncMetricsFromFont(EditorFontSize);
         else if (change.Property == LeftMarginProperty || change.Property == RightMarginProperty)
             SyncPaddingToMargin();
+        else if (change.Property == TextProperty)
+        {
+            // When text changes from external source (e.g., file load), reset caret to start
+            // But only do this once per file load
+            var oldText = change.OldValue as string ?? string.Empty;
+            var newText = change.NewValue as string ?? string.Empty;
+            
+            // Detect file load: old text was empty or small, new text is substantial
+            // AND we haven't already loaded a file in this editor instance
+            bool isFileLoad = !_hasLoadedFile && oldText.Length < 50 && newText.Length > 100;
+            
+            if (isFileLoad)
+            {
+                _hasLoadedFile = true; // Set flag so this only happens once
+                
+                // Force complete layout update for scrollviewer
+                if (_overlay != null)
+                {
+                    _overlay.InvalidateMeasure();
+                    _overlay.InvalidateArrange();
+                    _overlay.InvalidateVisual();
+                }
+                
+                if (_scroll != null)
+                {
+                    _scroll.InvalidateMeasure();
+                    _scroll.InvalidateArrange();
+                }
+                
+                // Text loaded from file - set caret to start and focus after layout is updated
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    // Wait for layout to complete
+                    _overlay?.UpdateLayout();
+                    _scroll?.UpdateLayout();
+                    
+                    UpdateSelection(0, 0);
+                    _overlay?.Focus();
+                }, Avalonia.Threading.DispatcherPriority.Loaded);
+            }
+        }
     }
 
     private void SyncMetricsFromFont(double fontSize)
@@ -834,5 +938,29 @@ public partial class LinedTextInput : UserControl
         Text = text.Remove(start, length).Insert(start, replacement);
         UpdateSelection(start, replacement.Length);
         _overlay?.Focus();
+    }
+
+    private void ShowContextMenu()
+    {
+        var menu = new ContextMenu();
+        var cut = new MenuItem { Header = "Cut" };
+        cut.Click += async (_, _) => await CutAsync();
+
+        var copy = new MenuItem { Header = "Copy" };
+        copy.Click += async (_, _) => await CopyAsync();
+
+        var paste = new MenuItem { Header = "Paste" };
+        paste.Click += async (_, _) => await PasteAsync();
+
+        var selectAll = new MenuItem { Header = "Select All" };
+        selectAll.Click += (_, _) => SelectAll();
+
+        menu.Items.Add(cut);
+        menu.Items.Add(copy);
+        menu.Items.Add(paste);
+        menu.Items.Add(new Separator());
+        menu.Items.Add(selectAll);
+
+        menu.Open(_overlay);
     }
 }

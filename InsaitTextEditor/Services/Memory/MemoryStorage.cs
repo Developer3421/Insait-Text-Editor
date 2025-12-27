@@ -49,7 +49,7 @@ public class MemoryStorage
         return Task.Run(() =>
         {
             var collection = _dbService.GetCollection<MemoryFact>(FactsCollection);
-            return collection.FindById(id);
+            return (MemoryFact?)collection.FindById(id);
         });
     }
 
@@ -106,4 +106,3 @@ public class MemoryStorage
         });
     }
 }
-
