@@ -297,7 +297,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 <div align="center">
 
-**Made with ❤️ by the Insait Team**
+**Made with ❤️ by the developer**
 
 If you find this project useful, please consider giving it a ⭐ on GitHub!
 
@@ -405,9 +405,11 @@ If you find this project useful, please consider giving it a ⭐ on GitHub!
 
 <div align="center">
 
-**Створено з ❤️ командою Insait**
+**Создано с ❤️ разработчиком**
 
-Якщо цей проект корисний для вас, будь ласка, поставте ⭐ на GitHub!
+Если этот проект полезен для вас, пожалуйста, поставьте ⭐ на GitHub!
 
 </div>
+
+
 
