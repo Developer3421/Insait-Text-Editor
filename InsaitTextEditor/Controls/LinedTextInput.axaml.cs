@@ -113,6 +113,10 @@ public partial class LinedTextInput : UserControl
 
     private const string InternalNewLine = "\n";
 
+    // "Free indent" settings (soft tabs)
+    private const int IndentSize = 4;
+    private static readonly string IndentString = new(' ', IndentSize);
+
     public LinedTextInput()
     {
         InitializeComponent();
@@ -165,6 +169,12 @@ public partial class LinedTextInput : UserControl
         _overlay.PointerMoved += OnOverlayPointerMoved;
         _overlay.PointerReleased += OnOverlayPointerReleased;
 
+        // Handle clicks on the scrollviewer background (below text)
+        if (_scroll != null)
+        {
+            _scroll.PointerPressed += OnScrollPointerPressed;
+        }
+
         // Initial caret position
         UpdateSelection(0, 0);
     }
@@ -181,6 +191,11 @@ public partial class LinedTextInput : UserControl
             _overlay.PointerPressed -= OnOverlayPointerPressed;
             _overlay.PointerMoved -= OnOverlayPointerMoved;
             _overlay.PointerReleased -= OnOverlayPointerReleased;
+        }
+        
+        if (_scroll != null)
+        {
+            _scroll.PointerPressed -= OnScrollPointerPressed;
         }
     }
 
@@ -214,14 +229,16 @@ public partial class LinedTextInput : UserControl
         if (_overlay is null) return;
 
         var currentPoint = e.GetCurrentPoint(_overlay);
-        var point = currentPoint.Position;
         var properties = currentPoint.Properties;
+
+        // Always evaluate caret from overlay-local coordinates.
+        var point = e.GetPosition(_overlay);
 
         // Allow positioning with both left and right mouse buttons
         if (properties.IsLeftButtonPressed || properties.IsRightButtonPressed)
         {
             int charPos = _overlay.GetCaretPositionFromPoint(point);
-            charPos = Math.Clamp(charPos, 0, Text?.Length ?? 0);
+            charPos = Math.Clamp(charPos, 0, (Text ?? string.Empty).Length);
 
             if (properties.IsLeftButtonPressed)
             {
@@ -245,13 +262,42 @@ public partial class LinedTextInput : UserControl
         }
     }
 
+    private void OnScrollPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        // If click wasn't handled by overlay (e.g. clicked on background below text), handle it here.
+        if (e.Handled || _overlay is null) return;
+
+        var point = e.GetPosition(_overlay);
+        var properties = e.GetCurrentPoint(_scroll).Properties;
+
+        if (properties.IsLeftButtonPressed)
+        {
+            _overlay.Focus();
+            
+            int charPos = _overlay.GetCaretPositionFromPoint(point);
+            charPos = Math.Clamp(charPos, 0, (Text ?? string.Empty).Length);
+
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+            {
+                UpdateSelection(SelectionStart, charPos);
+            }
+            else
+            {
+                UpdateSelection(charPos, charPos);
+            }
+            
+            e.Handled = true;
+        }
+    }
+
     private void OnOverlayPointerMoved(object? sender, PointerEventArgs e)
     {
         if (_overlay is null || !_isPointerPressed) return;
 
+        // Always evaluate caret from overlay-local coordinates.
         var point = e.GetPosition(_overlay);
         int charPos = _overlay.GetCaretPositionFromPoint(point);
-        charPos = Math.Clamp(charPos, 0, Text?.Length ?? 0);
+        charPos = Math.Clamp(charPos, 0, (Text ?? string.Empty).Length);
 
         UpdateSelection(SelectionStart, charPos);
         e.Handled = true;
@@ -281,22 +327,36 @@ public partial class LinedTextInput : UserControl
     {
         if (string.IsNullOrEmpty(e.Text)) return;
 
-        // Normalize input so IME/OS variants of Enter/newlines can't desync caret vs text.
-        var input = e.Text.Replace("\r\n", "\n").Replace("\r", "\n");
+        // Prevent double-insert of new lines: Enter is handled explicitly in KeyDown.
+        var input = e.Text;
+        if (input == "\r" || input == "\n" || input == "\r\n")
+        {
+            e.Handled = true;
+            return;
+        }
 
-        string text = (Text ?? string.Empty).Replace("\r\n", "\n");
-        int start = Math.Min(SelectionStart, SelectionEnd);
-        int end = Math.Max(SelectionStart, SelectionEnd);
+        // Keep internal storage normalized to LF (this control's caret/line math expects '\n').
+        var normalizedInput = input.Replace("\r\n", "\n").Replace("\r", "\n");
+
+        string text = (Text ?? string.Empty).Replace("\r\n", "\n").Replace("\r", "\n");
+
+        // Clamp selection to current text length (fixes edge cases when caret is at the very end)
+        int len = text.Length;
+        int selStart = Math.Clamp(SelectionStart, 0, len);
+        int selEnd = Math.Clamp(SelectionEnd, 0, len);
+        int start = Math.Min(selStart, selEnd);
+        int end = Math.Max(selStart, selEnd);
 
         SaveUndoState();
 
         if (end > start)
             text = text.Remove(start, end - start);
 
-        int caretPos = start; // always insert at selection start (or caret if no selection)
+        int caretPos = start;
+        caretPos = Math.Clamp(caretPos, 0, text.Length);
 
-        text = text.Insert(caretPos, input);
-        int newCaretPos = caretPos + input.Length;
+        text = text.Insert(caretPos, normalizedInput);
+        int newCaretPos = caretPos + normalizedInput.Length;
 
         Text = text;
         UpdateSelection(newCaretPos, newCaretPos);
@@ -305,13 +365,129 @@ public partial class LinedTextInput : UserControl
 
     private void OnOverlayKeyDown(object? sender, KeyEventArgs e)
     {
-        string text = (Text ?? string.Empty).Replace("\r\n", "\n");
-        int start = Math.Min(SelectionStart, SelectionEnd);
-        int end = Math.Max(SelectionStart, SelectionEnd);
+        // Keep internal storage normalized to LF
+        string text = (Text ?? string.Empty).Replace("\r\n", "\n").Replace("\r", "\n");
+
+        // Clamp selection/caret to current text length
+        int len = text.Length;
+        int selStart = Math.Clamp(SelectionStart, 0, len);
+        int selEnd = Math.Clamp(SelectionEnd, 0, len);
+
+        int start = Math.Min(selStart, selEnd);
+        int end = Math.Max(selStart, selEnd);
         bool hasSelection = end > start;
 
-        // caret for editing operations: end of selection when collapsed, otherwise start
         int caretPos = CaretIndex;
+        caretPos = Math.Clamp(caretPos, 0, len);
+
+        // --- Indentation (Tab / Shift+Tab) ---
+        // Implement soft tabs with proper selection+caret sync.
+        if (e.Key == Key.Tab)
+        {
+            SaveUndoState();
+
+            if (!hasSelection)
+            {
+                // Insert spaces up to next tab stop at the caret column.
+                int lineStart = GetLineStart(text, caretPos);
+                int column = caretPos - lineStart;
+                int toInsert = IndentSize - (column % IndentSize);
+                if (toInsert <= 0) toInsert = IndentSize;
+
+                text = text.Insert(caretPos, new string(' ', toInsert));
+                Text = text;
+                UpdateSelection(caretPos + toInsert, caretPos + toInsert);
+                e.Handled = true;
+                return;
+            }
+            else
+            {
+                // If selection ends exactly at a line start, don't include that last line (editor-like).
+                int effectiveEnd = end;
+                if (effectiveEnd > 0 && effectiveEnd <= text.Length && effectiveEnd == GetLineStart(text, effectiveEnd))
+                    effectiveEnd = Math.Max(start, effectiveEnd - 1);
+
+                bool unindent = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+
+                // Determine affected line starts
+                int firstLineStart = GetLineStart(text, start);
+                var lineStarts = new List<int>();
+                lineStarts.Add(firstLineStart);
+
+                for (int i = firstLineStart; i < text.Length && i <= effectiveEnd; i++)
+                {
+                    if (text[i] == '\n')
+                    {
+                        int next = i + 1;
+                        if (next <= effectiveEnd)
+                            lineStarts.Add(next);
+                    }
+                }
+
+                // Build new text with edits from bottom to top so indexes stay valid.
+                int deltaBeforeStart = 0;
+                int deltaBeforeEnd = 0;
+
+                // We need per-line delta accounting for both start/end positions.
+                // We'll compute deltas by applying operations in ascending order and tracking shifts.
+                int runningDelta = 0;
+                int adjustedStart = start;
+                int adjustedEnd = end;
+
+                // Apply indentation line-by-line using a StringBuilder approach of in-place edits.
+                // Since count of lines is limited, simple string splicing bottom-to-top is OK.
+                // But we also need accurate selection shifts; we can compute removed/added per line.
+
+                // Process line starts in reverse for safe splicing.
+                foreach (var rawLineStart in lineStarts.OrderByDescending(x => x))
+                {
+                    int lineStartIdx = rawLineStart;
+                    if (lineStartIdx < 0 || lineStartIdx > text.Length)
+                        continue;
+
+                    int change = 0;
+
+                    if (!unindent)
+                    {
+                        text = text.Insert(lineStartIdx, IndentString);
+                        change = IndentSize;
+                    }
+                    else
+                    {
+                        // Remove up to IndentSize leading spaces.
+                        int removeCount = 0;
+                        while (removeCount < IndentSize && lineStartIdx + removeCount < text.Length && text[lineStartIdx + removeCount] == ' ')
+                            removeCount++;
+
+                        if (removeCount > 0)
+                        {
+                            text = text.Remove(lineStartIdx, removeCount);
+                            change = -removeCount;
+                        }
+                    }
+
+                    // Update selection endpoints if this lineStart is before them.
+                    if (lineStartIdx < start)
+                        deltaBeforeStart += change;
+                    if (lineStartIdx < end)
+                        deltaBeforeEnd += change;
+                }
+
+                int newStart = Math.Clamp(start + deltaBeforeStart, 0, text.Length);
+                int newEnd = Math.Clamp(end + deltaBeforeEnd, 0, text.Length);
+
+                // Preserve selection direction.
+                if (selStart <= selEnd)
+                    UpdateSelection(newStart, newEnd);
+                else
+                    UpdateSelection(newEnd, newStart);
+
+                Text = text;
+                _overlay?.Focus();
+                e.Handled = true;
+                return;
+            }
+        }
 
         // Alt+K for context menu
         if (e.Key == Key.K && e.KeyModifiers.HasFlag(KeyModifiers.Alt))
@@ -540,25 +716,14 @@ public partial class LinedTextInput : UserControl
                     text = text.Remove(start, end - start);
                     caretPos = start;
                 }
-                text = text.Insert(caretPos, InternalNewLine);
+                text = text.Insert(caretPos, "\n");
                 Text = text;
-                UpdateSelection(caretPos + InternalNewLine.Length, caretPos + InternalNewLine.Length);
+                UpdateSelection(caretPos + 1, caretPos + 1);
                 e.Handled = true;
                 return;
 
-            case Key.Tab:
-                SaveUndoState();
-                string tabText = "    ";
-                if (hasSelection)
-                {
-                    text = text.Remove(start, end - start);
-                    caretPos = start;
-                }
-                text = text.Insert(caretPos, tabText);
-                Text = text;
-                UpdateSelection(caretPos + tabText.Length, caretPos + tabText.Length);
-                e.Handled = true;
-                return;
+            // IMPORTANT: don't handle Space here.
+            // Let Avalonia TextInput insert spaces so caret movement is consistent (Notepad-like).
         }
     }
 

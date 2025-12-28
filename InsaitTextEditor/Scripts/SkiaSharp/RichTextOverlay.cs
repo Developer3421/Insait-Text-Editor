@@ -153,6 +153,48 @@ public sealed class RichTextOverlay : Control
         return arranged;
     }
 
+    private double MeasureTextWidth(string text, Typeface typeface, double fontSize, IBrush brush)
+    {
+        if (string.IsNullOrEmpty(text)) return 0;
+        
+        // Avalonia TextLayout might trim trailing spaces in width calculation.
+        // We manually account for them to ensure caret moves correctly.
+        if (text.EndsWith(" "))
+        {
+            int spaces = 0;
+            while (spaces < text.Length && text[text.Length - 1 - spaces] == ' ')
+                spaces++;
+            
+            if (spaces > 0)
+            {
+                var trimmed = text.Substring(0, text.Length - spaces);
+                double wTrimmed = 0;
+                if (trimmed.Length > 0)
+                {
+                    var l = new TextLayout(trimmed, typeface, fontSize, brush, TextAlignment.Left);
+                    wTrimmed = l.Width;
+                }
+                
+                // Measure space width reliably
+                var probe = new TextLayout("A A", typeface, fontSize, brush, TextAlignment.Left);
+                var probe2 = new TextLayout("AA", typeface, fontSize, brush, TextAlignment.Left);
+                double singleSpaceW = probe.Width - probe2.Width;
+                
+                // Fallback if something is weird
+                if (singleSpaceW <= 0.01) 
+                {
+                    var spaceOnly = new TextLayout(" ", typeface, fontSize, brush, TextAlignment.Left);
+                    singleSpaceW = spaceOnly.Width;
+                }
+                
+                return wTrimmed + (spaces * singleSpaceW);
+            }
+        }
+        
+        var layout = new TextLayout(text, typeface, fontSize, brush, TextAlignment.Left);
+        return layout.Width;
+    }
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -258,7 +300,7 @@ public sealed class RichTextOverlay : Control
 
                     // Measure fragment
                     var layout = new TextLayout(frag, typeface, FontSize, brush, TextAlignment.Left);
-                    double w = layout.Width;
+                    double w = MeasureTextWidth(frag, typeface, FontSize, brush); // Use robust measure
 
                     // Selection fill inside fragment
                     int fragStart = globalDisplayIndex;
@@ -271,15 +313,13 @@ public sealed class RichTextOverlay : Control
                         double x1 = 0;
                         if (ovStart > 0)
                         {
-                            var pre = new TextLayout(frag[..ovStart], typeface, FontSize, brush, TextAlignment.Left);
-                            x1 = pre.Width;
+                            x1 = MeasureTextWidth(frag[..ovStart], typeface, FontSize, brush);
                         }
 
                         double wSel = 0;
                         if (ovEnd > ovStart)
                         {
-                            var sel = new TextLayout(frag.Substring(ovStart, ovEnd - ovStart), typeface, FontSize, brush, TextAlignment.Left);
-                            wSel = sel.Width;
+                            wSel = MeasureTextWidth(frag.Substring(ovStart, ovEnd - ovStart), typeface, FontSize, brush);
                         }
 
                         var selRect = new Rect(x + x1, y + Math.Round(lineHeight * 0.15), wSel, Math.Round(lineHeight * 0.7));
@@ -306,8 +346,7 @@ public sealed class RichTextOverlay : Control
                         double xCaret = x;
                         if (offset > 0)
                         {
-                            var preCaret = new TextLayout(frag[..offset], typeface, FontSize, brush, TextAlignment.Left);
-                            xCaret += preCaret.Width;
+                            xCaret += MeasureTextWidth(frag[..offset], typeface, FontSize, brush);
                         }
                         var cBrush = CaretBrush ?? new SolidColorBrush(Color.FromRgb(0xB4, 0x00, 0xFF));
                         double cWidth = Math.Max(1, CaretWidth);
@@ -417,14 +456,13 @@ public sealed class RichTextOverlay : Control
                         double xCaret = x;
                         if (offset > 0)
                         {
-                            var preCaret = new TextLayout(text.Substring(pos, offset), typeface, FontSize, brush, TextAlignment.Left);
-                            xCaret += preCaret.Width;
+                            xCaret += MeasureTextWidth(text.Substring(pos, offset), typeface, FontSize, brush);
                         }
                         return new Point(xCaret, y);
                     }
 
-                    var layout = new TextLayout(text.Substring(pos, count), typeface, FontSize, brush, TextAlignment.Left);
-                    x += layout.Width;
+                    double w = MeasureTextWidth(text.Substring(pos, count), typeface, FontSize, brush);
+                    x += w;
                     globalDisplayIndex += count;
                     pos += count;
                     isStartOfLogicalLine = false;
@@ -438,8 +476,7 @@ public sealed class RichTextOverlay : Control
         return new Point(0, y);
     }
 
-    // NOTE: the old GetCaretPositionFromPoint was removed because it did not account for line wrapping
-    // and as a result clicks/caret "shifted".
+
 
     public int GetCaretPositionFromPoint(Point point)
     {
@@ -484,7 +521,6 @@ public sealed class RichTextOverlay : Control
 
                 string text = run.Text;
                 int pos = 0;
-
                 while (pos < text.Length)
                 {
                     // Skip leading whitespace ONLY at the start of a wrapped line (not logical line start)
@@ -513,8 +549,7 @@ public sealed class RichTextOverlay : Control
                     }
 
                     string frag = text.Substring(pos, count);
-                    var layout = new TextLayout(frag, typeface, FontSize, brush, TextAlignment.Left);
-                    double w = layout.Width;
+                    double w = MeasureTextWidth(frag, typeface, FontSize, brush);
 
                     // Check if click is in this fragment
                     if (point.Y >= y && point.Y < y + lineHeight)
@@ -538,8 +573,7 @@ public sealed class RichTextOverlay : Control
                             double prevW = 0;
                             for (int i = 0; i < frag.Length; i++)
                             {
-                                var sub = new TextLayout(frag.Substring(0, i + 1), typeface, FontSize, brush, TextAlignment.Left);
-                                double charW = sub.Width;
+                                double charW = MeasureTextWidth(frag.Substring(0, i + 1), typeface, FontSize, brush);
                                 double charMid = x + prevW + (charW - prevW) / 2;
                                 
                                 if (point.X <= charMid)
