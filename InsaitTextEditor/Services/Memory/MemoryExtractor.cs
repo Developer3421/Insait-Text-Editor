@@ -8,7 +8,7 @@ using InsaitTextEditor.AI;
 namespace InsaitTextEditor.Services.Memory;
 
 /// <summary>
-/// Витягує факти з повідомлень користувача за допомогою AI
+/// Extracts facts from user messages using AI
 /// </summary>
 public class MemoryExtractor
 {
@@ -48,7 +48,7 @@ Output ONLY valid JSON array, or empty array [] if no facts found.";
     {
         try
         {
-            // Спроба парсити JSON
+            // Try to parse JSON
             var jsonStart = response.IndexOf('[');
             var jsonEnd = response.LastIndexOf(']');
             
@@ -65,13 +65,13 @@ Output ONLY valid JSON array, or empty array [] if no facts found.";
                     Content = dto.Content ?? string.Empty,
                     Type = ParseFactType(dto.Type ?? "Context"),
                     Tags = dto.Tags ?? new List<string>(),
-                    Confidence = 0.8 // AI-extracted facts мають нижчу впевненість
+                    Confidence = 0.8 // AI-extracted facts have lower confidence
                 }).ToList() ?? new List<MemoryFact>();
             }
         }
         catch
         {
-            // Якщо парсинг не вдався, повертаємо пустий список
+            // If parsing fails, return an empty list
         }
 
         return new List<MemoryFact>();

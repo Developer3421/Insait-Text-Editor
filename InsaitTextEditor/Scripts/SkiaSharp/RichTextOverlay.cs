@@ -438,8 +438,8 @@ public sealed class RichTextOverlay : Control
         return new Point(0, y);
     }
 
-    // NOTE: старий GetCaretPositionFromPoint видалено, бо він не враховує перенос рядків (wrap)
-    // і через це клік/каретка "зсуваються".
+    // NOTE: the old GetCaretPositionFromPoint was removed because it did not account for line wrapping
+    // and as a result clicks/caret "shifted".
 
     public int GetCaretPositionFromPoint(Point point)
     {

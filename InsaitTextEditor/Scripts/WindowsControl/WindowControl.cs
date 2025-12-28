@@ -4,13 +4,13 @@ using Avalonia.Input;
 
 namespace InsaitTextEditor.Scripts.WindowsControl;
 
-// Хелпер для перетягування та ресайзу безрамкового вікна
+// Helper for dragging and resizing a borderless window
 public static class WindowDragResizeHelper
 {
-    // Обробка натискання на "тайтлбар": перетягування або Max/Restore по дабл-кліку
+    // Handle pointer press on "title bar": dragging or Max/Restore on double-click
     public static void OnTitleBarPointerPressed(Window window, StackPanel ignoreDescendantsOf, PointerPressedEventArgs e)
     {
-        // Ігноруємо кліки по панелі з кнопками (перевірка попадання в її прямокутник)
+        // Ignore clicks on the panel with buttons (check if position falls inside its rectangle)
         if (ignoreDescendantsOf is not null)
         {
             var pos = e.GetPosition(ignoreDescendantsOf);
@@ -25,7 +25,7 @@ public static class WindowDragResizeHelper
         if (!point.Properties.IsLeftButtonPressed)
             return;
 
-        // Подвійний клік: перемикання Max/Restore
+        // Double click: toggle Max/Restore
         if (e.ClickCount == 2)
         {
             ToggleMaxRestore(window);
@@ -38,7 +38,7 @@ public static class WindowDragResizeHelper
         }
     }
 
-    // Ресайз за вказаним ребром/кутом
+    // Resize by the specified edge/corner
     public static void BeginResize(Window window, WindowEdge edge, PointerPressedEventArgs e)
     {
         if (window.WindowState == WindowState.Maximized)

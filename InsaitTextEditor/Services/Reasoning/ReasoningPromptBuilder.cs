@@ -8,7 +8,7 @@ using InsaitTextEditor.Services;
 namespace InsaitTextEditor.Services.Reasoning;
 
 /// <summary>
-/// Генерує спеціальні промпти для Chain-of-Thought reasoning
+/// Generates special prompts for Chain-of-Thought reasoning
 /// </summary>
 public class ReasoningPromptBuilder
 {
@@ -20,7 +20,7 @@ public class ReasoningPromptBuilder
     }
 
     /// <summary>
-    /// Отримати мовні інструкції для reasoning на основі налаштувань користувача
+    /// Get language instructions for reasoning based on user settings
     /// </summary>
     private string GetLanguageInstruction()
     {
@@ -29,11 +29,11 @@ public class ReasoningPromptBuilder
         
         if (string.IsNullOrEmpty(aiLang))
         {
-            // Auto mode - відповідати мовою користувача
+            // Auto mode - respond in the user's language
             return "IMPORTANT: Respond in the SAME LANGUAGE as the user's query.";
         }
         
-        // Мапінг мов до інструкцій
+        // Mapping languages to instructions
         var languageInstructions = new Dictionary<string, string>
         {
             ["uk"] = "🇺🇦 ОБОВ'ЯЗКОВО: Відповідай ТІЛЬКИ УКРАЇНСЬКОЮ МОВОЮ!",
@@ -90,7 +90,7 @@ Maximum 5 steps. Be concise.";
             }
         }
 
-        // Якщо парсинг не вдався, створити один загальний крок
+        // If parsing failed, create a single generic step
         if (steps.Count == 0)
         {
             steps.Add(new ReasoningStep

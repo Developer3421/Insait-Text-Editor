@@ -111,6 +111,8 @@ public partial class LinedTextInput : UserControl
     private Stack<string> _redoStack = new();
     private string _lastSavedText = string.Empty;
 
+    private const string InternalNewLine = "\n";
+
     public LinedTextInput()
     {
         InitializeComponent();
@@ -279,7 +281,10 @@ public partial class LinedTextInput : UserControl
     {
         if (string.IsNullOrEmpty(e.Text)) return;
 
-        string text = Text ?? string.Empty;
+        // Normalize input so IME/OS variants of Enter/newlines can't desync caret vs text.
+        var input = e.Text.Replace("\r\n", "\n").Replace("\r", "\n");
+
+        string text = (Text ?? string.Empty).Replace("\r\n", "\n");
         int start = Math.Min(SelectionStart, SelectionEnd);
         int end = Math.Max(SelectionStart, SelectionEnd);
 
@@ -290,8 +295,8 @@ public partial class LinedTextInput : UserControl
 
         int caretPos = start; // always insert at selection start (or caret if no selection)
 
-        text = text.Insert(caretPos, e.Text);
-        int newCaretPos = caretPos + e.Text.Length;
+        text = text.Insert(caretPos, input);
+        int newCaretPos = caretPos + input.Length;
 
         Text = text;
         UpdateSelection(newCaretPos, newCaretPos);
@@ -300,7 +305,7 @@ public partial class LinedTextInput : UserControl
 
     private void OnOverlayKeyDown(object? sender, KeyEventArgs e)
     {
-        string text = Text ?? string.Empty;
+        string text = (Text ?? string.Empty).Replace("\r\n", "\n");
         int start = Math.Min(SelectionStart, SelectionEnd);
         int end = Math.Max(SelectionStart, SelectionEnd);
         bool hasSelection = end > start;
@@ -528,15 +533,16 @@ public partial class LinedTextInput : UserControl
                 return;
 
             case Key.Enter:
+                // Handle Enter only here; TextInput may also fire with \r/\n depending on platform/IME.
                 SaveUndoState();
                 if (hasSelection)
                 {
                     text = text.Remove(start, end - start);
                     caretPos = start;
                 }
-                text = text.Insert(caretPos, Environment.NewLine);
+                text = text.Insert(caretPos, InternalNewLine);
                 Text = text;
-                UpdateSelection(caretPos + Environment.NewLine.Length, caretPos + Environment.NewLine.Length);
+                UpdateSelection(caretPos + InternalNewLine.Length, caretPos + InternalNewLine.Length);
                 e.Handled = true;
                 return;
 

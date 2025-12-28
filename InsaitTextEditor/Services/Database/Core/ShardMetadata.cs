@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace InsaitTextEditor.Services.Database.Core;
 
 /// <summary>
-/// Метадані для окремого шарда бази даних
+/// Metadata for a single database shard
 /// </summary>
 public class ShardMetadata
 {
@@ -31,7 +31,7 @@ public class ShardMetadata
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// Отримати активний шард
+    /// Get the active shard
     /// </summary>
     public ShardInfo? GetActiveShard()
     {
@@ -39,7 +39,7 @@ public class ShardMetadata
     }
 
     /// <summary>
-    /// Отримати всі шарди, відсортовані від нових до старих
+    /// Get all shards sorted from newest to oldest
     /// </summary>
     public List<ShardInfo> GetShardsNewestFirst()
     {
@@ -50,7 +50,7 @@ public class ShardMetadata
 }
 
 /// <summary>
-/// Інформація про окремий шард
+/// Information about a single shard
 /// </summary>
 public class ShardInfo
 {

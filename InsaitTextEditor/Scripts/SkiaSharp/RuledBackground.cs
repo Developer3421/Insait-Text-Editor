@@ -36,14 +36,14 @@ public class RuledBackground : Control
         AvaloniaProperty.Register<RuledBackground, IBrush>(nameof(LineBrush),
             new SolidColorBrush(Color.FromRgb(0x6A, 0x6A, 0x6A)));
 
-    // Лінія майже біля лівого краю
+    // Line almost at the left edge
     public static readonly StyledProperty<double> LeftMarginProperty =
         AvaloniaProperty.Register<RuledBackground, double>(nameof(LeftMargin), 2d);
 
     public static readonly StyledProperty<double> RightMarginProperty =
         AvaloniaProperty.Register<RuledBackground, double>(nameof(RightMargin), 16d);
 
-    // Без верхнього/нижнього полів — лінії на всю висоту
+    // Without top/bottom margins — lines span full height
     public static readonly StyledProperty<double> TopMarginProperty =
         AvaloniaProperty.Register<RuledBackground, double>(nameof(TopMargin), 0d);
 
@@ -87,7 +87,7 @@ public class RuledBackground : Control
         var rect = Bounds;
         if (rect.Width <= 0 || rect.Height <= 0) return;
 
-        // Фон "паперу"
+        // "Paper" background
         context.DrawRectangle(PaperBrush, pen: null, rect);
 
         var pen = new Pen(LineBrush, LineThickness);
@@ -98,12 +98,12 @@ public class RuledBackground : Control
         double yStart = TopMargin + FirstLineOffset;
         double yEnd = rect.Height - BottomMargin;
 
-        // Горизонтальні лінії
+        // Horizontal lines
         for (double y = yStart; y <= yEnd; y += LineSpacing)
         {
             context.DrawLine(pen, new Point(left, y), new Point(right, y));
         }
-        // Закриваємо нижню межу, якщо крок не співпав рівно з yEnd
+        // Close bottom boundary if step did not exactly hit yEnd
         if (LineSpacing > 0)
         {
             double steps = Math.Floor((yEnd - yStart) / LineSpacing);
@@ -116,12 +116,12 @@ public class RuledBackground : Control
 
         if (BackgroundMode == PageBackgroundMode.Grid)
         {
-            // Вертикальні лінії сітки (клітинки квадратні: крок = LineSpacing)
+            // Vertical grid lines (cells are square: step = LineSpacing)
             for (double x = left; x <= right; x += LineSpacing)
             {
                 context.DrawLine(pen, new Point(x, TopMargin), new Point(x, rect.Height - BottomMargin));
             }
-            // Гарантуємо праву межу, якщо не співпала по кроку
+            // Ensure right boundary if it didn't align with the step
             if (LineSpacing > 0)
             {
                 double vSteps = Math.Floor((right - left) / LineSpacing);
@@ -133,7 +133,7 @@ public class RuledBackground : Control
             }
         }
 
-        // Вертикальна лінія поля — дозволяємо на X=0
+        // Vertical margin line — allow at X=0
         if (DrawVerticalMarginLine && left >= 0 && left < rect.Width)
         {
             context.DrawLine(vPen, new Point(left, TopMargin), new Point(left, rect.Height - BottomMargin));

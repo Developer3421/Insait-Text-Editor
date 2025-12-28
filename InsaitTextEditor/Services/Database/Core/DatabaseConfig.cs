@@ -4,24 +4,24 @@ using System.IO;
 namespace InsaitTextEditor.Services.Database.Core;
 
 /// <summary>
-/// Конфігурація для баз даних з шифруванням та шардінгом
+/// Configuration for databases with encryption and sharding
 /// </summary>
 public class DatabaseConfig
 {
     /// <summary>
-    /// Базовий шлях до папки з зашифрованими базами даних
+    /// Base path to the folder with encrypted databases
     /// </summary>
     public string EncryptedDataPath { get; set; } = Path.Combine(
         GetExecutableDirectory(), "Data", "Encrypted");
 
     /// <summary>
-    /// Шлях до папки з ключами шифрування
+    /// Path to the folder with encryption keys
     /// </summary>
     public string KeysPath { get; set; } = Path.Combine(
         GetExecutableDirectory(), "Data", "Keys");
 
     /// <summary>
-    /// Отримує директорію, де знаходиться виконуваний файл
+    /// Gets the directory where the executable is located
     /// </summary>
     private static string GetExecutableDirectory()
     {
@@ -34,37 +34,37 @@ public class DatabaseConfig
     }
 
     /// <summary>
-    /// Максимальний розмір шарда в байтах (за замовчуванням 1 ГБ)
+    /// Maximum shard size in bytes (default 1 GB)
     /// </summary>
     public long MaxShardSizeBytes { get; set; } = 1_073_741_824; // 1 GB
 
     /// <summary>
-    /// Буфер для ротації (коли залишилось 50 МБ - створити новий шард)
+    /// Rotation buffer (when 50 MB left - create a new shard)
     /// </summary>
     public long RotationBufferBytes { get; set; } = 52_428_800; // 50 MB
 
     /// <summary>
-    /// Тип з'єднання LiteDB
+    /// LiteDB connection type
     /// </summary>
     public string ConnectionType { get; set; } = "Shared";
 
     /// <summary>
-    /// Таймаут для операцій БД (секунди)
+    /// Timeout for DB operations (seconds)
     /// </summary>
     public int TimeoutSeconds { get; set; } = 60;
 
     /// <summary>
-    /// Чи використовувати шифрування
+    /// Whether to use encryption
     /// </summary>
     public bool UseEncryption { get; set; } = true;
 
     /// <summary>
-    /// Чи автоматично створювати БД при запуску
+    /// Whether to automatically create DBs at startup
     /// </summary>
     public bool AutoCreateDatabase { get; set; } = true;
 
     /// <summary>
-    /// Отримати шлях до папки конкретної БД
+    /// Get path to the folder for a specific database
     /// </summary>
     public string GetDatabasePath(string databaseName)
     {
@@ -72,7 +72,7 @@ public class DatabaseConfig
     }
 
     /// <summary>
-    /// Отримати шлях до файла метаданих для конкретної БД
+    /// Get path to the metadata file for a specific database
     /// </summary>
     public string GetMetadataPath(string databaseName)
     {
@@ -80,7 +80,7 @@ public class DatabaseConfig
     }
 
     /// <summary>
-    /// Отримати шлях до майстер-ключа
+    /// Get path to the master key file
     /// </summary>
     public string GetMasterKeyPath()
     {
@@ -88,14 +88,14 @@ public class DatabaseConfig
     }
 
     /// <summary>
-    /// Створити всі необхідні папки
+    /// Create all required directories
     /// </summary>
     public void EnsureDirectoriesExist()
     {
         Directory.CreateDirectory(EncryptedDataPath);
         Directory.CreateDirectory(KeysPath);
         
-        // Підпапки для зашифрованих даних
+        // Subfolders for encrypted data
         string[] subfolders = { "ChatHistory", "Documents", "Memory", "Reasoning", "Settings" };
         foreach (var folder in subfolders)
         {

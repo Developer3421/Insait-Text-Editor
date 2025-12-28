@@ -8,7 +8,7 @@ namespace InsaitTextEditor;
 
 public partial class MainWindow : Window
 {
-    // Відкриваємо меню файлів як немодальне вікно (не блокує UI)
+    // Open the file menu as a modeless window (does not block the UI)
     private void FileMenu_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not TabManager manager)

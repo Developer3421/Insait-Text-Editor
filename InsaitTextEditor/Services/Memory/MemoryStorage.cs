@@ -8,7 +8,7 @@ using LiteDB;
 namespace InsaitTextEditor.Services.Memory;
 
 /// <summary>
-/// Зберігає факти пам'яті у LiteDB
+/// Stores memory facts in LiteDB
 /// </summary>
 public class MemoryStorage
 {

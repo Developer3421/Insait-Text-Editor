@@ -8,7 +8,7 @@ using LiteDB;
 namespace InsaitTextEditor.Services.Reasoning;
 
 /// <summary>
-/// Зберігає reasoning chains у LiteDB
+/// Stores reasoning chains in LiteDB
 /// </summary>
 public class ReasoningChainStorage
 {

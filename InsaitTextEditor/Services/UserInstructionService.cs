@@ -20,24 +20,25 @@ public class UserInstructionService
             return _cachedInstruction;
 
         var collection = _databaseService.GetCollection<UserInstruction>("UserInstruction");
-        _cachedInstruction = collection.FindOne(x => true); // Отримати єдину інструкцію
-        
+        // Get the single instruction document (if any)
+        _cachedInstruction = collection.FindOne(x => true);
+
         return _cachedInstruction;
     }
 
     public void SaveUserInstruction(UserInstruction instruction)
     {
         instruction.LastModified = DateTime.UtcNow;
-        
+
         var collection = _databaseService.GetCollection<UserInstruction>("UserInstruction");
-        
-        // Видалити всі попередні інструкції (тільки одна інструкція)
+
+        // Remove any previous instructions (there should be only one entry)
         collection.DeleteAll();
-        
-        // Зберегти нову
+
+        // Insert the new instruction
         collection.Insert(instruction);
         collection.EnsureIndex(x => x.LastModified);
-        
+
         _cachedInstruction = instruction;
     }
 

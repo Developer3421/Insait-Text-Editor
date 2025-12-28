@@ -5,8 +5,8 @@ using Avalonia.Data.Converters;
 namespace InsaitTextEditor.Scripts.Converters
 {
     /// <summary>
-    /// Конвертер для очищення тексту від службових токенів, наприклад: </s>.
-    /// Властивість Tokens приймає перелік через кому. За замовчуванням — </s>.
+    /// Converter that cleans text from service tokens, e.g.: </s>.
+    /// The Tokens property accepts a comma-separated list. Default is </s>.
     /// </summary>
     public class RemoveSpecialTokensConverter : IValueConverter
     {
@@ -21,7 +21,7 @@ namespace InsaitTextEditor.Scripts.Converters
             foreach (var token in tokens)
             {
                 if (string.IsNullOrEmpty(token)) continue;
-                // Прибираємо токен та поширені варіанти з переносами
+                // Remove the token and common variants with newlines
                 s = s.Replace(token, string.Empty, StringComparison.Ordinal);
                 s = s.Replace("\r\n" + token, string.Empty, StringComparison.Ordinal)
                      .Replace("\n" + token, string.Empty, StringComparison.Ordinal)
@@ -29,7 +29,7 @@ namespace InsaitTextEditor.Scripts.Converters
                      .Replace(token + "\n", string.Empty, StringComparison.Ordinal);
             }
 
-            // Нормалізуємо подвійні переноси і обрізаємо зайві пробіли по краях
+            // Normalize double line breaks and trim extra whitespace at edges
             while (s.Contains("\r\n\r\n", StringComparison.Ordinal))
                 s = s.Replace("\r\n\r\n", "\r\n", StringComparison.Ordinal);
             while (s.Contains("\n\n", StringComparison.Ordinal))
@@ -40,7 +40,7 @@ namespace InsaitTextEditor.Scripts.Converters
 
         public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
-            // Зворотня конвертація не потрібна, повертаємо як є
+            // Reverse conversion is not needed, return as-is
             return value;
         }
     }

@@ -40,7 +40,7 @@ public class ConversationStateService
         return _conversationHistory.Count;
     }
 
-    // Обмеження історії для контексту (наприклад, останні N повідомлень)
+    // Limit history for context (e.g. last N messages)
     public List<ChatMessage> GetRecentMessages(int count)
     {
         return _conversationHistory.TakeLast(count).ToList();

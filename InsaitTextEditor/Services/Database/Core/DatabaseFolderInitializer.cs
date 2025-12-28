@@ -4,24 +4,24 @@ using System.IO;
 namespace InsaitTextEditor.Services.Database.Core;
 
 /// <summary>
-/// Сервіс для автоматичної ініціалізації структури папок бази даних
+/// Service that automatically initializes the folder structure for databases
 /// </summary>
 public class DatabaseFolderInitializer
 {
     private readonly string _baseDirectory;
 
     /// <summary>
-    /// Створює новий екземпляр ініціалізатора папок БД
+    /// Creates a new instance of the database folder initializer
     /// </summary>
-    /// <param name="baseDirectory">Базова директорія (за замовчуванням - директорія exe файлу)</param>
+    /// <param name="baseDirectory">Base directory (default - the exe folder)</param>
     public DatabaseFolderInitializer(string? baseDirectory = null)
     {
-        // Використовуємо Environment.ProcessPath для отримання реального шляху до exe
+        // Use Environment.ProcessPath to get the real path to the exe
         _baseDirectory = baseDirectory ?? GetExecutableDirectory();
     }
 
     /// <summary>
-    /// Отримує директорію, де знаходиться виконуваний файл
+    /// Gets the directory where the executable is located
     /// </summary>
     private static string GetExecutableDirectory()
     {
@@ -34,19 +34,19 @@ public class DatabaseFolderInitializer
     }
 
     /// <summary>
-    /// Створює всі необхідні папки для бази даних
+    /// Creates all necessary folders for the database
     /// </summary>
-    /// <returns>True якщо всі папки створено успішно</returns>
+    /// <returns>True if all folders were created successfully</returns>
     public bool EnsureAllDatabaseFoldersExist()
     {
         try
         {
             Console.WriteLine($"[DatabaseFolderInitializer] Ініціалізація папок БД у: {_baseDirectory}");
 
-            // Створення папки для старого формату БД
+            // Create folder for the legacy database format
             CreateDatabaseFolder();
 
-            // Створення папок для нової системи з шифруванням
+            // Create folders for the new encrypted data system
             CreateEncryptedDataFolders();
             CreateKeysFolder();
 
@@ -71,23 +71,23 @@ public class DatabaseFolderInitializer
     }
 
     /// <summary>
-    /// Створює папку Database для старого формату БД
+    /// Creates the Database folder for the legacy DB format
     /// </summary>
     private void CreateDatabaseFolder()
     {
         var databasePath = Path.Combine(_baseDirectory, "Database");
-        CreateFolderIfNotExists(databasePath, "Database (старий формат)");
+        CreateFolderIfNotExists(databasePath, "Database (legacy format)");
     }
 
     /// <summary>
-    /// Створює папки для зашифрованих даних
+    /// Creates folders for encrypted data
     /// </summary>
     private void CreateEncryptedDataFolders()
     {
         var encryptedBasePath = Path.Combine(_baseDirectory, "Data", "Encrypted");
         CreateFolderIfNotExists(encryptedBasePath, "Data/Encrypted");
 
-        // Підпапки для різних типів даних
+        // Subfolders for different data types
         string[] subfolders = { "ChatHistory", "Documents", "Memory", "Reasoning", "Settings" };
         
         foreach (var folder in subfolders)
@@ -98,7 +98,7 @@ public class DatabaseFolderInitializer
     }
 
     /// <summary>
-    /// Створює папку для ключів шифрування
+    /// Creates the keys folder for encryption keys
     /// </summary>
     private void CreateKeysFolder()
     {
@@ -107,10 +107,10 @@ public class DatabaseFolderInitializer
     }
 
     /// <summary>
-    /// Створює папку, якщо вона не існує
+    /// Creates a folder if it does not exist
     /// </summary>
-    /// <param name="path">Шлях до папки</param>
-    /// <param name="displayName">Відображуване ім'я для логування</param>
+    /// <param name="path">Path to the folder</param>
+    /// <param name="displayName">Display name for logging</param>
     private void CreateFolderIfNotExists(string path, string displayName)
     {
         if (!Directory.Exists(path))
@@ -125,9 +125,9 @@ public class DatabaseFolderInitializer
     }
 
     /// <summary>
-    /// Перевіряє, чи є доступ на запис у базову директорію
+    /// Checks whether the base directory is writable
     /// </summary>
-    /// <returns>True якщо є доступ на запис</returns>
+    /// <returns>True if write access is available</returns>
     public bool HasWriteAccess()
     {
         try
@@ -144,9 +144,9 @@ public class DatabaseFolderInitializer
     }
 
     /// <summary>
-    /// Отримує альтернативний шлях для БД у LocalAppData
+    /// Gets a fallback path for data under LocalAppData
     /// </summary>
-    /// <returns>Шлях до LocalAppData\InsaitTextEditor</returns>
+    /// <returns>Path to LocalAppData\InsaitTextEditor</returns>
     public static string GetFallbackDataPath()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -154,9 +154,9 @@ public class DatabaseFolderInitializer
     }
 
     /// <summary>
-    /// Отримує інформацію про створені папки
+    /// Returns information about created folders
     /// </summary>
-    /// <returns>Інформація про структуру папок</returns>
+    /// <returns>Information about the folder structure</returns>
     public string GetFoldersInfo()
     {
         return $@"Структура папок БД:

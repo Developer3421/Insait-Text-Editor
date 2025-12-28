@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 namespace InsaitTextEditor.Services.Database.Core;
 
 /// <summary>
-/// Менеджер для управління шардами баз даних
-/// Відповідає за ротацію при досягненні ліміту розміру
+/// Manager for handling database shards
+/// Responsible for rotation when size limit is reached
 /// </summary>
 public class DatabaseShardManager
 {
@@ -23,14 +23,14 @@ public class DatabaseShardManager
     }
 
     /// <summary>
-    /// Отримати шлях до активного шарда
+    /// Get path to the active shard
     /// </summary>
     public string GetActiveShardPath()
     {
         var activeShard = _metadata.GetActiveShard();
         if (activeShard == null)
         {
-            // Створити перший шард
+            // Create the first shard
             activeShard = CreateNewShard(1);
         }
 
@@ -38,7 +38,7 @@ public class DatabaseShardManager
     }
 
     /// <summary>
-    /// Перевірити, чи потрібна ротація
+    /// Check whether rotation is needed
     /// </summary>
     public bool NeedsRotation()
     {
@@ -55,18 +55,18 @@ public class DatabaseShardManager
     }
 
     /// <summary>
-    /// Виконати ротацію шарда
+    /// Perform shard rotation
     /// </summary>
     public async Task<string> RotateShardAsync()
     {
         var currentShard = _metadata.GetActiveShard();
         if (currentShard != null)
         {
-            // Позначити поточний шард як readonly
+            // Mark current shard readonly
             currentShard.IsActive = false;
             currentShard.IsReadonly = true;
             
-            // Оновити розмір
+            // Update size
             var shardPath = Path.Combine(_config.GetDatabasePath(_databaseName), currentShard.FileName);
             if (File.Exists(shardPath))
             {
@@ -74,7 +74,7 @@ public class DatabaseShardManager
             }
         }
 
-        // Створити новий активний шард
+        // Create new active shard
         var newShardNumber = _metadata.ActiveShard + 1;
         var newShard = CreateNewShard(newShardNumber);
         _metadata.ActiveShard = newShardNumber;
@@ -86,7 +86,7 @@ public class DatabaseShardManager
     }
 
     /// <summary>
-    /// Створити новий шард
+    /// Create a new shard
     /// </summary>
     private ShardInfo CreateNewShard(int shardNumber)
     {
@@ -105,7 +105,7 @@ public class DatabaseShardManager
     }
 
     /// <summary>
-    /// Завантажити або створити метадані
+    /// Load or create metadata
     /// </summary>
     private ShardMetadata LoadOrCreateMetadata()
     {
@@ -121,7 +121,7 @@ public class DatabaseShardManager
     }
 
     /// <summary>
-    /// Створити метадані за замовчуванням
+    /// Create default metadata
     /// </summary>
     private ShardMetadata CreateDefaultMetadata()
     {
@@ -135,7 +135,7 @@ public class DatabaseShardManager
     }
 
     /// <summary>
-    /// Зберегти метадані
+    /// Save metadata
     /// </summary>
     public async Task SaveMetadataAsync()
     {
@@ -157,7 +157,7 @@ public class DatabaseShardManager
     }
 
     /// <summary>
-    /// Оновити метрики активного шарда
+    /// Update metrics for active shard
     /// </summary>
     public async Task UpdateActiveShardMetricsAsync(long recordCount)
     {
@@ -177,7 +177,7 @@ public class DatabaseShardManager
     }
 
     /// <summary>
-    /// Отримати всі шарди
+    /// Get all shards
     /// </summary>
     public ShardMetadata GetMetadata() => _metadata;
 }

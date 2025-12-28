@@ -4,7 +4,7 @@ using Avalonia.Controls;
 namespace InsaitTextEditor.Scripts.Text
 {
     /// <summary>
-    /// Набір методів для редагування виділеного тексту в Avalonia TextBox (plain text).
+    /// A set of methods for editing the selected text in an Avalonia TextBox (plain text).
     /// </summary>
     public static partial class SelectionEditingScript
     {

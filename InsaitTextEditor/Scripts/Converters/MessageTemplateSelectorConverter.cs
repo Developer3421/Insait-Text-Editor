@@ -8,7 +8,7 @@ using InsaitTextEditor.Models;
 namespace InsaitTextEditor.Scripts.Converters;
 
 /// <summary>
-/// Конвертер для вибору шаблону повідомлення на основі відправника
+/// Converter that selects a message template based on the sender
 /// </summary>
 public class MessageTemplateSelectorConverter : IValueConverter
 {

@@ -11,7 +11,7 @@ using InsaitTextEditor.Services.Database.Specialized;
 namespace InsaitTextEditor.Services.Memory;
 
 /// <summary>
-/// Основний сервіс для роботи з глобальною пам'яттю
+/// Main service for working with global memory
 /// </summary>
 public class MemoryService
 {
@@ -29,7 +29,7 @@ public class MemoryService
     }
 
     /// <summary>
-    /// Забезпечує що база даних ініціалізована перед використанням
+    /// Ensures the database is initialized before use
     /// </summary>
     private async Task EnsureInitializedAsync()
     {
@@ -52,7 +52,7 @@ public class MemoryService
     }
 
     /// <summary>
-    /// Витягує факти з повідомлення та зберігає їх
+    /// Extracts facts from a message and saves them
     /// </summary>
     public async Task ProcessMessageAsync(ChatMessage message)
     {
@@ -60,7 +60,7 @@ public class MemoryService
         
         if (message.Sender == "System") return;
 
-        // Витягти факти з повідомлення користувача
+        // Extract facts from user message
         var facts = await _extractor.ExtractFactsAsync(message.Content);
         
         foreach (var fact in facts)
@@ -71,7 +71,7 @@ public class MemoryService
     }
 
     /// <summary>
-    /// Шукає релевантні факти для запиту
+    /// Searches for relevant facts for a query
     /// </summary>
     public async Task<List<MemoryFact>> QueryMemoryAsync(string query, int maxResults = 5)
     {
@@ -79,7 +79,7 @@ public class MemoryService
         
         var results = _memoryDb.SearchFacts(query).Take(maxResults).ToList();
         
-        // Оновити LastAccessedAt для використаних фактів
+        // Update LastAccessedAt for used facts
         foreach (var fact in results)
         {
             await _memoryDb.UpdateLastAccessedAsync(fact.Id);
@@ -89,7 +89,7 @@ public class MemoryService
     }
 
     /// <summary>
-    /// Отримати всі факти певного типу
+    /// Get all facts of a specific type
     /// </summary>
     public async Task<List<MemoryFact>> GetFactsByTypeAsync(FactType type)
     {
@@ -98,7 +98,7 @@ public class MemoryService
     }
 
     /// <summary>
-    /// Видалити факт
+    /// Delete a fact
     /// </summary>
     public async Task DeleteFactAsync(Guid factId)
     {
@@ -107,7 +107,7 @@ public class MemoryService
     }
 
     /// <summary>
-    /// Отримати загальну кількість фактів
+    /// Get total count of facts
     /// </summary>
     public async Task<int> GetTotalFactsCountAsync()
     {
@@ -116,7 +116,7 @@ public class MemoryService
     }
 
     /// <summary>
-    /// Отримати контекст для нової розмови (найважливіші факти)
+    /// Build context for a new conversation (most important facts)
     /// </summary>
     public async Task<string> BuildContextPromptAsync(int maxFacts = 10)
     {
@@ -147,7 +147,7 @@ public class MemoryService
     }
 
     /// <summary>
-    /// Очистити всю пам'ять (для GDPR compliance)
+    /// Clear all memory (for GDPR compliance)
     /// </summary>
     public async Task ClearAllMemoryAsync()
     {
