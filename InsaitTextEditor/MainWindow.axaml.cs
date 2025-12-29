@@ -72,7 +72,7 @@ public MainWindow(bool suppressInit, string? startupFilePath)
             // Listen to tab changes to focus editor (without resetting caret position)
             _tabManager.PropertyChanged += (sender, args) =>
             {
-                if (args.PropertyName == nameof(TabManager.CurrentText) || 
+                if (args.PropertyName == nameof(TabManager.CurrentText) ||
                     args.PropertyName == nameof(TabManager.ActiveTabId))
                 {
                     // Focus the editor when tab changes (without moving caret)
@@ -82,7 +82,7 @@ public MainWindow(bool suppressInit, string? startupFilePath)
                         // Focus the editor after a short delay to ensure it's ready
                         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                         {
-                            editor.Focus();
+                            editor.FocusEditor();
                         }, Avalonia.Threading.DispatcherPriority.Background);
                     }
                 }
@@ -114,7 +114,7 @@ public MainWindow(bool suppressInit, string? startupFilePath)
                 var editor = this.FindControl<LinedTextInput>("LinedEditorHost");
                 if (editor != null)
                 {
-                    editor.Focus();
+                    editor.FocusEditor();
                 }
             };
 
@@ -138,6 +138,23 @@ public MainWindow(bool suppressInit, string? startupFilePath)
                     Close();
                 }
             };
+
+            // Whenever this window becomes active again (e.g., after closing a menu/chat/settings window),
+            // restore focus so typing works immediately.
+            this.Activated += (_, _) => EnsureEditorFocus();
+        }
+
+        private void EnsureEditorFocus()
+        {
+            var editor = this.FindControl<LinedTextInput>("LinedEditorHost");
+            if (editor == null)
+                return;
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                // If focus got lost to some other control/window, bring it back.
+                editor.FocusEditor();
+            }, Avalonia.Threading.DispatcherPriority.Background);
         }
 
         // Керування вікном
@@ -244,6 +261,11 @@ public MainWindow(bool suppressInit, string? startupFilePath)
             _tabManager.CurrentBackgroundMode = current == PageBackgroundMode.Lined
                 ? PageBackgroundMode.Grid
                 : PageBackgroundMode.Lined;
+
+            // Mode switching can trigger layout changes and focus churn. Restore focus after the UI has settled.
+            EnsureEditorFocus();
+            Avalonia.Threading.Dispatcher.UIThread.Post(EnsureEditorFocus, Avalonia.Threading.DispatcherPriority.Loaded);
+            Avalonia.Threading.Dispatcher.UIThread.Post(EnsureEditorFocus, Avalonia.Threading.DispatcherPriority.Background);
         }
 
         private void Menu_Click(object? sender, RoutedEventArgs e)

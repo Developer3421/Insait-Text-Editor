@@ -53,8 +53,28 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        InitializeDatabases();
-        InitializeAiServices();
+
+        // Store certification/sandbox environments can be stricter about file system, DPAPI, and native DLL loading.
+        // Startup must never hard-crash; we'll fall back to a degraded mode if initialization fails.
+        try
+        {
+            InitializeDatabases();
+        }
+        catch (Exception ex)
+        {
+            // Keep the app alive; editor should still open.
+            System.Console.WriteLine($"[App] ⚠️ Database init failed, continuing without persistence: {ex}");
+        }
+
+        try
+        {
+            InitializeAiServices();
+        }
+        catch (Exception ex)
+        {
+            // AI features are optional for basic editor mode.
+            System.Console.WriteLine($"[App] ⚠️ AI init failed, continuing without AI: {ex}");
+        }
     }
 
     private void InitializeDatabases()
@@ -162,6 +182,9 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        // Best-effort diagnostics (never throws): shows where settings DB is and what language got resolved.
+        try { SettingsService.LogStartupLanguageDiagnostics(); } catch { /* ignore */ }
+
         var savedLang = SettingsService.LoadLanguage();
         LocalizationService.Initialize(savedLang);
 

@@ -14,13 +14,51 @@ public static class SettingsService
 
     private static string GetProjectDatabaseDir()
     {
+        // Prefer exe-adjacent storage (portable) but fall back to LocalAppData for Store/sandbox.
         var baseDir = GetExecutableDirectory();
-        var dbDir = Path.Combine(baseDir, "Database");
-        Directory.CreateDirectory(dbDir);
-        return dbDir;
+        var primary = Path.Combine(baseDir, "Database");
+
+        try
+        {
+            Directory.CreateDirectory(primary);
+            return primary;
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
+        {
+            // Store apps often can't write next to the executable.
+            try
+            {
+                var fallbackRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var fallback = Path.Combine(fallbackRoot, "InsaitTextEditor", "Database");
+                Directory.CreateDirectory(fallback);
+                return fallback;
+            }
+            catch
+            {
+                // If even LocalAppData isn't available, keep things alive with BaseDirectory (may still fail later).
+                Console.WriteLine($"[SettingsService] Failed to create settings DB directory: {ex.Message}");
+                return primary;
+            }
+        }
     }
 
     private static string GetDbFilePath() => Path.Combine(GetProjectDatabaseDir(), "settings_v2.litedb");
+
+    /// <summary>
+    /// Best-effort DB path logging for diagnostics (never throws).
+    /// If we are running in-memory fallback, this still returns the intended file path.
+    /// </summary>
+    public static string GetSettingsDbPathForDiagnostics()
+    {
+        try
+        {
+            return GetDbFilePath();
+        }
+        catch
+        {
+            return "<unavailable>";
+        }
+    }
 
     /// <summary>
     /// Отримує директорію, де знаходиться виконуваний файл
@@ -37,10 +75,26 @@ public static class SettingsService
 
     private static LiteDatabase OpenDb()
     {
-        var path = GetDbFilePath();
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        var cs = new ConnectionString { Filename = path, Connection = ConnectionType.Shared };
-        return new LiteDatabase(cs);
+        // Contract: never throw. If file DB isn't possible, fall back to in-memory DB.
+        LiteDatabase TryOpen(string? path)
+        {
+            var cs = new ConnectionString { Filename = path, Connection = ConnectionType.Shared, Upgrade = true };
+            return new LiteDatabase(cs);
+        }
+
+        try
+        {
+            var path = GetDbFilePath();
+            var dir = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
+            return TryOpen(path);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SettingsService] Failed to open settings DB file, using in-memory: {ex.GetType().Name}: {ex.Message}");
+            return TryOpen(null);
+        }
     }
 
     public static EditorSettings LoadDefaults()
@@ -129,6 +183,24 @@ public static class SettingsService
         }
         catch { /* ignore */ }
         return AppLanguage.En;
+    }
+
+    /// <summary>
+    /// Writes a one-line startup diagnostics entry: DB path + resolved UI language.
+    /// Safe to call in Store/sandbox; never throws.
+    /// </summary>
+    public static void LogStartupLanguageDiagnostics()
+    {
+        try
+        {
+            var path = GetSettingsDbPathForDiagnostics();
+            var lang = LoadLanguage();
+            Console.WriteLine($"[SettingsService] Settings DB path: {path}; default UI language: {lang}");
+        }
+        catch
+        {
+            // never crash on logging
+        }
     }
 
     public static void SaveLanguage(AppLanguage lang)

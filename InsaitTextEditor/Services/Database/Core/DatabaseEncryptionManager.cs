@@ -32,7 +32,25 @@ public class DatabaseEncryptionManager
 
         if (File.Exists(keyPath))
         {
-            _cachedMasterKey = LoadMasterKey(keyPath);
+            try
+            {
+                _cachedMasterKey = LoadMasterKey(keyPath);
+            }
+            catch (Exception ex) when (ex is CryptographicException || ex is UnauthorizedAccessException || ex is IOException)
+            {
+                // Store / sandbox / profile issues can make DPAPI or file access fail.
+                // Instead of crashing at launch, regenerate a new key so the app can start.
+                try
+                {
+                    File.Delete(keyPath);
+                }
+                catch
+                {
+                    // ignore; we'll attempt to overwrite below (may still fail)
+                }
+
+                _cachedMasterKey = GenerateAndSaveMasterKey(keyPath);
+            }
         }
         else
         {
@@ -106,13 +124,12 @@ public class DatabaseEncryptionManager
     {
         try
         {
-            // Використовуємо CurrentUser scope для DPAPI
             return ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
         }
-        catch (PlatformNotSupportedException)
+        catch (Exception ex) when (ex is PlatformNotSupportedException || ex is CryptographicException)
         {
-            // На платформах без DPAPI просто повертаємо дані
-            // TODO: Для Linux/macOS використовувати Keyring/Keychain
+            // If DPAPI isn't available (or fails in restricted environments), fall back.
+            // NOTE: This reduces security but keeps the app usable.
             return data;
         }
     }
@@ -126,9 +143,9 @@ public class DatabaseEncryptionManager
         {
             return ProtectedData.Unprotect(encryptedData, null, DataProtectionScope.CurrentUser);
         }
-        catch (PlatformNotSupportedException)
+        catch (Exception ex) when (ex is PlatformNotSupportedException || ex is CryptographicException)
         {
-            // На платформах без DPAPI просто повертаємо дані
+            // If DPAPI can't decrypt (different user/profile, corrupted key, sandbox), fall back.
             return encryptedData;
         }
     }

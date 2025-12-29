@@ -49,8 +49,44 @@ namespace InsaitTextEditor.Services
 
         private LiteDatabase OpenDb()
         {
-            var cs = new ConnectionString { Filename = _dbPath, Connection = ConnectionType.Shared };
-            return new LiteDatabase(cs);
+            LiteDatabase TryOpen(string? path)
+            {
+                var cs = new ConnectionString { Filename = path, Connection = ConnectionType.Shared, Upgrade = true };
+                return new LiteDatabase(cs);
+            }
+
+            try
+            {
+                return TryOpen(_dbPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DatabaseService] Failed to open DB at '{_dbPath}': {ex.GetType().Name}: {ex.Message}");
+            }
+
+            // Recreate file and retry
+            try
+            {
+                try
+                {
+                    if (File.Exists(_dbPath))
+                        File.Delete(_dbPath);
+                }
+                catch (Exception delEx)
+                {
+                    Console.WriteLine($"[DatabaseService] Failed to delete DB file '{_dbPath}': {delEx.GetType().Name}: {delEx.Message}");
+                }
+
+                return TryOpen(_dbPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DatabaseService] Failed to recreate DB at '{_dbPath}': {ex.GetType().Name}: {ex.Message}");
+            }
+
+            // Sandbox / FS blocked: in-memory fallback
+            Console.WriteLine("[DatabaseService] Falling back to in-memory DB. Data won't persist.");
+            return TryOpen(null);
         }
 
         /// <summary>

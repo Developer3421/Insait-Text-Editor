@@ -38,14 +38,14 @@ public abstract class DatabaseServiceBase : IDisposable
         if (!_isInitialized)
         {
             _isInitialized = true;
-            
+
             // Створити базове з'єднання
             if (CurrentDatabase == null)
             {
                 var shardPath = ShardManager.GetActiveShardPath();
                 CurrentDatabase = CreateDatabaseConnection(shardPath);
             }
-            
+
             // Виконати синхронну ініціалізацію індексів
             try
             {
@@ -62,9 +62,16 @@ public abstract class DatabaseServiceBase : IDisposable
             // Перевірити чи потрібна ротація
             if (ShardManager.NeedsRotation())
             {
-                CurrentDatabase.Dispose();
+                try
+                {
+                    CurrentDatabase.Dispose();
+                }
+                catch
+                {
+                    // ignore
+                }
                 CurrentDatabase = null;
-                
+
                 // Виконати ротацію
                 try
                 {
@@ -73,15 +80,16 @@ public abstract class DatabaseServiceBase : IDisposable
                 }
                 catch (Exception ex)
                 {
+                    // CreateDatabaseConnection should never throw, but keep this as an extra guard.
                     Console.WriteLine($"[DatabaseServiceBase] Помилка ротації: {ex.Message}");
                     var shardPath = ShardManager.GetActiveShardPath();
                     CurrentDatabase = CreateDatabaseConnection(shardPath);
                 }
-            }
-            else
-            {
+
                 return CurrentDatabase;
             }
+
+            return CurrentDatabase;
         }
 
         if (CurrentDatabase == null)
@@ -98,30 +106,114 @@ public abstract class DatabaseServiceBase : IDisposable
     /// </summary>
     protected virtual LiteDatabase CreateDatabaseConnection(string databasePath)
     {
-        var connectionString = new ConnectionString
-        {
-            Filename = databasePath,
-            Connection = Config.ConnectionType == "Shared" 
-                ? ConnectionType.Shared 
-                : ConnectionType.Direct,
-            Upgrade = true
-        };
+        // In sandbox / restricted environments, file access can fail.
+        // Contract for this method: NEVER throw; always return a usable LiteDatabase.
 
-        // Додати шифрування якщо увімкнено
-        if (Config.UseEncryption)
+        LiteDatabase TryOpen(string? path)
         {
-            var encryptionKey = EncryptionManager.GetDatabaseKey(DatabaseName);
-            connectionString.Password = encryptionKey;
+            var connectionString = new ConnectionString
+            {
+                Filename = path,
+                Connection = Config.ConnectionType == "Shared" ? ConnectionType.Shared : ConnectionType.Direct,
+                Upgrade = true
+            };
+
+            if (Config.UseEncryption)
+            {
+                // Getting master/db key can fail in restricted environments.
+                // Let it bubble to our catch below and we'll recreate/fallback.
+                var encryptionKey = EncryptionManager.GetDatabaseKey(DatabaseName);
+                connectionString.Password = encryptionKey;
+            }
+
+            return new LiteDatabase(connectionString);
         }
 
-        // Створити папку якщо не існує
-        var directory = System.IO.Path.GetDirectoryName(databasePath);
-        if (!string.IsNullOrEmpty(directory))
+        string? SafeGetDirectory(string path)
         {
-            System.IO.Directory.CreateDirectory(directory);
+            try { return System.IO.Path.GetDirectoryName(path); }
+            catch { return null; }
         }
 
-        return new LiteDatabase(connectionString);
+        void SafeEnsureDirectory(string? directory)
+        {
+            if (string.IsNullOrEmpty(directory))
+                return;
+            try { System.IO.Directory.CreateDirectory(directory); }
+            catch { /* ignore */ }
+        }
+
+        void SafeDeleteFile(string path)
+        {
+            try
+            {
+                if (System.IO.File.Exists(path))
+                    System.IO.File.Delete(path);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        // 1) Best-effort: open the intended file.
+        try
+        {
+            SafeEnsureDirectory(SafeGetDirectory(databasePath));
+            return TryOpen(databasePath);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DatabaseServiceBase] Failed to open DB '{DatabaseName}' at '{databasePath}': {ex.GetType().Name}: {ex.Message}");
+        }
+
+        // 2) If opening failed: try recreating the database file and open again.
+        try
+        {
+            try
+            {
+                CurrentDatabase?.Dispose();
+                CurrentDatabase = null;
+            }
+            catch
+            {
+                // ignore
+            }
+
+            SafeDeleteFile(databasePath);
+
+            SafeEnsureDirectory(SafeGetDirectory(databasePath));
+            return TryOpen(databasePath);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DatabaseServiceBase] Failed to recreate DB '{DatabaseName}' at '{databasePath}': {ex.GetType().Name}: {ex.Message}");
+        }
+
+        // 3) Last resort: in-memory database (Filename=null). Keeps app alive even if FS is blocked.
+        try
+        {
+            Console.WriteLine($"[DatabaseServiceBase] Falling back to in-memory DB for '{DatabaseName}'. Data won't persist.");
+            return TryOpen(null);
+        }
+        catch (Exception ex)
+        {
+            // Ultra-last resort: disable encryption and try again in-memory.
+            Console.WriteLine($"[DatabaseServiceBase] In-memory open failed for '{DatabaseName}': {ex.GetType().Name}: {ex.Message}. Retrying without encryption.");
+            try
+            {
+                var original = Config.UseEncryption;
+                Config.UseEncryption = false;
+                try { return TryOpen(null); }
+                finally { Config.UseEncryption = original; }
+            }
+            catch
+            {
+                // If even this fails, throw a deterministic exception (should be extremely rare).
+                // But we still want to avoid a null return.
+                return new LiteDatabase(new ConnectionString { Filename = null, Connection = ConnectionType.Shared });
+            }
+        }
     }
 
     /// <summary>
