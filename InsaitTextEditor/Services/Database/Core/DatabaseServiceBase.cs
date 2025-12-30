@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using LiteDB;
+using InsaitTextEditor.Services;
 
 namespace InsaitTextEditor.Services.Database.Core;
 
@@ -164,7 +165,7 @@ public abstract class DatabaseServiceBase : IDisposable
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[DatabaseServiceBase] Failed to open DB '{DatabaseName}' at '{databasePath}': {ex.GetType().Name}: {ex.Message}");
+            StartupDiagnostics.Error($"Failed to open DB '{DatabaseName}' at '{databasePath}'.", ex);
         }
 
         // 2) If opening failed: try recreating the database file and open again.
@@ -183,23 +184,24 @@ public abstract class DatabaseServiceBase : IDisposable
             SafeDeleteFile(databasePath);
 
             SafeEnsureDirectory(SafeGetDirectory(databasePath));
-            return TryOpen(databasePath);
+            var db = TryOpen(databasePath);
+            StartupDiagnostics.Info($"Recreated DB '{DatabaseName}' at '{databasePath}'.");
+            return db;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[DatabaseServiceBase] Failed to recreate DB '{DatabaseName}' at '{databasePath}': {ex.GetType().Name}: {ex.Message}");
+            StartupDiagnostics.Error($"Failed to recreate DB '{DatabaseName}' at '{databasePath}'.", ex);
         }
 
         // 3) Last resort: in-memory database (Filename=null). Keeps app alive even if FS is blocked.
         try
         {
-            Console.WriteLine($"[DatabaseServiceBase] Falling back to in-memory DB for '{DatabaseName}'. Data won't persist.");
+            StartupDiagnostics.Warn($"Falling back to in-memory DB for '{DatabaseName}'. Data won't persist.");
             return TryOpen(null);
         }
         catch (Exception ex)
         {
-            // Ultra-last resort: disable encryption and try again in-memory.
-            Console.WriteLine($"[DatabaseServiceBase] In-memory open failed for '{DatabaseName}': {ex.GetType().Name}: {ex.Message}. Retrying without encryption.");
+            StartupDiagnostics.Error($"In-memory open failed for '{DatabaseName}'. Retrying without encryption.", ex);
             try
             {
                 var original = Config.UseEncryption;
@@ -209,8 +211,6 @@ public abstract class DatabaseServiceBase : IDisposable
             }
             catch
             {
-                // If even this fails, throw a deterministic exception (should be extremely rare).
-                // But we still want to avoid a null return.
                 return new LiteDatabase(new ConnectionString { Filename = null, Connection = ConnectionType.Shared });
             }
         }

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using InsaitTextEditor.Services;
 
 namespace InsaitTextEditor.Services.Database.Core;
 
@@ -118,18 +119,21 @@ public class DatabaseShardManager
                 var json = File.ReadAllText(metadataPath);
                 return JsonSerializer.Deserialize<ShardMetadata>(json) ?? CreateDefaultMetadata();
             }
-            catch
+            catch (Exception ex)
             {
+                StartupDiagnostics.Error($"Failed to read/parse shard metadata for '{_databaseName}' at '{metadataPath}'. Will recreate.", ex);
+
                 // Corrupt/unreadable metadata shouldn't crash the app.
                 // Keep a best-effort backup and recreate defaults.
                 try
                 {
                     var backup = metadataPath + $".corrupt_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
                     File.Move(metadataPath, backup);
+                    StartupDiagnostics.Info($"Backed up corrupt metadata to '{backup}'.");
                 }
-                catch
+                catch (Exception moveEx)
                 {
-                    // ignore
+                    StartupDiagnostics.Error($"Failed to backup corrupt metadata '{metadataPath}'.", moveEx);
                 }
 
                 return CreateDefaultMetadata();
@@ -162,7 +166,7 @@ public class DatabaseShardManager
         {
             var metadataPath = _config.GetMetadataPath(_databaseName);
             var directory = Path.GetDirectoryName(metadataPath);
-            
+
             if (!string.IsNullOrEmpty(directory))
             {
                 Directory.CreateDirectory(directory);
@@ -176,8 +180,9 @@ public class DatabaseShardManager
             var json = JsonSerializer.Serialize(_metadata, options);
             await File.WriteAllTextAsync(metadataPath, json).ConfigureAwait(false);
         }
-        catch
+        catch (Exception ex)
         {
+            StartupDiagnostics.Error($"Failed to save shard metadata for '{_databaseName}'.", ex);
             // Never crash due to metadata persistence failure.
         }
     }

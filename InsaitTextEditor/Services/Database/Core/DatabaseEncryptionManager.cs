@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using InsaitTextEditor.Services;
 
 namespace InsaitTextEditor.Services.Database.Core;
 
@@ -35,8 +36,8 @@ public class DatabaseEncryptionManager
         }
         catch
         {
-            // Absolute last resort: session-only key. This will break persistence but keeps startup alive.
             _cachedMasterKey = GenerateAesKey();
+            StartupDiagnostics.Warn("Master key path unavailable; using session-only master key (no persistence).");
             return _cachedMasterKey;
         }
 
@@ -47,9 +48,9 @@ public class DatabaseEncryptionManager
             if (!string.IsNullOrEmpty(dir))
                 Directory.CreateDirectory(dir);
         }
-        catch
+        catch (Exception ex)
         {
-            // ignore
+            StartupDiagnostics.Error($"Failed to ensure key directory for '{keyPath}'.", ex);
         }
 
         if (File.Exists(keyPath))
@@ -61,27 +62,30 @@ public class DatabaseEncryptionManager
             }
             catch (Exception ex) when (ex is CryptographicException || ex is UnauthorizedAccessException || ex is IOException)
             {
-                // Store / sandbox / profile issues can make DPAPI or file access fail.
-                // Instead of crashing at launch, move away the old key and regenerate.
+                StartupDiagnostics.Error($"Failed to load/decrypt master key at '{keyPath}'. Will regenerate.", ex);
+
                 try
                 {
                     var backup = keyPath + $".corrupt_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
                     File.Move(keyPath, backup);
+                    StartupDiagnostics.Info($"Backed up corrupt master key to '{backup}'.");
                 }
-                catch
+                catch (Exception moveEx)
                 {
+                    StartupDiagnostics.Error($"Failed to backup corrupt master key '{keyPath}', will try delete.", moveEx);
                     try { File.Delete(keyPath); } catch { /* ignore */ }
                 }
 
                 try
                 {
                     _cachedMasterKey = GenerateAndSaveMasterKey(keyPath);
+                    StartupDiagnostics.Info($"Generated new master key at '{keyPath}'.");
                     return _cachedMasterKey;
                 }
-                catch
+                catch (Exception genEx)
                 {
-                    // Can't persist key -> use session-only key.
                     _cachedMasterKey = GenerateAesKey();
+                    StartupDiagnostics.Error("Failed to persist new master key; using session-only master key (no persistence).", genEx);
                     return _cachedMasterKey;
                 }
             }
@@ -91,10 +95,12 @@ public class DatabaseEncryptionManager
         try
         {
             _cachedMasterKey = GenerateAndSaveMasterKey(keyPath);
+            StartupDiagnostics.Info($"Created master key at '{keyPath}'.");
         }
-        catch
+        catch (Exception ex)
         {
             _cachedMasterKey = GenerateAesKey();
+            StartupDiagnostics.Error("Failed to create master key on disk; using session-only master key (no persistence).", ex);
         }
 
         return _cachedMasterKey;

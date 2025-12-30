@@ -54,6 +54,16 @@ public partial class App : Application
     {
         AvaloniaXamlLoader.Load(this);
 
+        try
+        {
+            StartupDiagnostics.Info("App.Initialize started.");
+            StartupDiagnostics.Info($"Startup log path: %LocalAppData%\\InsaitTextEditor\\Logs\\startup.log (or INSAIT_DATA_ROOT).");
+        }
+        catch
+        {
+            // ignore
+        }
+
         // Store certification/sandbox environments can be stricter about file system, DPAPI, and native DLL loading.
         // Startup must never hard-crash; we'll fall back to a degraded mode if initialization fails.
         try
@@ -111,9 +121,26 @@ public partial class App : Application
             System.Console.WriteLine("[App] Documents service created");
             
             SettingsDb = new SettingsDatabaseService(DatabaseConfig, EncryptionManager);
-            System.Console.WriteLine("[App] Settings service created");
-            
-            System.Console.WriteLine("[App] All database services created successfully!");
+            Console.WriteLine("[App] Settings service created");
+
+            try
+            {
+                StartupSelfCheck.RunDefault(
+                    DatabaseConfig,
+                    EncryptionManager,
+                    ("ChatHistoryDb", () => ChatHistoryDb.InitializeAsync().GetAwaiter().GetResult()),
+                    ("MemoryDb", () => MemoryDb.InitializeAsync().GetAwaiter().GetResult()),
+                    ("ReasoningDb", () => ReasoningDb.InitializeAsync().GetAwaiter().GetResult()),
+                    ("DocumentsDb", () => DocumentsDb.InitializeAsync().GetAwaiter().GetResult()),
+                    ("SettingsDb", () => SettingsDb.InitializeAsync().GetAwaiter().GetResult())
+                );
+            }
+            catch
+            {
+                // ignore
+            }
+
+            Console.WriteLine("[App] All database services created successfully!");
         }
         catch (Exception ex)
         {
@@ -182,6 +209,8 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        try { StartupDiagnostics.Info("OnFrameworkInitializationCompleted started."); } catch { /* ignore */ }
+
         // Warm-up settings storage early (Store/MSIX-safe). Never throws.
         try { SettingsService.Initialize(); } catch { /* ignore */ }
 
