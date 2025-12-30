@@ -9,29 +9,40 @@ namespace InsaitTextEditor.Services.Database.Core;
 public class DatabaseConfig
 {
     /// <summary>
+    /// Optional override for base data directory.
+    /// If set, we store DB/key material under this directory.
+    /// </summary>
+    private static readonly string? DataRootOverride =
+        Environment.GetEnvironmentVariable("INSAIT_DATA_ROOT");
+
+    /// <summary>
+    /// Store-safe default data root (per-user, writable).
+    /// NOTE: Under MSIX/Store, the installation folder is read-only.
+    /// </summary>
+    private static string GetDefaultDataRoot()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(localAppData, "InsaitTextEditor");
+    }
+
+    private static string GetDataRoot()
+    {
+        return string.IsNullOrWhiteSpace(DataRootOverride)
+            ? GetDefaultDataRoot()
+            : DataRootOverride;
+    }
+
+    /// <summary>
     /// Base path to the folder with encrypted databases
     /// </summary>
     public string EncryptedDataPath { get; set; } = Path.Combine(
-        GetExecutableDirectory(), "Data", "Encrypted");
+        GetDataRoot(), "Data", "Encrypted");
 
     /// <summary>
     /// Path to the folder with encryption keys
     /// </summary>
     public string KeysPath { get; set; } = Path.Combine(
-        GetExecutableDirectory(), "Data", "Keys");
-
-    /// <summary>
-    /// Gets the directory where the executable is located
-    /// </summary>
-    private static string GetExecutableDirectory()
-    {
-        var processPath = Environment.ProcessPath;
-        if (!string.IsNullOrEmpty(processPath))
-        {
-            return Path.GetDirectoryName(processPath) ?? AppContext.BaseDirectory;
-        }
-        return AppContext.BaseDirectory;
-    }
+        GetDataRoot(), "Data", "Keys");
 
     /// <summary>
     /// Maximum shard size in bytes (default 1 GB)
@@ -92,15 +103,22 @@ public class DatabaseConfig
     /// </summary>
     public void EnsureDirectoriesExist()
     {
-        Directory.CreateDirectory(EncryptedDataPath);
-        Directory.CreateDirectory(KeysPath);
-        
-        // Subfolders for encrypted data
-        string[] subfolders = { "ChatHistory", "Documents", "Memory", "Reasoning", "Settings" };
-        foreach (var folder in subfolders)
+        try
         {
-            Directory.CreateDirectory(Path.Combine(EncryptedDataPath, folder));
+            Directory.CreateDirectory(EncryptedDataPath);
+            Directory.CreateDirectory(KeysPath);
+
+            // Subfolders for encrypted data
+            string[] subfolders = { "ChatHistory", "Documents", "Memory", "Reasoning", "Settings" };
+            foreach (var folder in subfolders)
+            {
+                Directory.CreateDirectory(Path.Combine(EncryptedDataPath, folder));
+            }
+        }
+        catch
+        {
+            // Never crash during startup if the file system is restricted.
+            // Lower layers will fall back to in-memory DBs.
         }
     }
 }
-

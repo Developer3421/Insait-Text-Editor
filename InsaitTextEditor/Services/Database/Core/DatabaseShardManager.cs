@@ -110,11 +110,30 @@ public class DatabaseShardManager
     private ShardMetadata LoadOrCreateMetadata()
     {
         var metadataPath = _config.GetMetadataPath(_databaseName);
-        
+
         if (File.Exists(metadataPath))
         {
-            var json = File.ReadAllText(metadataPath);
-            return JsonSerializer.Deserialize<ShardMetadata>(json) ?? CreateDefaultMetadata();
+            try
+            {
+                var json = File.ReadAllText(metadataPath);
+                return JsonSerializer.Deserialize<ShardMetadata>(json) ?? CreateDefaultMetadata();
+            }
+            catch
+            {
+                // Corrupt/unreadable metadata shouldn't crash the app.
+                // Keep a best-effort backup and recreate defaults.
+                try
+                {
+                    var backup = metadataPath + $".corrupt_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
+                    File.Move(metadataPath, backup);
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                return CreateDefaultMetadata();
+            }
         }
 
         return CreateDefaultMetadata();
@@ -139,21 +158,28 @@ public class DatabaseShardManager
     /// </summary>
     public async Task SaveMetadataAsync()
     {
-        var metadataPath = _config.GetMetadataPath(_databaseName);
-        var directory = Path.GetDirectoryName(metadataPath);
-        
-        if (!string.IsNullOrEmpty(directory))
+        try
         {
-            Directory.CreateDirectory(directory);
+            var metadataPath = _config.GetMetadataPath(_databaseName);
+            var directory = Path.GetDirectoryName(metadataPath);
+            
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+
+            var json = JsonSerializer.Serialize(_metadata, options);
+            await File.WriteAllTextAsync(metadataPath, json).ConfigureAwait(false);
         }
-
-        var options = new JsonSerializerOptions
+        catch
         {
-            WriteIndented = true
-        };
-
-        var json = JsonSerializer.Serialize(_metadata, options);
-        await File.WriteAllTextAsync(metadataPath, json).ConfigureAwait(false);
+            // Never crash due to metadata persistence failure.
+        }
     }
 
     /// <summary>

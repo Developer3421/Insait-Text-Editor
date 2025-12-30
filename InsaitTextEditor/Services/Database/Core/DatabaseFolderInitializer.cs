@@ -16,21 +16,22 @@ public class DatabaseFolderInitializer
     /// <param name="baseDirectory">Base directory (default - the exe folder)</param>
     public DatabaseFolderInitializer(string? baseDirectory = null)
     {
-        // Use Environment.ProcessPath to get the real path to the exe
-        _baseDirectory = baseDirectory ?? GetExecutableDirectory();
+        // Store-safe default: keep all mutable data under LocalAppData.
+        // The MSIX installation folder is read-only.
+        _baseDirectory = baseDirectory ?? GetWritableDataRoot();
     }
 
     /// <summary>
     /// Gets the directory where the executable is located
     /// </summary>
-    private static string GetExecutableDirectory()
+    private static string GetWritableDataRoot()
     {
-        var processPath = Environment.ProcessPath;
-        if (!string.IsNullOrEmpty(processPath))
-        {
-            return Path.GetDirectoryName(processPath) ?? AppContext.BaseDirectory;
-        }
-        return AppContext.BaseDirectory;
+        var overrideRoot = Environment.GetEnvironmentVariable("INSAIT_DATA_ROOT");
+        if (!string.IsNullOrWhiteSpace(overrideRoot))
+            return overrideRoot;
+
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(localAppData, "InsaitTextEditor");
     }
 
     /// <summary>
@@ -130,6 +131,7 @@ public class DatabaseFolderInitializer
     /// <returns>True if write access is available</returns>
     public bool HasWriteAccess()
     {
+        // This initializer always uses a writable root, but keep a cheap sanity check.
         try
         {
             var testFile = Path.Combine(_baseDirectory, $".write_test_{Guid.NewGuid()}.tmp");

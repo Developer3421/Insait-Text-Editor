@@ -182,6 +182,9 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        // Warm-up settings storage early (Store/MSIX-safe). Never throws.
+        try { SettingsService.Initialize(); } catch { /* ignore */ }
+
         // Best-effort diagnostics (never throws): shows where settings DB is and what language got resolved.
         try { SettingsService.LogStartupLanguageDiagnostics(); } catch { /* ignore */ }
 

@@ -31,8 +31,12 @@ namespace InsaitTextEditor.Services
         /// </summary>
         private static string GetProjectDatabaseDir()
         {
-            var baseDir = GetExecutableDirectory();
-            var dbDir = Path.Combine(baseDir, "Database");
+            var overrideRoot = Environment.GetEnvironmentVariable("INSAIT_DATA_ROOT");
+            var root = string.IsNullOrWhiteSpace(overrideRoot)
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "InsaitTextEditor")
+                : overrideRoot;
+
+            var dbDir = Path.Combine(root, "Database");
             Directory.CreateDirectory(dbDir);
             return dbDir;
         }

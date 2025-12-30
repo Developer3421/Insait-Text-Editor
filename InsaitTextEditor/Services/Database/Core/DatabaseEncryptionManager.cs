@@ -28,33 +28,73 @@ public class DatabaseEncryptionManager
         if (!string.IsNullOrEmpty(_cachedMasterKey))
             return _cachedMasterKey;
 
-        var keyPath = _config.GetMasterKeyPath();
+        string keyPath;
+        try
+        {
+            keyPath = _config.GetMasterKeyPath();
+        }
+        catch
+        {
+            // Absolute last resort: session-only key. This will break persistence but keeps startup alive.
+            _cachedMasterKey = GenerateAesKey();
+            return _cachedMasterKey;
+        }
+
+        // Ensure key directory exists (best-effort)
+        try
+        {
+            var dir = Path.GetDirectoryName(keyPath);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
+        }
+        catch
+        {
+            // ignore
+        }
 
         if (File.Exists(keyPath))
         {
             try
             {
                 _cachedMasterKey = LoadMasterKey(keyPath);
+                return _cachedMasterKey;
             }
             catch (Exception ex) when (ex is CryptographicException || ex is UnauthorizedAccessException || ex is IOException)
             {
                 // Store / sandbox / profile issues can make DPAPI or file access fail.
-                // Instead of crashing at launch, regenerate a new key so the app can start.
+                // Instead of crashing at launch, move away the old key and regenerate.
                 try
                 {
-                    File.Delete(keyPath);
+                    var backup = keyPath + $".corrupt_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
+                    File.Move(keyPath, backup);
                 }
                 catch
                 {
-                    // ignore; we'll attempt to overwrite below (may still fail)
+                    try { File.Delete(keyPath); } catch { /* ignore */ }
                 }
 
-                _cachedMasterKey = GenerateAndSaveMasterKey(keyPath);
+                try
+                {
+                    _cachedMasterKey = GenerateAndSaveMasterKey(keyPath);
+                    return _cachedMasterKey;
+                }
+                catch
+                {
+                    // Can't persist key -> use session-only key.
+                    _cachedMasterKey = GenerateAesKey();
+                    return _cachedMasterKey;
+                }
             }
         }
-        else
+
+        // No key file: generate new.
+        try
         {
             _cachedMasterKey = GenerateAndSaveMasterKey(keyPath);
+        }
+        catch
+        {
+            _cachedMasterKey = GenerateAesKey();
         }
 
         return _cachedMasterKey;
@@ -79,10 +119,10 @@ public class DatabaseEncryptionManager
         var key = GenerateAesKey();
         var keyBytes = Encoding.UTF8.GetBytes(key);
 
-        // Шифрування ключа через Windows DPAPI
+        // Encryption through DPAPI (best-effort)
         var encryptedKey = ProtectData(keyBytes);
 
-        // Зберігаємо зашифрований ключ
+        // Save encrypted key
         File.WriteAllBytes(keyPath, encryptedKey);
 
         return key;

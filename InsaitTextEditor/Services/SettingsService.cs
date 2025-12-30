@@ -12,56 +12,111 @@ public static class SettingsService
     // GDPR / User agreement
     private const int AgreementCurrentVersion = 1;
 
-    private static string GetProjectDatabaseDir()
-    {
-        // Prefer exe-adjacent storage (portable) but fall back to LocalAppData for Store/sandbox.
-        var baseDir = GetExecutableDirectory();
-        var primary = Path.Combine(baseDir, "Database");
+    private const string DbFileName = "settings_v2.litedb";
 
-        try
-        {
-            Directory.CreateDirectory(primary);
-            return primary;
-        }
-        catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
-        {
-            // Store apps often can't write next to the executable.
-            try
-            {
-                var fallbackRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var fallback = Path.Combine(fallbackRoot, "InsaitTextEditor", "Database");
-                Directory.CreateDirectory(fallback);
-                return fallback;
-            }
-            catch
-            {
-                // If even LocalAppData isn't available, keep things alive with BaseDirectory (may still fail later).
-                Console.WriteLine($"[SettingsService] Failed to create settings DB directory: {ex.Message}");
-                return primary;
-            }
-        }
+    private static string GetWritableDataRoot()
+    {
+        var overrideRoot = Environment.GetEnvironmentVariable("INSAIT_DATA_ROOT");
+        if (!string.IsNullOrWhiteSpace(overrideRoot))
+            return overrideRoot;
+
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "InsaitTextEditor");
     }
 
-    private static string GetDbFilePath() => Path.Combine(GetProjectDatabaseDir(), "settings_v2.litedb");
+    private static string GetWritableSettingsDatabaseDir()
+    {
+        // Store/MSIX-safe: NEVER default to exe folder.
+        // If someone wants portable mode, they can explicitly set INSAIT_DATA_ROOT.
+        return Path.Combine(GetWritableDataRoot(), "Database");
+    }
+
+    private static string GetDbFilePath() => Path.Combine(GetWritableSettingsDatabaseDir(), DbFileName);
 
     /// <summary>
-    /// Best-effort DB path logging for diagnostics (never throws).
-    /// If we are running in-memory fallback, this still returns the intended file path.
+    /// Diagnostics helper: returns the intended persistent DB file location.
+    /// Never throws.
     /// </summary>
     public static string GetSettingsDbPathForDiagnostics()
     {
+        try { return GetDbFilePath(); }
+        catch { return "<unavailable>"; }
+    }
+
+    /// <summary>
+    /// Returns legacy (exe-adjacent) DB path that older builds could have used.
+    /// Never throws.
+    /// </summary>
+    public static string GetLegacySettingsDbPathForDiagnostics()
+    {
+        try { return Path.Combine(GetExecutableDirectory(), "Database", DbFileName); }
+        catch { return "<unavailable>"; }
+    }
+
+    /// <summary>
+    /// Best-effort init/warmup.
+    /// Creates writable folders and attempts to migrate legacy settings DB from exe folder.
+    /// Safe to call multiple times; never throws.
+    /// </summary>
+    public static void Initialize()
+    {
         try
         {
-            return GetDbFilePath();
+            EnsureWritableDirectoriesExist();
+            TryMigrateLegacySettingsDb();
+
+            // Touch DB once to catch corruption early, but never crash.
+            using var _ = OpenDb();
         }
         catch
         {
-            return "<unavailable>";
+            // never crash on initialization
+        }
+    }
+
+    private static void EnsureWritableDirectoriesExist()
+    {
+        try
+        {
+            Directory.CreateDirectory(GetWritableSettingsDatabaseDir());
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    private static void TryMigrateLegacySettingsDb()
+    {
+        // Migration rules:
+        // - Only copy if target doesn't exist yet.
+        // - Only copy if legacy exists.
+        // - Never throw.
+        try
+        {
+            var target = GetDbFilePath();
+            if (File.Exists(target))
+                return;
+
+            var legacy = Path.Combine(GetExecutableDirectory(), "Database", DbFileName);
+            if (!File.Exists(legacy))
+                return;
+
+            var targetDir = Path.GetDirectoryName(target);
+            if (!string.IsNullOrEmpty(targetDir))
+                Directory.CreateDirectory(targetDir);
+
+            File.Copy(legacy, target, overwrite: false);
+        }
+        catch
+        {
+            // ignore migration errors
         }
     }
 
     /// <summary>
-    /// Отримує директорію, де знаходиться виконуваний файл
+    /// Gets the directory where the executable is located.
     /// </summary>
     private static string GetExecutableDirectory()
     {
@@ -82,18 +137,43 @@ public static class SettingsService
             return new LiteDatabase(cs);
         }
 
+        string path;
         try
         {
-            var path = GetDbFilePath();
-            var dir = Path.GetDirectoryName(path);
-            if (!string.IsNullOrEmpty(dir))
-                Directory.CreateDirectory(dir);
+            EnsureWritableDirectoriesExist();
+            TryMigrateLegacySettingsDb();
+            path = GetDbFilePath();
+        }
+        catch
+        {
+            return TryOpen(null);
+        }
+
+        try
+        {
             return TryOpen(path);
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[SettingsService] Failed to open settings DB file, using in-memory: {ex.GetType().Name}: {ex.Message}");
-            return TryOpen(null);
+            // Try to recover from corruption by deleting the file and recreating.
+            try
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                return TryOpen(path);
+            }
+            catch
+            {
+                return TryOpen(null);
+            }
         }
     }
 
@@ -194,8 +274,9 @@ public static class SettingsService
         try
         {
             var path = GetSettingsDbPathForDiagnostics();
+            var legacy = GetLegacySettingsDbPathForDiagnostics();
             var lang = LoadLanguage();
-            Console.WriteLine($"[SettingsService] Settings DB path: {path}; default UI language: {lang}");
+            Console.WriteLine($"[SettingsService] Settings DB path: {path}; legacy path: {legacy}; default UI language: {lang}");
         }
         catch
         {
