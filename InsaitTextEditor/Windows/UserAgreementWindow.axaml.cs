@@ -1,4 +1,3 @@
-using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -12,6 +11,8 @@ namespace InsaitTextEditor.Windows;
 public partial class UserAgreementWindow : Window
 {
     public const int CurrentAgreementVersion = 1;
+
+    public bool IsAccepted { get; private set; }
 
     // Public parameterless constructor for runtime XAML loader
     public UserAgreementWindow()
@@ -91,6 +92,7 @@ public partial class UserAgreementWindow : Window
             return;
 
         SettingsService.SetUserAgreementAccepted(CurrentAgreementVersion);
+        IsAccepted = true;
         Close(true);
     }
 
