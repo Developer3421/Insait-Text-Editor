@@ -13,7 +13,7 @@ namespace InsaitTextEditor;
 
 public partial class App : Application
 {
-    // Нові зашифровані бази даних
+    // New encrypted databases
     public static DatabaseConfig DatabaseConfig { get; private set; } = new DatabaseConfig();
     public static DatabaseEncryptionManager EncryptionManager { get; private set; } = null!;
     public static ChatHistoryDatabaseService ChatHistoryDb { get; private set; } = null!;
@@ -22,31 +22,31 @@ public partial class App : Application
     public static DocumentsDatabaseService DocumentsDb { get; private set; } = null!;
     public static SettingsDatabaseService SettingsDb { get; private set; } = null!;
     
-    // Старий DatabaseService (буде видалено пізніше)
+    // Old DatabaseService (will be removed later)
     public static DatabaseService DatabaseService { get; private set; } = new DatabaseService();
     
-    // AI компоненти
+    // AI components
     public static UserInstructionService UserInstructionService { get; private set; } = null!;
     public static GemmaConfig GemmaConfig { get; private set; } = null!;
     public static PromptBuilder PromptBuilder { get; private set; } = null!;
     public static GemmaModelManager GemmaModelManager { get; private set; } = null!;
     public static ConversationStateService ConversationStateService { get; private set; } = null!;
     
-    // Microsoft Agent Framework - ТІЛЬКИ ЦЕ!
+    // Microsoft Agent Framework - ONLY THIS!
     public static MicrosoftAgentsAdapter MicrosoftAgentsAdapter { get; private set; } = null!;
     public static LlamaSharpInferenceEngine InferenceEngine { get; private set; } = null!;
     public static AgentConfig AgentConfig { get; private set; } = null!;
     public static MicrosoftInsaitAgent MicrosoftInsaitAgent { get; private set; } = null!;
     public static AgentService AgentService { get; private set; } = null!;
     
-    // ✅ Reasoning та Memory сервіси
+    // ✅ Reasoning and Memory services
     public static ReasoningService ReasoningService { get; private set; } = null!;
     public static MemoryService MemoryService { get; private set; } = null!;
     
-    // ✅ TabManager для доступу з ChatWindow та інших компонентів
+    // ✅ TabManager for access from ChatWindow and other components
     public static TabManager? TabManager { get; private set; }
     
-    // ✅ Аргументи командного рядка для відкриття файлів
+    // ✅ Command line arguments for opening files
     public static string[]? StartupArgs { get; set; }
 
     public override void Initialize()

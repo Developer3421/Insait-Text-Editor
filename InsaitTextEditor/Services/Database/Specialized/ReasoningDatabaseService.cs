@@ -9,7 +9,7 @@ using LiteDB;
 namespace InsaitTextEditor.Services.Database.Specialized;
 
 /// <summary>
-/// Спеціалізований сервіс для reasoning chains з підтримкою шифрування
+    /// Service for working with reasoning chains database
 /// </summary>
 public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
 {
@@ -26,7 +26,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     {
         var collection = database.GetCollection<ReasoningChain>(CollectionName);
         
-        // Створити індекси
+        /// Create indexes
         collection.EnsureIndex(x => x.ConversationId);
         collection.EnsureIndex(x => x.CreatedAt);
         collection.EnsureIndex(x => x.Status);
@@ -40,7 +40,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Додати новий reasoning chain
+        /// Save reasoning chain
     /// </summary>
     public async Task<Guid> AddChainAsync(ReasoningChain chain)
     {
@@ -52,7 +52,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Зберегти reasoning chain (вставити або оновити)
+        /// Get reasoning chain by conversation ID
     /// </summary>
     public async Task SaveChainAsync(ReasoningChain chain)
     {
@@ -67,7 +67,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Оновити існуючий chain
+        /// Get all chains
     /// </summary>
     public async Task UpdateChainAsync(ReasoningChain chain)
     {
@@ -75,7 +75,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Отримати chain по ID
+        /// Delete chain
     /// </summary>
     public ReasoningChain? GetChainById(Guid chainId)
     {
@@ -83,7 +83,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Отримати chain по ID (async версія)
+        /// Search chains by query
     /// </summary>
     public Task<ReasoningChain?> GetChainByIdAsync(Guid chainId)
     {
@@ -91,7 +91,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Отримати chains для конкретної розмови
+        /// Update chain
     /// </summary>
     public List<ReasoningChain> GetChainsByConversation(Guid conversationId)
     {
@@ -106,7 +106,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Отримати chains для конкретної розмови (async версія)
+        /// Get recent chains
     /// </summary>
     public Task<List<ReasoningChain>> GetChainsByConversationAsync(Guid conversationId)
     {
@@ -114,7 +114,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Отримати останні chains
+        /// Clear all chains
     /// </summary>
     public List<ReasoningChain> GetRecentChains(int limit = 50)
     {
@@ -128,7 +128,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Отримати chains за статусом
+        /// Get chains by status
     /// </summary>
     public List<ReasoningChain> GetChainsByStatus(ChainStatus status)
     {
@@ -143,7 +143,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Оновити статус chain
+        /// Update chain status
     /// </summary>
     public async Task UpdateChainStatusAsync(Guid chainId, ChainStatus status)
     {
@@ -160,7 +160,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Додати крок до chain
+        /// Add step to chain
     /// </summary>
     public async Task AddStepToChainAsync(Guid chainId, ReasoningStep step)
     {
@@ -173,7 +173,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Отримати статистику по reasoning
+        /// Get reasoning statistics
     /// </summary>
     public Dictionary<ChainStatus, int> GetStatusStatistics()
     {

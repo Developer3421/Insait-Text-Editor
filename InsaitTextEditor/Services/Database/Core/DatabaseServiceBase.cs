@@ -6,7 +6,7 @@ using InsaitTextEditor.Services;
 namespace InsaitTextEditor.Services.Database.Core;
 
 /// <summary>
-/// Базовий клас для всіх сервісів баз даних
+    /// Base class for all database services
 /// </summary>
 public abstract class DatabaseServiceBase : IDisposable
 {
@@ -31,36 +31,36 @@ public abstract class DatabaseServiceBase : IDisposable
     }
 
     /// <summary>
-    /// Отримати або створити з'єднання з активною БД
+        /// Get or create connection to active database
     /// </summary>
     protected virtual LiteDatabase GetDatabase()
     {
-        // Автоматично ініціалізувати при першому доступі
+            // Automatically initialize on first access
         if (!_isInitialized)
         {
             _isInitialized = true;
 
-            // Створити базове з'єднання
+            // Create base connection
             if (CurrentDatabase == null)
             {
                 var shardPath = ShardManager.GetActiveShardPath();
                 CurrentDatabase = CreateDatabaseConnection(shardPath);
             }
 
-            // Виконати синхронну ініціалізацію індексів
+            // Execute synchronous index initialization
             try
             {
                 InitializeIndexes(CurrentDatabase);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[DatabaseServiceBase] Помилка ініціалізації індексів: {ex.Message}");
+
             }
         }
 
         if (CurrentDatabase != null && !IsDisposed)
         {
-            // Перевірити чи потрібна ротація
+            // Check if rotation is needed
             if (ShardManager.NeedsRotation())
             {
                 try
@@ -73,7 +73,7 @@ public abstract class DatabaseServiceBase : IDisposable
                 }
                 CurrentDatabase = null;
 
-                // Виконати ротацію
+            // Perform rotation
                 try
                 {
                     var newShardPath = ShardManager.GetActiveShardPath();
@@ -82,7 +82,7 @@ public abstract class DatabaseServiceBase : IDisposable
                 catch (Exception ex)
                 {
                     // CreateDatabaseConnection should never throw, but keep this as an extra guard.
-                    Console.WriteLine($"[DatabaseServiceBase] Помилка ротації: {ex.Message}");
+
                     var shardPath = ShardManager.GetActiveShardPath();
                     CurrentDatabase = CreateDatabaseConnection(shardPath);
                 }
@@ -217,27 +217,27 @@ public abstract class DatabaseServiceBase : IDisposable
     }
 
     /// <summary>
-    /// Синхронна ініціалізація індексів (викликається з GetDatabase)
+        /// Synchronous index initialization (called from GetDatabase)
     /// </summary>
     protected virtual void InitializeIndexes(LiteDatabase database)
     {
-        // За замовчуванням нічого не робити
-        // Підкласи можуть перевизначити для створення індексів
+            // By default do nothing
+            // Subclasses can override to create indexes
     }
 
     /// <summary>
-    /// Ініціалізувати БД (створити індекси, налаштування тощо)
+        /// Initialize database (create indexes, settings, etc.)
     /// </summary>
     public virtual Task InitializeAsync()
     {
-        // Виконати синхронну ініціалізацію
+            // Execute synchronous initialization
         var db = GetDatabase();
         InitializeIndexes(db);
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Отримати кількість записів в активному шарді
+        /// Get number of records in active shard
     /// </summary>
     protected virtual long GetRecordCount(string collectionName)
     {

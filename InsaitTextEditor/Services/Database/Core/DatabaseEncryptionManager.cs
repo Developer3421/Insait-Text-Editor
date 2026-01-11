@@ -7,8 +7,8 @@ using InsaitTextEditor.Services;
 namespace InsaitTextEditor.Services.Database.Core;
 
 /// <summary>
-/// Менеджер для управління ключами шифрування AES-256
-/// Використовує Windows DPAPI для захисту ключів
+    /// Manager for managing AES-256 encryption keys
+    /// Uses Windows DPAPI to protect keys
 /// </summary>
 public class DatabaseEncryptionManager
 {
@@ -22,7 +22,7 @@ public class DatabaseEncryptionManager
     }
 
     /// <summary>
-    /// Отримати або створити майстер-ключ
+        /// Get or create master key
     /// </summary>
     public string GetOrCreateMasterKey()
     {
@@ -107,7 +107,7 @@ public class DatabaseEncryptionManager
     }
 
     /// <summary>
-    /// Генерувати новий AES-256 ключ
+        /// Generate new AES-256 key
     /// </summary>
     private string GenerateAesKey()
     {
@@ -118,7 +118,7 @@ public class DatabaseEncryptionManager
     }
 
     /// <summary>
-    /// Генерувати та зберегти майстер-ключ
+        /// Generate and save master key
     /// </summary>
     private string GenerateAndSaveMasterKey(string keyPath)
     {
@@ -135,7 +135,7 @@ public class DatabaseEncryptionManager
     }
 
     /// <summary>
-    /// Завантажити майстер-ключ з файлу
+        /// Load master key from file
     /// </summary>
     private string LoadMasterKey(string keyPath)
     {
@@ -145,13 +145,13 @@ public class DatabaseEncryptionManager
     }
 
     /// <summary>
-    /// Отримати похідний ключ для конкретної БД
+        /// Get derived key for specific database
     /// </summary>
     public string GetDatabaseKey(string databaseName)
     {
         var masterKey = GetOrCreateMasterKey();
         
-        // Використовуємо PBKDF2 для генерації похідного ключа
+            // Use PBKDF2 to generate derived key
         var derivedKey = Rfc2898DeriveBytes.Pbkdf2(
             masterKey,
             Encoding.UTF8.GetBytes(databaseName),
@@ -164,7 +164,7 @@ public class DatabaseEncryptionManager
     }
 
     /// <summary>
-    /// Захистити дані через Windows DPAPI
+        /// Protect data via Windows DPAPI
     /// </summary>
     private byte[] ProtectData(byte[] data)
     {
@@ -181,7 +181,7 @@ public class DatabaseEncryptionManager
     }
 
     /// <summary>
-    /// Розшифрувати дані через Windows DPAPI
+        /// Decrypt data via Windows DPAPI
     /// </summary>
     private byte[] UnprotectData(byte[] encryptedData)
     {

@@ -9,7 +9,7 @@ using LiteDB;
 namespace InsaitTextEditor.Services.Database.Specialized;
 
 /// <summary>
-/// Спеціалізований сервіс для історії чату з підтримкою шифрування та шардінгу
+    /// Service for working with chat history database
 /// </summary>
 public class ChatHistoryDatabaseService : EncryptedDatabaseService<ChatMessage>
 {
@@ -26,7 +26,7 @@ public class ChatHistoryDatabaseService : EncryptedDatabaseService<ChatMessage>
     {
         var collection = database.GetCollection<ChatMessage>(CollectionName);
         
-        // Створити індекси для швидкого пошуку
+        /// Create indexes for fast search
         collection.EnsureIndex(x => x.Timestamp);
         collection.EnsureIndex(x => x.Sender);
     }
@@ -39,7 +39,7 @@ public class ChatHistoryDatabaseService : EncryptedDatabaseService<ChatMessage>
     }
 
     /// <summary>
-    /// Отримати останні повідомлення
+        /// Add chat message
     /// </summary>
     public List<ChatMessage> GetRecentMessages(int limit = 100)
     {
@@ -53,7 +53,7 @@ public class ChatHistoryDatabaseService : EncryptedDatabaseService<ChatMessage>
     }
 
     /// <summary>
-    /// Пошук повідомлень за текстом
+        /// Get recent messages
     /// </summary>
     public List<ChatMessage> SearchMessages(string searchText, int limit = 50)
     {
@@ -70,7 +70,7 @@ public class ChatHistoryDatabaseService : EncryptedDatabaseService<ChatMessage>
     }
 
     /// <summary>
-    /// Отримати повідомлення за період
+        /// Get all messages
     /// </summary>
     public List<ChatMessage> GetMessagesByPeriod(DateTime startDate, DateTime endDate)
     {
@@ -85,7 +85,7 @@ public class ChatHistoryDatabaseService : EncryptedDatabaseService<ChatMessage>
     }
 
     /// <summary>
-    /// Отримати статистику по відправнику
+        /// Clear history
     /// </summary>
     public Dictionary<string, int> GetMessageCountBySender()
     {
@@ -97,7 +97,7 @@ public class ChatHistoryDatabaseService : EncryptedDatabaseService<ChatMessage>
     }
 
     /// <summary>
-    /// Додати повідомлення до чату
+        /// Find messages by content
     /// </summary>
     public async Task<int> AddMessageAsync(string sender, string content)
     {

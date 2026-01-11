@@ -9,7 +9,7 @@ using LiteDB;
 namespace InsaitTextEditor.Services.Database.Specialized;
 
 /// <summary>
-/// Клас для збереження налаштувань з ідентифікатором
+/// Class for storing settings with identifier
 /// </summary>
 public class SettingsRecord
 {
@@ -18,8 +18,8 @@ public class SettingsRecord
 }
 
 /// <summary>
-/// Спеціалізований сервіс для налаштувань з підтримкою шифрування
-/// Не використовує ротацію (одна БД)
+/// Specialized service for settings with encryption support
+/// Does not use rotation (single DB)
 /// </summary>
 public class SettingsDatabaseService : DatabaseServiceBase
 {
@@ -36,11 +36,11 @@ public class SettingsDatabaseService : DatabaseServiceBase
     {
         var collection = database.GetCollection<SettingsRecord>(CollectionName);
         
-        // Перевірити чи є налаштування за замовчуванням
+        // Check if default settings exist
         var defaultSettings = collection.FindById(new BsonValue("default"));
         if (defaultSettings == null)
         {
-            // Створити налаштування за замовчуванням
+            // Create default settings
             defaultSettings = new SettingsRecord
             {
                 Id = "default",
@@ -58,7 +58,7 @@ public class SettingsDatabaseService : DatabaseServiceBase
     }
 
     /// <summary>
-    /// Зберегти налаштування
+    /// Save settings
     /// </summary>
     public async Task SaveSettingsAsync(EditorSettings settings, string settingsId = "default")
     {
@@ -85,7 +85,7 @@ public class SettingsDatabaseService : DatabaseServiceBase
     }
 
     /// <summary>
-    /// Завантажити налаштування
+    /// Load settings
     /// </summary>
     public EditorSettings? LoadSettings(string settingsId = "default")
     {
@@ -96,7 +96,7 @@ public class SettingsDatabaseService : DatabaseServiceBase
     }
 
     /// <summary>
-    /// Отримати всі налаштування
+    /// Get all settings
     /// </summary>
     public List<EditorSettings> GetAllSettings()
     {
@@ -106,12 +106,12 @@ public class SettingsDatabaseService : DatabaseServiceBase
     }
 
     /// <summary>
-    /// Видалити налаштування
+    /// Delete settings
     /// </summary>
     public async Task<bool> DeleteSettingsAsync(string settingsId)
     {
         if (settingsId == "default")
-            return false; // Не можна видалити налаштування за замовчуванням
+            return false; // Cannot delete default settings
 
         var db = GetDatabase();
         var collection = db.GetCollection<SettingsRecord>(CollectionName);
@@ -122,30 +122,30 @@ public class SettingsDatabaseService : DatabaseServiceBase
     }
 
     /// <summary>
-    /// Перевизначаємо GetDatabase щоб не використовувати ротацію
+    /// Override GetDatabase to not use rotation
     /// </summary>
     protected override LiteDatabase GetDatabase()
     {
-        // Автоматично ініціалізувати при першому доступі
+        // Automatically initialize on first access
         if (!_isInitialized)
         {
             _isInitialized = true;
             
-            // Для Settings використовуємо один файл без ротації
+            // For Settings use single file without rotation
             var settingsPath = System.IO.Path.Combine(
                 Config.GetDatabasePath(DatabaseName), 
                 "settings.litedb");
             
             CurrentDatabase = CreateDatabaseConnection(settingsPath);
             
-            // Виконати синхронну ініціалізацію індексів
+            // Execute synchronous index initialization
             try
             {
                 InitializeIndexes(CurrentDatabase);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[SettingsDatabaseService] Помилка ініціалізації: {ex.Message}");
+                Console.WriteLine($"[SettingsDatabaseService] Initialization error: {ex.Message}");
             }
             
             return CurrentDatabase;

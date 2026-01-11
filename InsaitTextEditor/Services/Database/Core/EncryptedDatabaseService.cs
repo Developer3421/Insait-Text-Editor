@@ -7,7 +7,7 @@ using LiteDB;
 namespace InsaitTextEditor.Services.Database.Core;
 
 /// <summary>
-/// Розширений сервіс БД з підтримкою запитів по всіх шардах
+    /// Extended database service with support for queries across all shards
 /// </summary>
 public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T : class
 {
@@ -22,7 +22,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Отримати колекцію з активної БД
+        /// Get collection from active database
     /// </summary>
     protected virtual ILiteCollection<T> GetCollection()
     {
@@ -31,7 +31,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Додати запис
+        /// Add record
     /// </summary>
     public virtual async Task<BsonValue> InsertAsync(T entity)
     {
@@ -42,7 +42,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Додати багато записів
+        /// Add many records
     /// </summary>
     public virtual async Task<int> InsertBulkAsync(IEnumerable<T> entities)
     {
@@ -53,7 +53,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Оновити запис
+        /// Update record
     /// </summary>
     public virtual async Task<bool> UpdateAsync(T entity)
     {
@@ -64,7 +64,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Видалити запис по ID
+        /// Delete record by ID
     /// </summary>
     public virtual async Task<bool> DeleteAsync(BsonValue id)
     {
@@ -75,7 +75,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Знайти запис по ID
+        /// Get record by ID
     /// </summary>
     public virtual T? FindById(BsonValue id)
     {
@@ -84,7 +84,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Знайти всі записи
+        /// Get all records from active database
     /// </summary>
     public virtual IEnumerable<T> FindAll()
     {
@@ -93,7 +93,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Виконати запит
+        /// Execute custom query
     /// </summary>
     public virtual IEnumerable<T> Query(Func<ILiteCollection<T>, IEnumerable<T>> queryFunc)
     {
@@ -102,7 +102,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Отримати загальну кількість записів
+        /// Get all records from all shards (for search across all history)
     /// </summary>
     public virtual long Count()
     {
@@ -111,7 +111,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Виконати запит по всіх шардах (від нових до старих)
+        /// Execute query across all shards (from newest to oldest)
     /// </summary>
     protected virtual List<T> QueryAllShards(Func<ILiteCollection<T>, IEnumerable<T>> queryFunc, int? limit = null)
     {
@@ -149,7 +149,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
             }
             catch (Exception ex)
             {
-                // Логування помилки (опціонально)
+                // Error logging (optional)
                 Console.WriteLine($"Error querying shard {shard.FileName}: {ex.Message}");
             }
         }
@@ -158,7 +158,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Отримати загальну кількість по всіх шардах
+        /// Get total count across all shards
     /// </summary>
     public virtual long GetTotalCountAllShards()
     {

@@ -41,7 +41,7 @@ public class DocumentTabViewModel : INotifyPropertyChanged
         set => SetField(ref _documentText, value);
     }
 
-    // Стан активності вкладки
+    // Tab active state
     public bool IsActive
     {
         get => _isActive;
@@ -49,14 +49,14 @@ public class DocumentTabViewModel : INotifyPropertyChanged
         {
             if (SetField(ref _isActive, value))
             {
-                // Повідомляємо про зміну похідних властивостей для XAML-прив’язок
+                // Notify about changes to derived properties for XAML bindings
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TabBorderBrush)));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TabBorderThickness)));
             }
         }
     }
 
-    // Похідні властивості для стилізації (без тригерів)
+    // Derived properties for styling (without triggers)
     public IBrush TabBorderBrush => IsActive ? new SolidColorBrush(Color.Parse("#FF8C00")) : Brushes.Transparent;
     public Thickness TabBorderThickness => IsActive ? new Thickness(2) : new Thickness(0);
 

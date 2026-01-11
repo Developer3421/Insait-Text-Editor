@@ -36,7 +36,7 @@ public class TabManager : INotifyPropertyChanged
     private readonly Dictionary<Guid, EventHandler<RoutedEventArgs>> _closeHandlers = new();
     private readonly Dictionary<Guid, EventHandler<PointerPressedEventArgs>> _activateHandlers = new();
 
-    // Шлях файлу, прив’язаний до вкладки (null, якщо документ ще не збережено)
+    // File path bound to tab (null if document is not yet saved)
     private readonly Dictionary<Guid, string?> _filePaths = new();
 
     private Guid? _activeTabId;
@@ -85,7 +85,7 @@ public class TabManager : INotifyPropertyChanged
         }
     }
 
-    // Поточний режим фону сторінки для активної вкладки
+    // Current page background mode for active tab
     public PageBackgroundMode CurrentBackgroundMode
     {
         get
@@ -255,7 +255,7 @@ public class TabManager : INotifyPropertyChanged
             ws.Italic = s.Italic;
         }
 
-        // Оновити активні прив’язки
+        // Update active bindings
         OnPropertyChanged(nameof(CurrentLineBrush));
         OnPropertyChanged(nameof(CurrentTextBrush));
         OnPropertyChanged(nameof(CurrentFontSize));
@@ -284,7 +284,7 @@ public class TabManager : INotifyPropertyChanged
     public event EventHandler<DocumentTabViewModel>? TabAdded;
     public event EventHandler<DocumentTabViewModel>? TabRemoved;
     public event EventHandler<Guid>? TabClosed;
-    public event EventHandler? ResetCaretRequested; // Нова подія для скидання каретки
+    public event EventHandler? ResetCaretRequested; // New event for caret reset
 
     public TabManager(TabsPanel tabsPanel)
     {
@@ -343,7 +343,7 @@ public class TabManager : INotifyPropertyChanged
         _tabs.Add(vm);
         _tabsPanel.AddTab(view);
 
-        // новий документ ще без шляху
+            // new document still without path
         _filePaths[id] = null;
 
         SetActiveTab(id);
@@ -411,7 +411,7 @@ public class TabManager : INotifyPropertyChanged
         return true;
     }
 
-    // Активувати вкладку
+    // Activate tab
     public void SetActiveTab(Guid id)
     {
         if (!_tabIndex.ContainsKey(id))
@@ -447,11 +447,11 @@ public class TabManager : INotifyPropertyChanged
     public string GetCurrentText() => CurrentText;
 
     // --------------------------
-    // ФАЙЛОВІ ОПЕРАЦІЇ: OPEN / SAVE / SAVE AS
+    // FILE OPERATIONS: OPEN / SAVE / SAVE AS
     // --------------------------
 
     /// <summary>
-    /// Відкрити файл за шляхом (для SaveToFileTool)
+    /// Open file by path (for SaveToFileTool)
     /// </summary>
     private const long MaxTextFileBytes = 100L * 1024 * 1024; // 100 MB
 
@@ -486,7 +486,7 @@ public class TabManager : INotifyPropertyChanged
         {
             var text = await ReadTextFileStreamingAsync(filePath);
 
-            // Створити нову вкладку
+            // Create new tab
             CreateNewTab();
 
             if (ActiveTabId is null)
@@ -648,7 +648,7 @@ public class TabManager : INotifyPropertyChanged
         }
         catch
         {
-            // TODO: опційно показати повідомлення користувачу
+            // TODO: optionally show message to user
         }
     }
 
@@ -714,8 +714,8 @@ public class TabManager : INotifyPropertyChanged
         => _filePaths[id] = path;
 
     /// <summary>
-    /// Отримати поточний текст документа для вкладки за її ідентифікатором.
-    /// Повертає порожній рядок, якщо ідентифікатор невідомий.
+    /// Get current document text for tab by its identifier.
+    /// Returns empty string if identifier is unknown.
     /// </summary>
     public string GetText(Guid id)
         => _workspaces.TryGetValue(id, out var ws) ? ws.Text : string.Empty;

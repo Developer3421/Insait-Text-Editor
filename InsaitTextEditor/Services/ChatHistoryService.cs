@@ -15,7 +15,7 @@ namespace InsaitTextEditor.Services
         public ChatHistoryService(ChatHistoryDatabaseService chatDb)
         {
             _chatDb = chatDb;
-            // НЕ викликаємо InitializeAsync тут - воно викличеться автоматично при першому доступі
+            // DO NOT call InitializeAsync here - it will be called automatically on first access
         }
 
         public void AddMessage(ChatMessage message)
@@ -24,14 +24,14 @@ namespace InsaitTextEditor.Services
         }
 
         /// <summary>
-        /// Додати повідомлення агента з інформацією про використані інструменти
+        /// Add agent message with information about tools used
         /// </summary>
         public void AddAgentMessage(AgentMessage message)
         {
-            // Для agent messages використовуємо Query метод для доступу до колекції
+            // For agent messages use Query method to access collection
             _chatDb.Query(collection =>
             {
-                // Отримуємо базу даних через reflection або додамо метод в базовий клас
+                // Get database through reflection or add method to base class
                 var db = (LiteDatabase)collection.GetType()
                     .GetProperty("Database", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
                     .GetValue(collection)!;

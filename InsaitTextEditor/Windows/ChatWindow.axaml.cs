@@ -58,11 +58,11 @@ public partial class ChatWindow : Window
         _historyService = new ChatHistoryService(App.ChatHistoryDb);
         _instructionService = new UserInstructionService(App.DatabaseService);
         
-        // ✅ Ініціалізація Reasoning та Memory сервісів з глобальних екземплярів
+        // ✅ Initialize Reasoning and Memory services from global instances
         _reasoningService = App.ReasoningService;
         _memoryService = App.MemoryService;
         
-        // Підписка на зміни колекції для автоскролу та підписки на PropertyChanged для оновлень контенту
+        // Subscribe to collection changes for auto-scroll and subscribe to PropertyChanged for content updates
         _messages.CollectionChanged += Messages_CollectionChanged;
 
         var messagesList = this.FindControl<ItemsControl>("MessagesList");
@@ -78,13 +78,13 @@ public partial class ChatWindow : Window
             }
         }
 
-        // Завантажити назву моделі асинхронно (не блокуємо UI)
+        // Load model name asynchronously (do not block UI)
         _ = LoadModelInfoAsync();
 
         this.Opened += ChatWindow_Opened;
         LocalizationService.LanguageChanged += OnLanguageChanged;
 
-        // Встановити локалізовані підписи для кнопок Send/Stop при створенні вікна
+        // Set localized labels for Send/Stop buttons when creating window
         var sendBtn = this.FindControl<Button>("SendButton");
         var stopBtn = this.FindControl<Button>("StopButton");
         if (sendBtn != null)
@@ -92,7 +92,7 @@ public partial class ChatWindow : Window
         if (stopBtn != null)
             stopBtn.Content = LocalizationService.GetString("Key.Stop", "Stop");
 
-        // Встановити локалізований Watermark для поля вводу
+        // Set localized Watermark for input field
         var inputBox = this.FindControl<TextBox>("InputTextBox");
         if (inputBox != null)
             inputBox.Watermark = LocalizationService.GetString("Key.TypeMessage", "Type your message here...");
@@ -107,7 +107,7 @@ public partial class ChatWindow : Window
 
     private async void ChatWindow_Opened(object? sender, EventArgs e)
     {
-        // ✅ Ініціалізувати SaveToFileTool з контекстом цього вікна
+        // ✅ Initialize SaveToFileTool with this window context
         if (App.TabManager != null)
         {
             var saveToFileTool = new SaveToFileTool(
@@ -115,7 +115,7 @@ public partial class ChatWindow : Window
                 ownerWindow: this
             );
             
-            // Встановити інструмент в агента
+            // Set tool in agent
             App.MicrosoftInsaitAgent.SetSaveToFileTool(saveToFileTool);
             
             Console.WriteLine("[ChatWindow] ✅ SaveToFileTool підключено до агента");
@@ -125,7 +125,7 @@ public partial class ChatWindow : Window
             Console.WriteLine("[ChatWindow] ⚠️ TabManager не доступний, SaveToFileTool не підключено");
         }
 
-        // Завантажити історію
+        // Load history
         try
         {
             var recent = _historyService.GetRecent(100);
@@ -136,7 +136,7 @@ public partial class ChatWindow : Window
                 _messages.Add(msg);
             }
             
-            // ✅ Додати welcome message якщо історія порожня
+            // ✅ Add welcome message if history is empty
             if (_messages.Count == 0)
             {
                 var welcomeMsg = new ChatMessage
@@ -164,7 +164,7 @@ public partial class ChatWindow : Window
             AddSystemMessage($"❌ Помилка завантаже��ня історії: {ex.Message}");
         }
         
-        // Фонова ініціалізація моделі через Microsoft.Agents
+        // Background model initialization via Microsoft.Agents
         _ = Task.Run(async () =>
         {
             try
@@ -265,19 +265,19 @@ public partial class ChatWindow : Window
     }
 
     /// <summary>
-    /// Валідація вхідного тексту перед відправкою
+    /// Input text validation before sending
     /// </summary>
     private bool ValidateInput(string input)
     {
-        // Перевірка на null або порожній рядок
+        // Check for null or empty string
         if (string.IsNullOrEmpty(input))
             return false;
         
-        // Перевірка на рядок лише з пробілами, табуляціями та переносами
+        // Check for string with only spaces, tabs and newlines
         if (string.IsNullOrWhiteSpace(input))
             return false;
         
-        // Перевірка на рядок лише з переносами рядків
+        // Check for string with only newlines
         var cleanText = input.Replace("\r", "").Replace("\n", "").Trim();
         if (string.IsNullOrEmpty(cleanText))
             return false;
@@ -294,22 +294,22 @@ public partial class ChatWindow : Window
         
         if (input == null || sendBtn == null) return;
 
-        // Отримати текст БЕЗ trim для валідації
+        // Get text WITHOUT trim for validation
         var rawText = input.Text ?? string.Empty;
         
-        // Професійна валідація
+        // Professional validation
         if (!ValidateInput(rawText))
         {
-            // Очистити поле вводу якщо користувач намагався відправити порожнє повідомлення
+            // Clear input field if user tried to send empty message
             input.Text = string.Empty;
             input.Focus();
             return;
         }
 
-        // Тільки після валідації робимо trim для відправки
+        // Only after validation do trim for sending
         var text = rawText.Trim();
 
-        // Додаткова перевірка на довжину
+        // Additional length check
         if (text.Length == 0)
         {
             input.Text = string.Empty;
@@ -319,7 +319,7 @@ public partial class ChatWindow : Window
 
         LogUI($"📨 Відправлення повідомлення через Microsoft.Agents: {text.Length} символів");
 
-        // Додати повідомленн�� користувача
+        // Add user message
         var userMsg = new ChatMessage
         {
             Sender = "User",
@@ -333,31 +333,31 @@ public partial class ChatWindow : Window
         input.Text = string.Empty;
         await ScrollToBottom();
 
-        // Показати typing indicator
+        // Show typing indicator
         if (typingIndicator != null)
             typingIndicator.IsVisible = true;
 
-        // UI стан
+        // UI state
         sendBtn.IsEnabled = false;
         input.IsEnabled = false;
         if (stopBtn != null)
             stopBtn.IsVisible = true;
 
-        // Скасувати попередню генерацію якщо вона була
+        // Cancel previous generation if it was running
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
         try
         {
-            // Перевірити налаштування reasoning та memory
+            // Check reasoning and memory settings
             var instruction = _instructionService.GetUserInstruction();
             var reasoningEnabled = instruction?.ReasoningEnabled ?? false;
             var memoryEnabled = instruction?.GlobalMemoryEnabled ?? false;
 
             LogUI($"🧠 Reasoning Mode: {reasoningEnabled}, 💾 Global Memory: {memoryEnabled}");
 
-            // ======== GLOBAL MEMORY: Завантажити релевантні факти ========
+            // ======== GLOBAL MEMORY: Load relevant facts ========
             if (memoryEnabled && _memoryService != null)
             {
                 try
@@ -366,7 +366,7 @@ public partial class ChatWindow : Window
                     if (relevantFacts.Any())
                     {
                         LogUI($"💾 Знайдено {relevantFacts.Count} релевантних фактів з пам'яті");
-                        // TODO: В майбутньому можна передати memoryContext в промпт
+                        // TODO: In the future we can pass memoryContext to prompt
                     }
                 }
                 catch (Exception ex)
@@ -375,7 +375,7 @@ public partial class ChatWindow : Window
                 }
             }
 
-            // ======== REASONING MODE: Покрокове виконання зі streaming ========
+            // ======== REASONING MODE: Step-by-step execution with streaming ========
             if (reasoningEnabled && _reasoningService != null)
             {
                 try
@@ -384,7 +384,7 @@ public partial class ChatWindow : Window
                     
                     var conversationId = Guid.NewGuid();
                     
-                    // Словник для відстеження повідомлень кроків
+                    // Dictionary to track step messages
                     var stepMessages = new Dictionary<int, ChatMessage>();
                     ChatMessage? statusMsg = null;
                     ChatMessage? finalAnswerMsg = null;
@@ -397,7 +397,7 @@ public partial class ChatWindow : Window
                             switch (reasoningEvent.Type)
                             {
                                 case ReasoningEventType.StatusUpdate:
-                                    // Показати статус як системне повідомлення
+                                    // Show status as system message
                                     if (statusMsg != null)
                                     {
                                         _messages.Remove(statusMsg);
@@ -412,7 +412,7 @@ public partial class ChatWindow : Window
                                     break;
                                 
                                 case ReasoningEventType.StepStart:
-                                    // Створити нове повідомлення для кроку з локалізацією
+                                    // Create new message for step with localization
                                     var stepTitle = string.Format(
                                         LocalizationService.GetString("Key.ReasoningStep", "Крок {0}"),
                                         reasoningEvent.StepNumber
@@ -426,7 +426,7 @@ public partial class ChatWindow : Window
                                     _messages.Add(stepMsg);
                                     stepMessages[reasoningEvent.StepNumber] = stepMsg;
                                     
-                                    // Видалити попереднє статусне повідомлення
+                                    // Remove previous status message
                                     if (statusMsg != null)
                                     {
                                         _messages.Remove(statusMsg);
@@ -435,7 +435,7 @@ public partial class ChatWindow : Window
                                     break;
                                 
                                 case ReasoningEventType.StepContent:
-                                    // Додати токен до контенту кроку
+                                    // Add token to step content
                                     if (stepMessages.TryGetValue(reasoningEvent.StepNumber, out var currentStepMsg))
                                     {
                                         currentStepMsg.Content += reasoningEvent.Content;
@@ -443,15 +443,15 @@ public partial class ChatWindow : Window
                                     break;
                                 
                                 case ReasoningEventType.StepComplete:
-                                    // Крок завершено - нічого не робимо, просто логуємо
+                                    // Step complete - do nothing, just log
                                     LogUI(reasoningEvent.Message ?? "");
                                     break;
                                 
                                 case ReasoningEventType.FinalAnswerContent:
-                                    // Створити повідомлення фінальної відповіді якщо ще немає
+                                    // Create final answer message if not yet created
                                     if (finalAnswerMsg == null)
                                     {
-                                        // Видалити статусне повідомлення якщо є
+                                        // Remove status message if present
                                         if (statusMsg != null)
                                         {
                                             _messages.Remove(statusMsg);
@@ -466,26 +466,26 @@ public partial class ChatWindow : Window
                                         };
                                         _messages.Add(finalAnswerMsg);
                                         
-                                        // Приховати typing indicator
+                                        // Hide typing indicator
                                         if (typingIndicator != null)
                                             typingIndicator.IsVisible = false;
                                     }
                                     
-                                    // Додати токен до фінальної відповіді
+                                    // Add token to final answer
                                     finalAnswerMsg.Content += reasoningEvent.Content;
                                     break;
                                 
                                 case ReasoningEventType.Complete:
-                                    // Reasoning завершено з локалізацією
+                                    // Reasoning complete with localization
                                     LogUI(LocalizationService.GetString("Key.ReasoningComplete", "🎉 Reasoning завершено!"));
                                     
-                                    // Зберегти фінальну відповідь в історію
+                                    // Save final answer to history
                                     if (finalAnswerMsg != null && !string.IsNullOrWhiteSpace(finalAnswerMsg.Content))
                                     {
                                         _agentService.AddAssistantMessage(finalAnswerMsg.Content);
                                     }
                                     
-                                    // Видалити статусне повідомлення якщо залишилось
+                                    // Remove status message if it remains
                                     if (statusMsg != null)
                                     {
                                         _messages.Remove(statusMsg);
@@ -493,13 +493,13 @@ public partial class ChatWindow : Window
                                     break;
                                 
                                 case ReasoningEventType.Error:
-                                    // Помилка
+                                    // Error
                                     AddSystemMessage(reasoningEvent.Message ?? "Unknown error");
                                     break;
                             }
                         });
                         
-                        // Оновлювати скрол після кожної події
+                        // Update scroll after each event
                         await ScrollToBottom();
                     }
                 }
@@ -510,15 +510,15 @@ public partial class ChatWindow : Window
                     {
                         AddSystemMessage($"❌ Помилка reasoning: {ex.Message}");
                     });
-                    // Fallback до звичайного режиму
+                    // Fallback to standard mode
                     reasoningEnabled = false;
                 }
             }
 
-            // ======== STANDARD MODE: Звичайна відповідь ========
+            // ======== STANDARD MODE: Standard response ========
             if (!reasoningEnabled)
             {
-                // Створити placeholder для відповіді асистента
+                // Create placeholder for assistant response
                 var assistantMsg = new ChatMessage
                 {
                     Sender = AssistantConfig.Name,
@@ -526,14 +526,14 @@ public partial class ChatWindow : Window
                     Timestamp = DateTime.UtcNow
                 };
                 
-                // Приховати typing indicator перед додаванням по��ідомлення
+                // Hide typing indicator before adding message
                 if (typingIndicator != null)
                     typingIndicator.IsVisible = false;
                 
                 _messages.Add(assistantMsg);
                 await ScrollToBottom();
 
-                // Streaming відповідь з throttling та фільтрацією
+                // Streaming response with throttling and filtering
                 var responseBuilder = new StringBuilder();
                 var lastUpdateTime = DateTime.UtcNow;
                 const int updateIntervalMs = 50;
@@ -543,13 +543,13 @@ public partial class ChatWindow : Window
 
                 await foreach (var token in _agentService.GetResponseStreamAsync(text, _cts.Token))
                 {
-                    // Пропускаємо пусті токени та токени тільки з пробілами
+                    // Skip empty tokens and tokens with only spaces
                     if (string.IsNullOrWhiteSpace(token))
                     {
                         continue;
                     }
 
-                    // 🛡️ Фільтр технічних токенів
+                    // 🛡️ Technical tokens filter
                     if (ContainsTechnicalTokens(token))
                     {
                         LogUI($"🚫 Технічний токен в UI, СТОП відображення");
@@ -559,12 +559,12 @@ public partial class ChatWindow : Window
                     responseBuilder.Append(token);
                     hasAnyContent = true;
                     
-                    // Throttle UI updates (кожні 50ms)
+                    // Throttle UI updates (every 50ms)
                     if ((DateTime.UtcNow - lastUpdateTime).TotalMilliseconds >= updateIntervalMs)
                     {
                         var currentContent = responseBuilder.ToString();
                         
-                        // Перевірка чи не закінчилась відповідь (зайві пробіли в кінці можуть означати кінець)
+                        // Check if response ended (extra spaces at the end may indicate end)
                         if (currentContent.EndsWith("  ") || currentContent.EndsWith("\n\n\n"))
                         {
                             LogUI($"🛑 Виявлено кінець відповіді (множинні пробіли/переноси)");
@@ -580,12 +580,12 @@ public partial class ChatWindow : Window
                     }
                 }
 
-                // Фінальне оновлення з очищенням зайвих пробілів
+                // Final update with cleanup of extra spaces
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     var finalContent = responseBuilder.ToString().Trim();
                     
-                    // Видалити множинні порожні рядки (залишити максимум 2 переноси підряд)
+                    // Remove multiple empty lines (leave maximum 2 newlines in a row)
                     while (finalContent.Contains("\n\n\n"))
                     {
                         finalContent = finalContent.Replace("\n\n\n", "\n\n");
@@ -593,7 +593,7 @@ public partial class ChatWindow : Window
                     
                     assistantMsg.Content = finalContent;
                     
-                    // Гарантувати скролінг після фінального оновлення контенту
+                    // Guarantee scrolling after final content update
                     var scrollViewer = this.FindControl<ScrollViewer>("MessagesScroll");
                     scrollViewer?.ScrollToEnd();
                 });
@@ -611,15 +611,15 @@ public partial class ChatWindow : Window
                 }
             }
 
-            // ======== GLOBAL MEMORY: Зберегти нові факти ========
+            // ======== GLOBAL MEMORY: Save new facts ========
             if (memoryEnabled && _memoryService != null)
             {
                 try
                 {
-                    // Зберегти факти з повідомлення користувача
+                    // Save facts from user message
                     await _memoryService.ProcessMessageAsync(userMsg);
                     
-                    // Зберегти факти з відповіді асистента
+                    // Save facts from assistant response
                     var lastAssistantMsg = _messages.LastOrDefault(m => m.Sender == AssistantConfig.Name);
                     if (lastAssistantMsg != null)
                     {
@@ -661,10 +661,10 @@ public partial class ChatWindow : Window
         }
         finally
         {
-            // Відновити UI
+            // Restore UI
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                // ✅ Гарантовано приховати typing indicator
+                // ✅ Guaranteed to hide typing indicator
                 if (typingIndicator != null)
                     typingIndicator.IsVisible = false;
                 
@@ -678,7 +678,7 @@ public partial class ChatWindow : Window
     }
 
     /// <summary>
-    /// Перевірка чи текст містить технічні токени (додатковий захист на UI рівні)
+    /// Check if text contains technical tokens (additional UI-level protection)
     /// </summary>
     private bool ContainsTechnicalTokens(string text)
     {
@@ -787,12 +787,12 @@ public partial class ChatWindow : Window
     {
         if (_lastUserMessage != null)
         {
-            // Видалити останнє повідомлення асистента
+            // Remove last assistant message
             var lastAssistant = _messages.LastOrDefault(m => m.Sender == AssistantConfig.Name);
             if (lastAssistant != null)
                 _messages.Remove(lastAssistant);
 
-            // Повторно відправити останнє повідомлення корис��увача
+            // Resend last user message
             var input = this.FindControl<TextBox>("InputTextBox");
             if (input != null)
             {
@@ -813,18 +813,18 @@ public partial class ChatWindow : Window
     // ==== Helper Methods === =
 
     /// <summary>
-    /// Додати системне повідомлення з перевіркою на дублікати
+    /// Add system message with duplicate check
     /// </summary>
     private void AddSystemMessage(string message)
     {
-        // ✅ Перевірка на дублікат
+        // ✅ Duplicate check
         var lastMsg = _messages.LastOrDefault();
         if (lastMsg != null && 
             lastMsg.Sender == "System" && 
             lastMsg.Content == message &&
             (DateTime.UtcNow - lastMsg.Timestamp).TotalSeconds < 5)
         {
-            // Не додавати дублікат якщо останнє системне повідомлення таке ж і було менше 5 секунд тому
+            // Don't add duplicate if last system message is the same and was less than 5 seconds ago
             LogUI($"⚠️ Запобігли дублікату системного повідомлення: {message}");
             return;
         }
@@ -879,7 +879,7 @@ public partial class ChatWindow : Window
 
     private void Messages_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        // Підписуємося на PropertyChanged для нових повідомлень, відписуємось для видалених
+        // Subscribe to PropertyChanged for new messages, unsubscribe for removed ones
         if (e.NewItems != null)
         {
             foreach (var item in e.NewItems)
@@ -902,7 +902,7 @@ public partial class ChatWindow : Window
             }
         }
 
-        // ✅ ПОКРАЩЕНИЙ автоскрол при додаванні/видаленні повідомлень
+        // ✅ IMPROVED auto-scroll when adding/removing messages
         _ = Dispatcher.UIThread.InvokeAsync(async () =>
         {
             await ScrollToBottom();
@@ -911,15 +911,15 @@ public partial class ChatWindow : Window
 
     private void ChatMessage_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // Коли оновлюється Content у повідомленні, прокручуємо вниз
+        // When Content updates in message, scroll down
         if (sender is ChatMessage cm && e.PropertyName == nameof(ChatMessage.Content))
         {
-            // Переконаємось, що це повідомлення асистента або системи
+            // Make sure this is assistant or system message
             if (cm.Sender == AssistantConfig.Name || cm.Sender == "Assistant" || cm.Sender == "System")
             {
                 _ = Dispatcher.UIThread.InvokeAsync(async () =>
                 {
-                    // ✅ ПОКРАЩЕНИЙ скрол: збільшена затримка для streaming оновлень
+                    // ✅ IMPROVED scroll: increased delay for streaming updates
                     await ScrollToBottom();
                 }, DispatcherPriority.Render);
             }
@@ -930,16 +930,16 @@ public partial class ChatWindow : Window
     {
         try
         {
-            // Попробувати отримати інформацію через AgentService (він обгортка над GemmaModelManager)
+            // Try to get information via AgentService (it's a wrapper over GemmaModelManager)
             var info = App.AgentService != null ? await App.AgentService.GetModelInfoAsync() : null;
             if (info != null && !string.IsNullOrEmpty(info.Name))
             {
-                // Наприклад: "Gemma-3-1B (2bit)" або просто ім'я
+                // For example: "Gemma-3-1B (2bit)" or just name
                 CurrentModelDisplayName = info.Name;
             }
             else if (App.GemmaConfig != null)
             {
-                // Fallback: взяти ім'я моделі з шляху файлу (без розширення)
+                // Fallback: take model name from file path (without extension)
                 var path = App.GemmaConfig.ModelPath ?? string.Empty;
                 CurrentModelDisplayName = string.IsNullOrEmpty(path) ? string.Empty : Path.GetFileNameWithoutExtension(path);
             }
@@ -951,7 +951,7 @@ public partial class ChatWindow : Window
         catch (Exception ex)
         {
             Console.WriteLine($"[ChatWindow] ⚠️ Не вдалося отримати ModelInfo: {ex.Message}");
-            // Нічого критичного — залишити порожнім
+            // Nothing critical — leave empty
             CurrentModelDisplayName = string.Empty;
         }
     }
@@ -963,7 +963,7 @@ public partial class ChatWindow : Window
             msg.RefreshLocalized();
         }
 
-        // Оновити локалізовані підписи кнопок при зміні мови
+        // Update localized labels for buttons when language changes
         var sendBtn = this.FindControl<Button>("SendButton");
         var stopBtn = this.FindControl<Button>("StopButton");
         if (sendBtn != null)
@@ -971,7 +971,7 @@ public partial class ChatWindow : Window
         if (stopBtn != null)
             stopBtn.Content = LocalizationService.GetString("Key.Stop", "Stop");
 
-        // Оновити Watermark поля вводу
+        // Update input field Watermark
         var inputBox = this.FindControl<TextBox>("InputTextBox");
         if (inputBox != null)
             inputBox.Watermark = LocalizationService.GetString("Key.TypeMessage", "Type your message here...");
@@ -979,7 +979,7 @@ public partial class ChatWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
-        // Відписатися від події при закритті вікна
+        // Unsubscribe from event when window closes
         LocalizationService.LanguageChanged -= OnLanguageChanged;
         base.OnClosed(e);
     }

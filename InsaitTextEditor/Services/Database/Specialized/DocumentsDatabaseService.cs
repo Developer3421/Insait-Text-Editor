@@ -9,7 +9,7 @@ using LiteDB;
 namespace InsaitTextEditor.Services.Database.Specialized;
 
 /// <summary>
-/// Спеціалізований сервіс для документів користувача з підтримкою шифрування
+    /// Service for working with documents database
 /// </summary>
 public class DocumentsDatabaseService : EncryptedDatabaseService<Workspace>
 {
@@ -26,7 +26,7 @@ public class DocumentsDatabaseService : EncryptedDatabaseService<Workspace>
     {
         var collection = database.GetCollection<Workspace>(CollectionName);
         
-        // Створити індекс по ID
+        /// Create indexes
         collection.EnsureIndex(x => x.Id);
     }
 
@@ -38,7 +38,7 @@ public class DocumentsDatabaseService : EncryptedDatabaseService<Workspace>
     }
 
     /// <summary>
-    /// Зберегти workspace
+        /// Save document
     /// </summary>
     public async Task SaveWorkspaceAsync(Workspace workspace)
     {
@@ -54,11 +54,11 @@ public class DocumentsDatabaseService : EncryptedDatabaseService<Workspace>
     }
 
     /// <summary>
-    /// Отримати workspace по ID
+        /// Get document by ID
     /// </summary>
     public Workspace? GetWorkspace(Guid id)
     {
-        // Шукаємо по всіх шардах
+        /// Get all documents
         var result = QueryAllShards(collection =>
         {
             return collection
@@ -72,7 +72,7 @@ public class DocumentsDatabaseService : EncryptedDatabaseService<Workspace>
     }
 
     /// <summary>
-    /// Отримати всі workspaces
+        /// Search documents by title
     /// </summary>
     public List<Workspace> GetAllWorkspaces()
     {
@@ -80,7 +80,7 @@ public class DocumentsDatabaseService : EncryptedDatabaseService<Workspace>
     }
 
     /// <summary>
-    /// Видалити workspace
+        /// Update document
     /// </summary>
     public async Task<bool> DeleteWorkspaceAsync(Guid id)
     {
@@ -88,7 +88,7 @@ public class DocumentsDatabaseService : EncryptedDatabaseService<Workspace>
     }
 
     /// <summary>
-    /// Отримати кількість документів
+        /// Delete document
     /// </summary>
     public long GetWorkspaceCount()
     {

@@ -31,7 +31,7 @@ public partial class InstructionEditorWindow : Window
     {
         var instruction = _instructionService.GetUserInstruction();
         
-        // Отримуємо посилання на контроли один раз
+        // Get control references once
         var textBox = this.FindControl<TextBox>("InstructionTextBox");
         var contextSize = this.FindControl<NumericUpDown>("ContextSizeInput");
         var maxTokens = this.FindControl<NumericUpDown>("MaxTokensInput");
@@ -50,7 +50,7 @@ public partial class InstructionEditorWindow : Window
             if (maxTokens != null)
                 maxTokens.Value = instruction.MaxTokens;
             
-            // Завантажуємо вибрану мову AI
+            // Load selected AI language
             if (aiLangCombo != null)
             {
                 var aiLang = instruction.AiLanguage ?? "";
@@ -65,7 +65,7 @@ public partial class InstructionEditorWindow : Window
                 }
             }
             
-            // Завантажуємо стан Reasoning Mode та Global Memory
+            // Load Reasoning Mode and Global Memory state
             if (reasoningToggle != null)
                 reasoningToggle.IsChecked = instruction.ReasoningEnabled;
                 
@@ -73,13 +73,13 @@ public partial class InstructionEditorWindow : Window
                 memoryToggle.IsChecked = instruction.GlobalMemoryEnabled;
         }
         
-        // Підписуємося на зміни Global Memory toggle для відображення статистики
+        // Subscribe to Global Memory toggle changes to display statistics
         if (memoryToggle != null)
         {
             memoryToggle.IsCheckedChanged += OnGlobalMemoryToggleChanged;
         }
         
-        // Оновлюємо статистику пам'яті при відкритті вікна
+        // Update memory statistics when window opens
         _ = UpdateMemoryStats();
     }
 
@@ -100,7 +100,7 @@ public partial class InstructionEditorWindow : Window
             
             try
             {
-                // Отримуємо статистику з MemoryService
+                // Get statistics from MemoryService
                 var memoryService = new Services.Memory.MemoryService(
                     App.MemoryDb, 
                     App.InferenceEngine);
@@ -130,7 +130,7 @@ public partial class InstructionEditorWindow : Window
         var reasoningToggle = this.FindControl<ToggleSwitch>("ReasoningModeToggle");
         var memoryToggle = this.FindControl<ToggleSwitch>("GlobalMemoryToggle");
 
-        // Отримуємо вибрану мову AI
+        // Get selected AI language
         string? selectedAiLang = null;
         if (aiLangCombo?.SelectedItem is ComboBoxItem selectedItem)
         {
