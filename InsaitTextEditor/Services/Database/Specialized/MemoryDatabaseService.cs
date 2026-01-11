@@ -9,7 +9,7 @@ using LiteDB;
 namespace InsaitTextEditor.Services.Database.Specialized;
 
 /// <summary>
-/// Спеціалізований сервіс для глобальної пам'яті з підтримкою шифрування
+    /// Service for working with memory facts database
 /// </summary>
 public class MemoryDatabaseService : EncryptedDatabaseService<MemoryFact>
 {
@@ -26,7 +26,7 @@ public class MemoryDatabaseService : EncryptedDatabaseService<MemoryFact>
     {
         var collection = database.GetCollection<MemoryFact>(CollectionName);
         
-        // Створити індекси
+        /// Create indexes for fast search
         collection.EnsureIndex(x => x.Type);
         collection.EnsureIndex(x => x.ExtractedAt);
         collection.EnsureIndex(x => x.IsActive);
@@ -41,7 +41,7 @@ public class MemoryDatabaseService : EncryptedDatabaseService<MemoryFact>
     }
 
     /// <summary>
-    /// Додати новий факт
+        /// Add memory fact
     /// </summary>
     public async Task<Guid> AddFactAsync(MemoryFact fact)
     {
@@ -54,7 +54,7 @@ public class MemoryDatabaseService : EncryptedDatabaseService<MemoryFact>
     }
 
     /// <summary>
-    /// Отримати активні факти
+        /// Get all facts
     /// </summary>
     public List<MemoryFact> GetActiveFacts()
     {
@@ -69,7 +69,7 @@ public class MemoryDatabaseService : EncryptedDatabaseService<MemoryFact>
     }
 
     /// <summary>
-    /// Отримати факти за типом
+        /// Get facts by category
     /// </summary>
     public List<MemoryFact> GetFactsByType(FactType type)
     {
@@ -84,7 +84,7 @@ public class MemoryDatabaseService : EncryptedDatabaseService<MemoryFact>
     }
 
     /// <summary>
-    /// Пошук фактів за текстом
+        /// Search facts by text
     /// </summary>
     public List<MemoryFact> SearchFacts(string searchText)
     {
@@ -101,7 +101,7 @@ public class MemoryDatabaseService : EncryptedDatabaseService<MemoryFact>
     }
 
     /// <summary>
-    /// Отримати факти за тегами
+        /// Delete fact
     /// </summary>
     public List<MemoryFact> GetFactsByTags(List<string> tags)
     {
@@ -116,7 +116,7 @@ public class MemoryDatabaseService : EncryptedDatabaseService<MemoryFact>
     }
 
     /// <summary>
-    /// Оновити час доступу до факту
+        /// Update fact
     /// </summary>
     public async Task UpdateLastAccessedAsync(Guid factId)
     {
@@ -129,7 +129,7 @@ public class MemoryDatabaseService : EncryptedDatabaseService<MemoryFact>
     }
 
     /// <summary>
-    /// Деактивувати факт
+        /// Clear all facts
     /// </summary>
     public async Task DeactivateFactAsync(Guid factId)
     {

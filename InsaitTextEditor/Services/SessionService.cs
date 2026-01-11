@@ -12,22 +12,22 @@ using InsaitTextEditor.Models;
 namespace InsaitTextEditor.Services
 {
     /// <summary>
-    /// Відповідає за збереження/відновлення сесії у вбудованій NoSQL-базі даних (LiteDB) з простою системою міграцій.
-    /// - Формат зберігання: LiteDB файл із колекціями 'meta' (версія схеми) та 'session' (знімок сесії).
-    /// - Розташування файлу: Database всередині каталогу запуску (AppContext.BaseDirectory), придатно для кінцевого користувача.
-    /// - Автозбереження: періодично зберігає сесію та записує зміни у файли з відомими шляхами.
+    /// Responsible for saving/restoring session in embedded NoSQL database (LiteDB) with simple migration system.
+    /// - Storage format: LiteDB file with 'meta' (schema version) and 'session' (session snapshot) collections.
+    /// - File location: Database inside startup directory (AppContext.BaseDirectory), suitable for end user.
+    /// - Auto-save: periodically saves session and writes changes to files with known paths.
     /// </summary>
     public sealed class SessionService
     {
         private const int CurrentVersion = 3;
         private const string Header = "# InsaitTextEditor Session DB";
-        private const string CipherKey = "InsaitTextEditorKey1"; // простий ключ для XOR
+        private const string CipherKey = "InsaitTextEditorKey1"; // simple key for XOR
 
         private Timer? _autoSaveTimer;
         private readonly Dictionary<string, string> _lastWrittenByPath = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
-        /// Повний шлях до каталогу Database у каталозі запуску застосунку (поруч із .exe).
+        /// Full path to Database directory in application startup directory (next to .exe).
         /// </summary>
         private static string GetProjectDatabaseDir()
         {
@@ -44,7 +44,7 @@ namespace InsaitTextEditor.Services
         private static string GetDbFilePath() => Path.Combine(GetProjectDatabaseDir(), "session.litedb");
 
         /// <summary>
-        /// Отримує директорію, де знаходиться виконуваний файл
+        /// Gets directory where executable file is located
         /// </summary>
         private static string GetExecutableDirectory()
         {
@@ -78,7 +78,7 @@ namespace InsaitTextEditor.Services
             var ver = schema.ContainsKey("version") && schema["version"].IsInt32 ? schema["version"].AsInt32 : 0;
             if (ver < CurrentVersion)
             {
-                // Міграції за потреби: наразі схема проста, тож достатньо оновити номер версії
+                // Migrations if needed: currently schema is simple, so updating version number is sufficient
                 schema["version"] = CurrentVersion;
                 meta.Upsert(schema);
             }
@@ -89,10 +89,10 @@ namespace InsaitTextEditor.Services
             try
             {
                 var candidates = new List<string>();
-                // Старий текстовий файл у каталозі запуску
+                // Old text file in startup directory
                 candidates.Add(Path.Combine(GetProjectDatabaseDir(), "session.db"));
 
-                // Старий текстовий файл у корені проєкту (логіка раніше піднімалася на 3 рівні)
+                // Old text file in project root (logic used to go up 3 levels)
                 var dir = GetExecutableDirectory();
                 for (int i = 0; i < 3; i++)
                 {
@@ -113,20 +113,20 @@ namespace InsaitTextEditor.Services
             catch { /* ignore */ }
         }
 
-        // ----------------- ПУБЛІЧНИЙ API -----------------
+        // ----------------- PUBLIC API -----------------
 
         /// <summary>
-        /// Спроба відновити сесію. Якщо даних немає або сталася помилка — створює одну порожню вкладку.
+        /// Attempt to restore session. If no data or error occurred — creates one empty tab.
         /// </summary>
         public async Task RestoreOrInitAsync(TabManager tm)
         {
             SessionSnapshot? snap = null;
             try { snap = await TryLoadAsync().ConfigureAwait(false); }
-            catch { /* ігноруємо, ініціалізуємо порожню сесію */ }
+            catch { /* ignore, initialize empty session */ }
 
             await Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                // Закриваємо наявні вкладки, щоби уникнути дублювання
+                // Close existing tabs to avoid duplication
                 var existing = tm.Tabs.ToList();
                 foreach (var vm in existing)
                     tm.CloseTab(vm.Id);
@@ -142,7 +142,7 @@ namespace InsaitTextEditor.Services
         }
 
         /// <summary>
-        /// Безпечно зберігає поточну сесію (використовується на закритті додатку).
+        /// Safely saves current session (used on application close).
         /// </summary>
         public async Task SaveSafeAsync(TabManager tm)
         {
@@ -151,11 +151,11 @@ namespace InsaitTextEditor.Services
                 var snap = await CaptureOnUiAsync(tm).ConfigureAwait(false);
                 await SaveAsync(snap).ConfigureAwait(false);
             }
-            catch { /* ковтаємо помилки збереження на виході */ }
+            catch { /* swallow save errors on exit */ }
         }
 
         /// <summary>
-        /// Запускає автозбереження з указаним інтервалом.
+        /// Starts auto-save with specified interval.
         /// </summary>
         public void StartAutoSave(TabManager tm, TimeSpan interval)
         {
@@ -165,7 +165,7 @@ namespace InsaitTextEditor.Services
         }
 
         /// <summary>
-        /// Зупиняє автозбереження.
+        /// Stops auto-save.
         /// </summary>
         public void StopAutoSave()
         {
@@ -173,7 +173,7 @@ namespace InsaitTextEditor.Services
             _autoSaveTimer = null;
         }
 
-        // ----------------- ОСНОВНА ЛОГІКА -----------------
+        // ----------------- CORE LOGIC -----------------
 
         private async Task AutoSaveTick(TabManager tm)
         {
@@ -185,12 +185,12 @@ namespace InsaitTextEditor.Services
             }
             catch
             {
-                // Навмисно ігноруємо помилки автозбереження, щоб не падати під час набору тексту
+                // Intentionally ignore auto-save errors to avoid crashing during typing
             }
         }
 
         /// <summary>
-        /// Формує знімок сесії на UI-потоці (безпечно читає ObservableCollection Tabs).
+        /// Forms session snapshot on UI thread (safely reads ObservableCollection Tabs).
         /// </summary>
         private static async Task<SessionSnapshot> CaptureOnUiAsync(TabManager tm)
         {
@@ -198,7 +198,7 @@ namespace InsaitTextEditor.Services
         }
 
         /// <summary>
-        /// Зняти знімок сесії: порядок вкладок, активний індекс, заголовки, шлях і вміст для «безіменних».
+        /// Take session snapshot: tab order, active index, titles, path and content for "unnamed".
         /// </summary>
         public static SessionSnapshot Capture(TabManager tm)
         {
@@ -232,11 +232,11 @@ namespace InsaitTextEditor.Services
         }
 
         /// <summary>
-        /// Відновити вкладки з наданого знімка.
+        /// Restore tabs from provided snapshot.
         /// </summary>
         public async Task RestoreAsync(TabManager tm, SessionSnapshot ss)
         {
-            // Відновлюємо у тому ж порядку
+            // Restore in same order
             for (int i = 0; i < ss.Tabs.Count; i++)
             {
                 var t = ss.Tabs[i];
@@ -272,8 +272,8 @@ namespace InsaitTextEditor.Services
         }
 
         /// <summary>
-        /// Зберігає знімок сесії у файл Database/session.db (у проєктній папці).
-        /// Формат — простий текст для зручного перегляду у редакторі; значення маскуються XOR+Base64.
+        /// Saves session snapshot to Database/session.db file (in project folder).
+        /// Format — simple text for easy viewing in editor; values are masked with XOR+Base64.
         /// </summary>
         public Task SaveAsync(SessionSnapshot ss)
         {
@@ -312,7 +312,7 @@ namespace InsaitTextEditor.Services
         }
 
         /// <summary>
-        /// Пробує завантажити знімок сесії з LiteDB. Повертає null, якщо БД або документ відсутні/некоректні.
+        /// Tries to load session snapshot from LiteDB. Returns null if DB or document is missing/invalid.
         /// </summary>
         public Task<SessionSnapshot?> TryLoadAsync()
         {
@@ -387,11 +387,11 @@ namespace InsaitTextEditor.Services
         }
 
         /// <summary>
-        /// Записує у файли вкладки з відомим шляхом лише якщо вміст відрізняється від останнього записаного.
+        /// Writes to files tabs with known path only if content differs from last written.
         /// </summary>
         private async Task SaveTabsToFilesIfNeededAsync(TabManager tm)
         {
-            // 1) Зняти знімок потрібних даних на UI-потоці (список шляхів і текстів)
+            // 1) Take snapshot of needed data on UI thread (list of paths and texts)
             var items = await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var list = new List<(string path, string text)>();
@@ -405,14 +405,14 @@ namespace InsaitTextEditor.Services
                 return list;
             });
 
-            // 2) Писати у файли вже поза UI-потоком
+            // 2) Write to files already outside UI thread
             foreach (var item in items)
             {
                 var path = item.path;
                 var text = item.text;
 
                 if (_lastWrittenByPath.TryGetValue(path, out var cached) && string.Equals(cached, text, StringComparison.Ordinal))
-                    continue; // немає змін
+                    continue; // no changes
 
                 try
                 {
@@ -422,14 +422,14 @@ namespace InsaitTextEditor.Services
                 }
                 catch
                 {
-                    // ігноруємо помилки файлової системи під час автозбереження
+                    // ignore file system errors during auto-save
                 }
             }
         }
     }
 
     /// <summary>
-    /// Знімок усієї сесії (версія, активний індекс, список вкладок).
+    /// Session snapshot (version, active index, list of tabs).
     /// </summary>
     public sealed class SessionSnapshot
     {

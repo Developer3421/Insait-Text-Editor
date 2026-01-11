@@ -787,7 +787,7 @@ public partial class ChatWindow : Window
     {
         if (_lastUserMessage != null)
         {
-            // Видалити останнє повідомлення асистента
+            // Remove last assistant message
             var lastAssistant = _messages.LastOrDefault(m => m.Sender == AssistantConfig.Name);
             if (lastAssistant != null)
                 _messages.Remove(lastAssistant);

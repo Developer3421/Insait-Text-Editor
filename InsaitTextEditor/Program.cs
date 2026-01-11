@@ -11,7 +11,7 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        // Зберігаємо аргументи для відкриття файлів
+            // Save arguments for opening files
         App.StartupArgs = args;
         
         BuildAvaloniaApp()

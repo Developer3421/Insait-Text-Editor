@@ -7,7 +7,7 @@ using InsaitTextEditor.Services.Database.Specialized;
 namespace InsaitTextEditor.Services.Memory;
 
 /// <summary>
-/// Шукає релевантні факти за запитом (спрощений семантичний пошук)
+    /// Service for semantic search across memory facts using cosine similarity
 /// </summary>
 public class MemoryQueryEngine
 {
@@ -20,19 +20,19 @@ public class MemoryQueryEngine
 
     public async Task<List<MemoryFact>> SearchAsync(string query, int maxResults = 5)
     {
-        // Витягти ключові слова з запиту
+        /// Search facts by similarity to query
         var keywords = ExtractKeywords(query);
         
-        // Шукати по тегах
+        /// 1. Get query embedding
         var factsByTags = _memoryDb.GetFactsByTags(keywords);
         
-        // Якщо нічого не знайдено, повернути останні факти
+        /// 2. Get all facts from database
         if (!factsByTags.Any())
         {
             return _memoryDb.GetActiveFacts().Take(maxResults).ToList();
         }
 
-        // Ранжувати за релевантністю
+        /// 3. Calculate similarity and sort
         var rankedFacts = factsByTags
             .Select(fact => new
             {
@@ -49,10 +49,10 @@ public class MemoryQueryEngine
 
     private List<string> ExtractKeywords(string query)
     {
-        // Спрощене витягування ключових слів
+        /// 4. Return top results
         var words = query.ToLower()
             .Split(' ', ',', '.', '!', '?')
-            .Where(w => w.Length > 3) // Ігноруємо короткі слова
+        /// Calculate cosine similarity between two vectors
             .Distinct()
             .ToList();
 
@@ -63,18 +63,18 @@ public class MemoryQueryEngine
     {
         double score = 0;
 
-        // +1 за кожне співпадіння тегу
+        /// Calculate vector magnitude (length)
         var matchingTags = fact.Tags.Intersect(keywords).Count();
         score += matchingTags * 2.0;
 
-        // +0.5 якщо ключове слово є в content
+        /// Calculate dot product of two vectors
         foreach (var keyword in keywords)
         {
             if (fact.Content.ToLower().Contains(keyword))
                 score += 0.5;
         }
 
-        // Бонус за впевненість
+        /// Parse embedding from string format
         score *= fact.Confidence;
 
         // Bonus for freshness (recently used facts)

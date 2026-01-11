@@ -467,7 +467,7 @@ public class MicrosoftInsaitAgent(
     /// </summary>
     private string GenerateFileNameFromPrompt(string prompt)
     {
-        // "Напиши вірш про осінь" → "Вірш_про_осінь.txt"
+        // "Write a poem about autumn" → "Poem_about_autumn.txt"
         var cleaned = prompt
             .ToLower()
             .Replace("напиши ", "")
@@ -496,7 +496,7 @@ public class MicrosoftInsaitAgent(
         
         // If empty, use a timestamp
         if (string.IsNullOrWhiteSpace(cleaned))
-            cleaned = "Відповідь";
+            cleaned = "Response";
         
         return $"{cleaned}_{DateTime.Now:HHmmss}";
     }
