@@ -15,12 +15,12 @@ namespace InsaitTextEditor
     {
         private readonly TabManager _tabManager;
         private readonly SessionService _sessionService = new();
-        private bool _isClosingSafely; // прапорець для безпечного закриття (щоб уникнути рекурсії)
+        private bool _isClosingSafely; // flag for safe closing (to avoid recursion)
 
-        // ✅ Публічний доступ до TabManager для App та інших компонентів
+        // ✅ Public access to TabManager for App and other components
         public TabManager TabManager => _tabManager;
         
-        // ✅ Файл для відкриття після ініціалізації (з аргументів командного рядка)
+        // ✅ File to open after initialization (from command line arguments)
         private string? _startupFilePath;
 
         public MainWindow() : this(false, null)
@@ -32,10 +32,10 @@ namespace InsaitTextEditor
         }
 
         /// <summary>
-        /// Конструктор з параметром для відкриття файлу при запуску
+        /// Constructor with parameter to open a file on startup
         /// </summary>
-        /// <param name="suppressInit">Не створювати початкову вкладку</param>
-        /// <param name="startupFilePath">Шлях до файлу для відкриття (з командного рядка)</param>
+        /// <param name="suppressInit">Do not create initial tab</param>
+        /// <param name="startupFilePath">Path to file to open (from command line)</param>
 public MainWindow(bool suppressInit, string? startupFilePath)
         {
             var suppressInit1 = suppressInit;
@@ -88,10 +88,10 @@ public MainWindow(bool suppressInit, string? startupFilePath)
                 }
             };
 
-            // Відновлення сесії після відкриття вікна та запуск автозбереження
+            // Restore session after window opens and start auto-save
             this.Opened += async (_, _) =>
             {
-                // Якщо є файл для відкриття з командного рядка - не відновлюємо сесію
+                // If there is a file to open from command line - do not restore session
                 bool hasStartupFile = !string.IsNullOrWhiteSpace(_startupFilePath) && 
                                       System.IO.File.Exists(_startupFilePath);
                 
@@ -100,14 +100,14 @@ public MainWindow(bool suppressInit, string? startupFilePath)
                     await _sessionService.RestoreOrInitAsync(_tabManager);
                 }
                 
-                // ✅ Відкрити файл з командного рядка (якщо є)
+                // ✅ Open file from command line (if present)
                 if (hasStartupFile)
                 {
                     System.Console.WriteLine($"[MainWindow] ✅ Відкриваю файл з командного рядка: {_startupFilePath}");
                     await _tabManager.OpenFileAsync(_startupFilePath!);
                 }
 
-                // Для спеціально створеного вікна (Alt+T) не відновлюємо сесію і не створюємо зайві вкладки
+                // For specially created window (Alt+T) do not restore session and do not create extra tabs
                 _sessionService.StartAutoSave(_tabManager, TimeSpan.FromSeconds(10));
                 
                 // Focus editor on startup (without moving caret)
@@ -118,13 +118,13 @@ public MainWindow(bool suppressInit, string? startupFilePath)
                 }
             };
 
-            // Збереження сесії під час закриття (очікуємо запис перед виходом)
+            // Save session during closing (wait for write before exit)
             this.Closing += async (_, e) =>
             {
                 if (_isClosingSafely)
-                    return; // вже на фінальній фазі — дозволяємо закриття
+                    return; // already in final phase — allow closing
 
-                // Скасовуємо перше закриття, щоб мати час на await
+                // Cancel first closing to have time for await
                 e.Cancel = true;
                 try
                 {
@@ -134,7 +134,7 @@ public MainWindow(bool suppressInit, string? startupFilePath)
                 }
                 finally
                 {
-                    // Після завершення збереження — закриваємо ще раз (тепер без відміни)
+                    // After saving is complete — close again (now without cancellation)
                     Close();
                 }
             };
@@ -157,7 +157,7 @@ public MainWindow(bool suppressInit, string? startupFilePath)
             }, Avalonia.Threading.DispatcherPriority.Background);
         }
 
-        // Керування вікном
+        // Window management
         private void Minimize_Click(object? sender, RoutedEventArgs e)
             => WindowState = WindowState.Minimized;
 
@@ -168,23 +168,23 @@ public MainWindow(bool suppressInit, string? startupFilePath)
 
         private async void Close_Click(object? sender, RoutedEventArgs e)
         {
-            // Явне збереження перед закриттям з кнопки: зупиняємо автозбереження і чекаємо фінальний запис
+            // Explicit save before closing from button: stop auto-save and wait for final write
             _sessionService.StopAutoSave();
             await _sessionService.SaveSafeAsync(_tabManager);
 
-            // Позначаємо, що це «безпечне» закриття, аби обробник Closing не скасовував його
+            // Mark this as "safe" closing so the Closing handler doesn't cancel it
             _isClosingSafely = true;
             Close();
         }
 
-        // Перетягування за шапку + дабл-клік Max/Restore
+        // Drag by header + double-click Max/Restore
         private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
             var point = e.GetCurrentPoint(this);
             if (!point.Properties.IsLeftButtonPressed)
                 return;
 
-            // Ігноруємо кліки по панелі з кнопками
+            // Ignore clicks on buttons panel
             var buttonsPanel = this.FindControl<StackPanel>("TitleButtonsPanel");
             if (buttonsPanel is not null)
             {
@@ -206,7 +206,7 @@ public MainWindow(bool suppressInit, string? startupFilePath)
                 BeginMoveDrag(e);
         }
 
-        // Ресайз без зміни курсорів — просто запускаємо системний drag по потрібному ребру/куту
+        // Resize without changing cursors — just start system drag on the needed edge/corner
         private void Resize_Top_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (WindowState != WindowState.Maximized)
@@ -329,7 +329,7 @@ public MainWindow(bool suppressInit, string? startupFilePath)
         }
 
         /// <summary>
-        /// Публічний метод для доступу до TabManager (для ChatWindow)
+        /// Public method to access TabManager (for ChatWindow)
         /// </summary>
         public TabManager GetTabManager() => _tabManager;
     }

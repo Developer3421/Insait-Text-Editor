@@ -25,7 +25,7 @@ namespace InsaitTextEditor.Windows
             _owner = owner;
             _editor = editor;
 
-            // Закриваємося при втраті фокусу як справжнє контекстне меню
+            // Close on focus lost like a real context menu
             Deactivated += (_, __) => Close();
         }
 
@@ -94,7 +94,7 @@ namespace InsaitTextEditor.Windows
                 {
                     await clipboard.SetTextAsync(sel);
                 }
-                // Видаляємо виділення
+                // Remove selection
                 tb.SelectedText = string.Empty;
                 tb.Focus();
             }
@@ -137,7 +137,7 @@ namespace InsaitTextEditor.Windows
                     var text = await ClipboardCompat.TryGetTextAsync((Avalonia.Input.Platform.IClipboard)clipboard);
                     if (!string.IsNullOrEmpty(text))
                     {
-                        // Замінюємо виділення вставкою
+                        // Replace selection with paste
                         tb.SelectedText = text;
                         tb.Focus();
                     }
@@ -239,7 +239,7 @@ namespace InsaitTextEditor.Windows
         private void OpenChatAndSend(string prompt)
         {
             var chat = new ChatWindow();
-            // Після відкриття — вставляємо текст і натискаємо Send
+            // After opening — paste text and press Send
             chat.Opened += (_, __) =>
             {
                 var input = chat.FindControl<TextBox>("InputTextBox");
@@ -248,7 +248,7 @@ namespace InsaitTextEditor.Windows
                     input.Text = prompt;
                 if (send is not null)
                 {
-                    // Тригеримо клік "Send"
+                    // Trigger "Send" click
                     send.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 }
             };
