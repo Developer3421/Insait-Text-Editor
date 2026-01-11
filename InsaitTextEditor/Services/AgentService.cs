@@ -9,7 +9,7 @@ using InsaitTextEditor.Models;
 namespace InsaitTextEditor.Services;
 
 /// <summary>
-/// Сервіс для роботи з AI агентом - ТІЛЬКИ Microsoft Agent Framework
+/// Service for working with AI agent - Microsoft Agent Framework only
 /// </summary>
 public class AgentService : IDisposable
 {
@@ -30,26 +30,26 @@ public class AgentService : IDisposable
         _conversationState = conversationState ?? throw new ArgumentNullException(nameof(conversationState));
         _historyService = historyService ?? throw new ArgumentNullException(nameof(historyService));
         
-        Console.WriteLine("[AgentService] ✅ Ініціалізовано з Microsoft Agent Framework (тільки новий агент)");
+        Console.WriteLine("[AgentService] ✅ Initialized with Microsoft Agent Framework (new agent only)");
     }
 
     /// <summary>
-    /// Ініціалізація моделі
+    /// Initialize the model
     /// </summary>
     public async Task InitializeAsync()
     {
-        Console.WriteLine("[AgentService] 🔄 Ініціалізація моделі через Microsoft.Agents...");
+        Console.WriteLine("[AgentService] 🔄 Initializing model via Microsoft.Agents...");
         await _modelManager.InitializeAsync();
         
-        // Отримати інформацію про модель з менеджера
+        // Get model info from manager
         var info = await _modelManager.GetModelInfoAsync();
-        Console.WriteLine($"[AgentService] ✅ Модель: {info.Name}");
+        Console.WriteLine($"[AgentService] ✅ Model: {info.Name}");
         Console.WriteLine($"[AgentService] ✅ Max tokens: {info.MaxTokens}");
         Console.WriteLine($"[AgentService] ✅ Context size: {info.ContextSize}");
     }
 
     /// <summary>
-    /// Отримати відповідь від агента через Microsoft Agent Framework
+    /// Get response from agent via Microsoft Agent Framework
     /// </summary>
     public async Task<AgentResponse> GetResponseAsync(
         string userMessage,
@@ -63,12 +63,12 @@ public class AgentService : IDisposable
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Помилка генерації відповіді: {ex.Message}", ex);
+            throw new InvalidOperationException($"Response generation error: {ex.Message}", ex);
         }
     }
 
     /// <summary>
-    /// Стрімінгова відповідь через Microsoft Agent Framework
+    /// Streaming response via Microsoft Agent Framework
     /// </summary>
     public async IAsyncEnumerable<string> GetResponseStreamAsync(
         string userMessage,
@@ -83,7 +83,7 @@ public class AgentService : IDisposable
     }
 
     /// <summary>
-    /// Додати повідомлення користувача до історії
+    /// Add user message to history
     /// </summary>
     public void AddUserMessage(string content)
     {
@@ -99,13 +99,13 @@ public class AgentService : IDisposable
     }
 
     /// <summary>
-    /// Додати відповідь асистента до історії (з підтримкою AgentMessage)
+    /// Add assistant response to history (with AgentMessage support)
     /// </summary>
     public void AddAssistantMessage(string content, List<ToolInvocation>? toolsUsed = null)
     {
         if (toolsUsed is { Count: > 0 })
         {
-            // Використати AgentMessage для збереження інформації про інструменти
+            // Use AgentMessage to save tool information
             var agentMessage = new AgentMessage
             {
                 Sender = AssistantConfig.Name,
@@ -134,7 +134,7 @@ public class AgentService : IDisposable
     }
 
     /// <summary>
-    /// Очистити історію розмови
+    /// Clear conversation history
     /// </summary>
     public void ClearHistory()
     {
@@ -143,7 +143,7 @@ public class AgentService : IDisposable
     }
 
     /// <summary>
-    /// Отримати інформацію про модель
+    /// Get model information
     /// </summary>
     public async Task<ModelInfo> GetModelInfoAsync()
     {
@@ -151,12 +151,12 @@ public class AgentService : IDisposable
     }
 
     /// <summary>
-    /// Перезавантажити модель (якщо змінились налаштування)
+    /// Reload model (if settings have changed)
     /// </summary>
     public void ReloadModel()
     {
         _modelManager.ReloadModel();
-        _conversationState.ClearHistory(); // Очистити контекст при перезавантаженні
+        _conversationState.ClearHistory(); // Clear context on reload
     }
 
 
