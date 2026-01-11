@@ -41,7 +41,7 @@ public class DocumentTabViewModel : INotifyPropertyChanged
         set => SetField(ref _documentText, value);
     }
 
-    /// Title (file name or "Unnamed Document")
+    // Tab active state
     public bool IsActive
     {
         get => _isActive;
@@ -49,14 +49,14 @@ public class DocumentTabViewModel : INotifyPropertyChanged
         {
             if (SetField(ref _isActive, value))
             {
-    /// Full text content
+                // Notify about changes to derived properties for XAML bindings
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TabBorderBrush)));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TabBorderThickness)));
             }
         }
     }
 
-    /// Whether document has unsaved changes
+    // Derived properties for styling (without triggers)
     public IBrush TabBorderBrush => IsActive ? new SolidColorBrush(Color.Parse("#FF8C00")) : Brushes.Transparent;
     public Thickness TabBorderThickness => IsActive ? new Thickness(2) : new Thickness(0);
 

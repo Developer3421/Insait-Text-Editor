@@ -8,7 +8,7 @@ namespace InsaitTextEditor;
 
 public partial class MainWindow 
 {
-    /// Extended MainWindow part: selection editing and text manipulation
+    // Editor cache for faster access to TextBox from LinedTextInput
     private LinedTextInput? _editorHostCache;
 
     private LinedTextInput? GetEditorHost()
@@ -23,7 +23,7 @@ public partial class MainWindow
         return _editorHostCache;
     }
 
-        /// Set or replace text for active document
+    // ===== Universal helpers for working with TextBox selection =====
 
     // Helpers operating on LinedTextInput (the actual editor control)
     private static (int start, int length) GetSelection(LinedTextInput editor)
@@ -41,7 +41,7 @@ public partial class MainWindow
 
     // Note: use LinedTextInput.ToggleWrapSelection to perform wrap operations (it records undo state)
 
-        /// Delete selected text in current document
+    // ===== Toolbar button handlers =====
 
     private void BoldButton_Click(object? sender, RoutedEventArgs e)
     {
@@ -87,7 +87,7 @@ public partial class MainWindow
         }
         else if (start > 0)
         {
-        /// Insert text at cursor position
+            // Delete character to the left of cursor (Backspace)
             host.Text = text.Remove(start - 1, 1);
             SetSelection(host, start - 1, 0);
         }
@@ -95,7 +95,7 @@ public partial class MainWindow
         host.Focus();
     }
 
-        /// Get selected text from current document
+    // Add these handlers inside MainWindow class
     private void IncreaseFont_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is InsaitTextEditor.Services.TabManager tm)
