@@ -197,7 +197,7 @@ public class DatabaseEncryptionManager
     }
 
     /// <summary>
-    /// Очистити кеш ключа
+    /// Clear key cache
     /// </summary>
     public void ClearCache()
     {

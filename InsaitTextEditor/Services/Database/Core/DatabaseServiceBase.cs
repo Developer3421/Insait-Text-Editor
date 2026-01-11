@@ -103,7 +103,7 @@ public abstract class DatabaseServiceBase : IDisposable
     }
 
     /// <summary>
-    /// Створити з'єднання з БД
+    /// Create database connection
     /// </summary>
     protected virtual LiteDatabase CreateDatabaseConnection(string databasePath)
     {
@@ -247,7 +247,7 @@ public abstract class DatabaseServiceBase : IDisposable
     }
 
     /// <summary>
-    /// Оновити метрики шарда
+    /// Update shard metrics
     /// </summary>
     protected virtual async Task UpdateMetricsAsync(string collectionName)
     {

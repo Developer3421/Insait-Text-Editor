@@ -161,7 +161,7 @@ public class AgentService : IDisposable
 
 
     /// <summary>
-    /// Приблизна оцінка кількості токенів (1 токен ≈ 4 символи)
+    /// Approximate token count estimation (1 token ≈ 4 characters)
     /// </summary>
     private int EstimateTokens(string text)
     {

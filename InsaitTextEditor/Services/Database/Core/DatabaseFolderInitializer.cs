@@ -161,7 +161,7 @@ public class DatabaseFolderInitializer
     /// <returns>Information about the folder structure</returns>
     public string GetFoldersInfo()
     {
-        return $@"Структура папок БД:
+        return $@"DB folder structure:
 ├── {Path.Combine(_baseDirectory, "Database")}
 └── {Path.Combine(_baseDirectory, "Data")}
     ├── Encrypted

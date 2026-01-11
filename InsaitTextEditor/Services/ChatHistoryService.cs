@@ -53,7 +53,7 @@ namespace InsaitTextEditor.Services
         }
 
         /// <summary>
-        /// Отримати останні повідомлення агента з інформацією про інструменти
+        /// Get recent agent messages with tool information
         /// </summary>
         public IEnumerable<AgentMessage> GetRecentAgentMessages(int limit = 100)
         {

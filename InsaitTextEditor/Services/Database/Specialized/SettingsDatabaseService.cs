@@ -156,7 +156,7 @@ public class SettingsDatabaseService : DatabaseServiceBase
             return CurrentDatabase;
         }
 
-        // Якщо база даних не створена, створити її
+        // If database not created, create it
         var path = System.IO.Path.Combine(
             Config.GetDatabasePath(DatabaseName), 
             "settings.litedb");

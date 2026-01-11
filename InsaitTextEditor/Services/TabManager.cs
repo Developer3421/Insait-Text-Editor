@@ -695,20 +695,20 @@ public class TabManager : INotifyPropertyChanged
         return brush;
     }
 
-    // --------------------------
-    // ПУБЛІЧНІ СЛУЖБОВІ МЕТОДИ ДЛЯ СЕСІЙ/ЗОВНІШНІХ СЕРВІСІВ
-    //   Мінімальні гетери/сетери без зміни внутрішньої логіки менеджера вкладок.
+// --------------------------
+    // PUBLIC HELPER METHODS FOR SESSIONS/EXTERNAL SERVICES
+    //   Minimal getters/setters without changing internal tab manager logic.
     // --------------------------
 
     /// <summary>
-    /// Отримати шлях файлу, прив’язаний до вкладки (або null, якщо документ ще не збережено).
+    /// Get file path bound to tab (or null if document not yet saved).
     /// </summary>
     public string? GetFilePath(Guid id)
         => _filePaths.TryGetValue(id, out var p) ? p : null;
 
     /// <summary>
-    /// Встановити/очистити шлях файлу, прив’язаний до вкладки. Заголовок вкладки тут свідомо не змінюємо —
-    /// цим займаються інші методи (Open/Save). Цей метод призначено для відновлення сесії.
+    /// Set/clear file path bound to tab. Tab title is intentionally not changed here -
+    /// that's handled by other methods (Open/Save). This method is intended for session restoration.
     /// </summary>
     public void SetFilePath(Guid id, string? path)
         => _filePaths[id] = path;

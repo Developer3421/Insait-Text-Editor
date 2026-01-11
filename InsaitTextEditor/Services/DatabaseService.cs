@@ -39,7 +39,7 @@ namespace InsaitTextEditor.Services
         }
 
         /// <summary>
-        /// Отримує директорію, де знаходиться виконуваний файл
+        /// Get the directory where the executable is located
         /// </summary>
         private static string GetExecutableDirectory()
         {

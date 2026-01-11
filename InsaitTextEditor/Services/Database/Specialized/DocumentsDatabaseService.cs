@@ -96,7 +96,7 @@ public class DocumentsDatabaseService : EncryptedDatabaseService<Workspace>
     }
 
     /// <summary>
-    /// Пошук документів за текстом
+    /// Search documents by text
     /// </summary>
     public List<Workspace> SearchWorkspaces(string searchText)
     {

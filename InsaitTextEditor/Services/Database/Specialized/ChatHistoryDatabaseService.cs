@@ -113,7 +113,7 @@ public class ChatHistoryDatabaseService : EncryptedDatabaseService<ChatMessage>
     }
 
     /// <summary>
-    /// Отримати всі повідомлення
+    /// Get all messages
     /// </summary>
     public List<ChatMessage> GetAllMessages()
     {

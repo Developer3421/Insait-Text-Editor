@@ -77,7 +77,7 @@ public class MemoryQueryEngine
         // Бонус за впевненість
         score *= fact.Confidence;
 
-        // Бонус за свіжість (нещодавно використовувані факти)
+        // Bonus for freshness (recently used facts)
         var daysSinceAccess = (System.DateTime.UtcNow - fact.LastAccessedAt).TotalDays;
         if (daysSinceAccess < 7)
             score *= 1.2;

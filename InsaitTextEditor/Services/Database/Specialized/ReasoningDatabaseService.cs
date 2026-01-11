@@ -185,7 +185,7 @@ public class ReasoningDatabaseService : EncryptedDatabaseService<ReasoningChain>
     }
 
     /// <summary>
-    /// Видалити старі завершені chains (для очищення)
+    /// Delete old completed chains (for cleanup)
     /// </summary>
     public async Task<int> DeleteOldCompletedChainsAsync(DateTime olderThan)
     {

@@ -167,7 +167,7 @@ public abstract class EncryptedDatabaseService<T> : DatabaseServiceBase where T 
     }
 
     /// <summary>
-    /// Очистити всю колекцію
+    /// Clear entire collection
     /// </summary>
     public virtual async Task ClearAsync()
     {

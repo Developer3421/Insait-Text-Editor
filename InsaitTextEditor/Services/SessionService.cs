@@ -439,7 +439,7 @@ namespace InsaitTextEditor.Services
     }
 
     /// <summary>
-    /// Знімок однієї вкладки.
+    /// Snapshot of a single tab.
     /// </summary>
     public sealed class TabSnapshot
     {

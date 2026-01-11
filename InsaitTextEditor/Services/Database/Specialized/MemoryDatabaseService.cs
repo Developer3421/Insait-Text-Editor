@@ -142,7 +142,7 @@ public class MemoryDatabaseService : EncryptedDatabaseService<MemoryFact>
     }
 
     /// <summary>
-    /// Отримати всі факти (включно з неактивними)
+    /// Get all facts (including inactive)
     /// </summary>
     public List<MemoryFact> GetAllFacts(bool includeInactive = false)
     {
