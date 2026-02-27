@@ -336,7 +336,7 @@ If you find this project useful, please consider giving it a ⭐ on GitHub!
 ### 📥 Встановлення
 
 #### Microsoft Store
-**[Завантажити з Microsoft Store](https://apps.microsoft.com/store/detail/...)** *(На сертифікації)*
+https://apps.microsoft.com/detail/9PMDTL9PRP7J
 
 #### GitHub Release
 1. Завантажте останній реліз з [Releases](https://github.com/YourUsername/InsaitTextEditor/releases)
